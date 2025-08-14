@@ -1,4 +1,5 @@
 # SchoolBookingsApp
-A booking app for managing parents' evening and other booking in schools.
+A booking app for managing parents' evening and other booking in schools. Stores parents and students data as well as 
+bookings for meetings with teachers.
 
 CI pipeline runs automatically on pull requests to main branch.
