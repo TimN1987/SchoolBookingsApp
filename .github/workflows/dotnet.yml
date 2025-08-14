@@ -29,4 +29,4 @@ jobs:
 
     - name: Test
       working-directory: src
-      run: dotnet test SchoolBookingApp.sln --no-build SchoolBookingApp.sln --verbosity normal
+      run: dotnet test SchoolBookingApp.sln --no-build --verbosity normal
