@@ -20,10 +20,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore src/SchoolBookingApp.sln
+      working-directory: src
+      run: dotnet restore SchoolBookingApp.sln
 
     - name: Build
-      run: dotnet build src/SchoolBookingApp.sln --no-restore --configuration Release
+      working-directory: src
+      run: dotnet build SchoolBookingApp.sln --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test --no-build src/SchoolBookingApp.sln --verbosity normal
+      working-directory: src
+      run: dotnet test --no-build SchoolBookingApp.sln --verbosity normal
