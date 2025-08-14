@@ -25,10 +25,8 @@ jobs:
 
     - name: Build
       working-directory: src
-      run: dotnet build SchoolBookingApp/SchoolBookingApp.csproj --no-restore --configuration Release
+      run: dotnet build SchoolBookingApp.sln --configuration Release
 
     - name: Test
       working-directory: src
-      run: |
-        dotnet build SchoolBookingAppTests/SchoolBookingAppTests.csproj --no-restore --configuration Release
-        dotnet test SchoolBookingAppTests/SchoolBookingAppTests.csproj --no-build --verbosity normal
+      run: dotnet test SchoolBookingAppTests/SchoolBookingAppTests.csproj --no-build --configuration Release --verbosity normal
