@@ -16,7 +16,6 @@ namespace SchoolBookingAppTests.DatabaseTests
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
-        private const string ValidFieldName = "LastName";
         private const string InvalidFieldName = "InvalidFieldName";
         private const string ValidKeyword = "Doe";
         private const string WhiteSpace = " ";
@@ -278,7 +277,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         public async Task SearchByCriteria_NullCriteria_ReturnsEmptyList()
         {
             //Arrange & Act
-            var result = await _readOperationService.SearchByCriteria(null!);
+            var result = await _readOperationService.SearchByCriteria(null!, ValidTableName);
 
             //Assert
             Assert.NotNull(result);
@@ -293,17 +292,47 @@ namespace SchoolBookingAppTests.DatabaseTests
         public async Task SearchByCriteria_NoCriteria_ReturnsNoData()
         {
             //Arrange & Act
-            var result = await _readOperationService.SearchByCriteria([]);
+            var result = await _readOperationService.SearchByCriteria([], ValidTableName);
 
             //Assert
             Assert.NotNull(result);
             Assert.Empty(result);
         }
 
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method throws an <see 
+        /// cref="ArgumentException"/> when an invalid table name is passed as a parameter - null, empty, whitespace or a 
+        /// the name of a table that does not exist in the database. This ensures that the method does not attempt to 
+        /// execute a search on an invalid table, which would lead to unexpected behavior or errors.
+        /// </summary>
+        /// <param name="criteria">A list of criteria - the field name and its desired value.</param>
+        /// <param name="tableName">The name of the table to be searched.</param>
+        [Theory]
+        [MemberData(nameof(SearchByCriteriaInvalidTableNames))]
+        public async Task SearchByCriteria_InvalidTableName_ThrowsArgumentException(List<(string, object)> criteria, string tableName)
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _readOperationService.SearchByCriteria(criteria, tableName));
+        }
 
 
 
 
+        //Member data for tests.
+
+        /// <summary>
+        /// Member data for the <see cref="ReadOperationService.SearchByCriteria"/> tests. Contains invalid table names 
+        /// that should throw an <see cref="ArgumentException"/> when passed to the method.
+        /// </summary>
+        public static IEnumerable<object[]> SearchByCriteriaInvalidTableNames =>
+            new List<object[]>
+            {
+                new object[] { new List<(string, object)> { ("FirstName", "John") }, null! },
+                new object[] { new List<(string, object)> { ("LastName", "Doe") }, string.Empty },
+                new object[] { new List<(string, object)> { ("LastName", "Doe") }, WhiteSpace },
+                new object[] { new List<(string, object)> { ("DateOfBirth", 20191010) }, InvalidTableName }
+            };
 
         //Helper methods.
 

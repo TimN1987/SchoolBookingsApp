@@ -36,6 +36,8 @@ namespace SchoolBookingApp.MVVM.Database
         private readonly string _getAllDataQuery;
         private readonly string _searchByKeywordQuery;
         private readonly string _searchByKeywordAdditionalFieldsQuery;
+        private readonly string _searchByCriteriaBaseQuery;
+        private readonly string _searchByCriteriaAdditionalQuery;
 
         public ReadOperationService(SqliteConnection connection)
         {
@@ -58,6 +60,8 @@ namespace SchoolBookingApp.MVVM.Database
             _getAllDataQuery = @"SELECT * FROM {0};";
             _searchByKeywordQuery = @"SELECT * FROM {0} WHERE LOWER({1}) LIKE @Keyword";
             _searchByKeywordAdditionalFieldsQuery = @" OR LOWER({0}) LIKE @Keyword";
+            _searchByCriteriaBaseQuery = @"SELECT * FROM {0} WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
+            _searchByCriteriaAdditionalQuery = @" AND {0} = @{0}"; //Additional query to append to the base query for each criteria.
         }
 
         //Methods
@@ -173,22 +177,57 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
-        public async Task<List<int>> SearchByCriteria(List<(string, object)> criteria, string? tableName = null)
+        public async Task<List<int>> SearchByCriteria(List<(string, object)> criteria, string tableName)
         {
             //Validate criteria
             if (criteria == null || criteria.Count == 0)
                 return [];
 
             //Validate table name
-            tableName ??= "All";
             if (string.IsNullOrWhiteSpace(tableName) || !_validTables.Contains(tableName))
                 throw new ArgumentException($"Invalid table name: {tableName}. Valid tables are: {string.Join(", ", _validTables)}");
 
             var results = new List<int>();
+            var commandText = new StringBuilder(string.Format(_searchByCriteriaBaseQuery, tableName));
+
+            foreach (var (field, _) in criteria)
+            {
+                //Validate field and skip if invalid.
+                if (string.IsNullOrWhiteSpace(field) || !_validFields[tableName].Contains(field))
+                    continue;
+
+                //Append the field condition to the command text.
+                commandText.AppendFormat(_searchByCriteriaAdditionalQuery, field);
+            }
+
+            commandText.Append(';');
 
             try
             {
-                
+                using var command = _connection.CreateCommand();
+                command.CommandText = commandText.ToString();
+
+                foreach (var (field, value) in criteria)
+                {
+                    //Skip invalid fields as before to ensure the correct parameters are added.
+                    if (string.IsNullOrWhiteSpace(field) || !_validFields[tableName].Contains(field))
+                        continue;
+
+                    //Add the parameter to the command.
+                    command.Parameters.AddWithValue($"@{field}", value);
+                }
+
+                await using var reader = await command.ExecuteReaderAsync();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        //Assuming the first column is the Id.
+                        results.Add(reader.GetInt32(0));
+                    }
+                }
+
                 return results;
             }
             catch (Exception ex)
