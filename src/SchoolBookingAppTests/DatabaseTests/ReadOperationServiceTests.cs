@@ -271,6 +271,21 @@ namespace SchoolBookingAppTests.DatabaseTests
         //SearchByCriteria tests.
 
         /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when the
+        /// criteria parameter is null. This ensures that if no criteria are specified, no valid results are returned.
+        /// </summary>
+        [Fact]
+        public async Task SearchByCriteria_NullCriteria_ReturnsEmptyList()
+        {
+            //Arrange & Act
+            var result = await _readOperationService.SearchByCriteria(null!);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        /// <summary>
         /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when no 
         /// criteria are provided. This ensures that if no criteria are specified, no valid results are returned.
         /// </summary>
@@ -284,6 +299,10 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.NotNull(result);
             Assert.Empty(result);
         }
+
+
+
+
 
 
         //Helper methods.
