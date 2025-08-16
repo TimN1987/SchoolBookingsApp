@@ -5,9 +5,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Struct;
 using Serilog;
 
 namespace SchoolBookingApp.MVVM.Database
@@ -16,7 +18,7 @@ namespace SchoolBookingApp.MVVM.Database
     {
         Task<List<SearchResult>> GetAllSearchData();
         Task<List<SearchResult>> SearchByKeyword(string keyword, string? tableName = null, string? field = null);
-        Task<List<int>> SearchByCriteria(List<(string, object)> criteria, string? tableName = null);
+        Task<List<Student>> SearchByCriteria(List<(string, object[])> criteria);
         Task<Student> GetStudentData(int Id);
         Task<Parent> GetParentInformation(int Id);
         Task<List<SearchResult>> GetStudentList();
@@ -37,7 +39,6 @@ namespace SchoolBookingApp.MVVM.Database
         private readonly string _searchByKeywordQuery;
         private readonly string _searchByKeywordAdditionalFieldsQuery;
         private readonly string _searchByCriteriaBaseQuery;
-        private readonly string _searchByCriteriaAdditionalQuery;
 
         public ReadOperationService(SqliteConnection connection)
         {
@@ -60,8 +61,34 @@ namespace SchoolBookingApp.MVVM.Database
             _getAllDataQuery = @"SELECT * FROM {0};";
             _searchByKeywordQuery = @"SELECT * FROM {0} WHERE LOWER({1}) LIKE @Keyword";
             _searchByKeywordAdditionalFieldsQuery = @" OR LOWER({0}) LIKE @Keyword";
-            _searchByCriteriaBaseQuery = @"SELECT * FROM {0} WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
-            _searchByCriteriaAdditionalQuery = @" AND {0} = @{0}"; //Additional query to append to the base query for each criteria.
+            _searchByCriteriaBaseQuery = @"
+                SELECT 
+                    s.Id,
+                    s.FirstName, 
+                    s.LastName,
+                    s.DateOfBirth,
+                    s.Class,
+                    GROUP_CONCAT(p.FirstName || ', ' || p.LastName || ', ' || ps.Relationship, ', ') AS ParentNames,
+                    d.Math, d.MathComments,
+                    d.Reading, d.ReadingComments,
+                    d.Writing, d.WritingComments,
+                    d.Science, d.History, d.Geography, d.MFL, d.PE, d.Art, d.Music, d.DesignTechnology, d.Computing, d.RE,
+                    c.GeneralComments,
+                    c.PupilComments,
+                    c.ParentComments,
+                    c.BehaviorNotes,
+                    c.AttendanceNotes,
+                    c.HomeworkNotes,
+                    c.ExtraCurricularNotes,
+                    c.SpecialEducationalNeedsNotes,
+                    c.SafeguardingNotes,
+                    c.OtherNotes
+                FROM Students AS s
+                JOIN ParentStudents AS ps ON s.Id = ps.StudentId
+                JOIN Parents AS p ON ps.ParentId = p.Id
+                JOIN Data AS d ON s.Id = d.StudentId
+                JOIN Comments AS c ON s.Id = c.StudentId
+                WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
         }
 
         //Methods
@@ -177,27 +204,20 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
-        public async Task<List<int>> SearchByCriteria(List<(string, object)> criteria, string tableName)
+
+        // Critera contain SQL query strings and their corresponding values. e.g. AND Age BETWEEN @AgeMin AND @AgeMax
+        public async Task<List<Student>> SearchByCriteria(List<(string, object[])> criteria)
         {
             //Validate criteria
             if (criteria == null || criteria.Count == 0)
                 return [];
 
-            //Validate table name
-            if (string.IsNullOrWhiteSpace(tableName) || !_validTables.Contains(tableName))
-                throw new ArgumentException($"Invalid table name: {tableName}. Valid tables are: {string.Join(", ", _validTables)}");
+            var results = new List<Student>();
+            var commandText = new StringBuilder(_searchByCriteriaBaseQuery);
 
-            var results = new List<int>();
-            var commandText = new StringBuilder(string.Format(_searchByCriteriaBaseQuery, tableName));
-
-            foreach (var (field, _) in criteria)
+            foreach (var (query, _) in criteria)
             {
-                //Validate field and skip if invalid.
-                if (string.IsNullOrWhiteSpace(field) || !_validFields[tableName].Contains(field))
-                    continue;
-
-                //Append the field condition to the command text.
-                commandText.AppendFormat(_searchByCriteriaAdditionalQuery, field);
+                commandText.Append(query);
             }
 
             commandText.Append(';');
@@ -207,14 +227,16 @@ namespace SchoolBookingApp.MVVM.Database
                 using var command = _connection.CreateCommand();
                 command.CommandText = commandText.ToString();
 
-                foreach (var (field, value) in criteria)
+                foreach (var (query, value) in criteria)
                 {
-                    //Skip invalid fields as before to ensure the correct parameters are added.
-                    if (string.IsNullOrWhiteSpace(field) || !_validFields[tableName].Contains(field))
-                        continue;
+                    var parameters = Regex.Matches(query, @"@[a-zA-z]+")
+                                        .Select(match => match.Value.ToString())
+                                        .ToList();
 
-                    //Add the parameter to the command.
-                    command.Parameters.AddWithValue($"@{field}", value);
+                    for (int i = 0; i < parameters.Count; i++)
+                    {
+                        command.Parameters.AddWithValue(parameters[i], value[i]);
+                    }
                 }
 
                 await using var reader = await command.ExecuteReaderAsync();
@@ -223,11 +245,52 @@ namespace SchoolBookingApp.MVVM.Database
                 {
                     while (reader.Read())
                     {
-                        //Assuming the first column is the Id.
-                        results.Add(reader.GetInt32(0));
+                        var student = new Student(
+                            reader.GetInt32(0),
+                            reader.GetString(1),
+                            reader.GetString(2),
+                            reader.GetDateTime(3),
+                            reader.GetString(4),
+                            ParseParentDetails(reader.GetString(5), reader.GetInt32(0)),
+                            new StudentDataRecord() {
+                                StudentId = reader.GetInt32(0),
+                                Math = reader.GetInt32(6),
+                                MathComments = reader.GetString(7),
+                                Reading = reader.GetInt32(8),
+                                ReadingComments = reader.GetString(9),
+                                Writing = reader.GetInt32(10),
+                                WritingComments = reader.GetString(11),
+                                Science = reader.GetInt32(12),
+                                History = reader.GetInt32(13),
+                                Geography = reader.GetInt32(14),
+                                MFL = reader.GetInt32(15),
+                                PE = reader.GetInt32(16),
+                                Art = reader.GetInt32(17),
+                                Music = reader.GetInt32(18),
+                                DesignTechnology = reader.GetInt32(19),
+                                Computing = reader.GetInt32(20),
+                                RE = reader.GetInt32(21)
+                            },
+                            new MeetingCommentsRecord() {
+                                StudentId = reader.GetInt32(0),
+                                GeneralComments = reader.GetString(22),
+                                PupilComments = reader.GetString(23),
+                                ParentComments = reader.GetString(24),
+                                BehaviorNotes = reader.GetString(25),
+                                AttendanceNotes = reader.GetString(26),
+                                HomeworkNotes = reader.GetString(27),
+                                ExtraCurricularNotes = reader.GetString(28),
+                                SpecialEducationalNeedsNotes = reader.GetString(29),
+                                SafeguardingNotes = reader.GetString(30),
+                                OtherNotes = reader.GetString(31)
+                            }
+                            );
+
+                        results.Add(student);
                     }
                 }
 
+                Log.Information($"Search by criteria returned {results.Count} results.");
                 return results;
             }
             catch (Exception ex)
@@ -304,6 +367,41 @@ namespace SchoolBookingApp.MVVM.Database
             commandText.Append(';');
 
             return commandText.ToString();
+        }
+
+        /// <summary>
+        /// Parses a string containing parent details into a list of <see cref="Parent"/> objects. The string is expected 
+        /// to be formatted as a comma-separated list of parent details, where each parent's details are represented by 
+        /// an id, first name, last name, and relationship to the child.
+        /// </summary>
+        /// <param name="parentList">A string containing the details for the adults with a relationship to a given child.</param>
+        /// <param name="childId">The student Id of the child with a relationship to the list of adults.</param>
+        /// <returns>A list of <see cref="Parent"/> objects for a given child with their relationship.</returns>
+        /// <remarks>This is used to parse details from the <see cref="ReadOperationService.SearchByCriteria"/> method.</remarks>
+        private List<(Parent, string)> ParseParentDetails(string parentList, int childId)
+        {
+            var parents = new List<(Parent, string)>();
+
+            if (string.IsNullOrEmpty(parentList))
+                return parents;
+
+            var parentDetails = parentList.Split(", ");
+            int i = 0;
+
+            while (i < parentDetails.Length)
+            {
+                var nextParent = new Parent(
+                    int.Parse(parentDetails[i]),
+                    parentDetails[i + 1],
+                    parentDetails[i + 2],
+                    new List<(int id, string relationship)> { (childId, parentDetails[i + 3]) }
+                );
+
+                parents.Add((nextParent, parentDetails[i + 3]));
+                i += 4; // Move to the next parent (4 fields per parent).
+            }
+
+            return parents;
         }
     }
 }
