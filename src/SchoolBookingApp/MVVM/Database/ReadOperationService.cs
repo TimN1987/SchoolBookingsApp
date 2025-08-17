@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Struct;
 using Serilog;
@@ -26,13 +27,14 @@ namespace SchoolBookingApp.MVVM.Database
         Task<List<string>> GetListOfClasses();
         Task<List<Student>> GetClassList(string className);
     }
-    
+
     public class ReadOperationService
     {
         private readonly SqliteConnection _connection;
         private readonly HashSet<string> _validTables;
         private readonly HashSet<string> _validSearchFields;
         private readonly Dictionary<string, HashSet<string>> _validFields;
+        private readonly Dictionary<DatabaseField, string> _fieldMapping;
 
         //SQL query strings
         private readonly string _getAllDataQuery;
@@ -56,6 +58,29 @@ namespace SchoolBookingApp.MVVM.Database
                 { "Data", ["Id", "StudentId", "Math", "MathComments", "Reading", "ReadingComments", "Writing", "WritingComments", "Science", "History", "Geography", "MFL", "PE", "Art", "Music", "DesignTechnology", "Computing", "RE"] },
                 { "Comments", ["Id", "StudentId", "GeneralComments", "PupilComments", "ParentComments", "BehaviorNotes", "AttendanceNotes", "HomeworkNotes", "ExtraCurricularNotes", "SpecialEducationalNeedsNotes", "SafeguardingNotes", "OtherNotes"] }
             };
+            _fieldMapping = new()
+        {
+            { DatabaseField.FirstName, "s.FirstName" },
+            { DatabaseField.LastName, "s.LastName" },
+            { DatabaseField.DateOfBirth, "s.DateOfBirth" },
+            { DatabaseField.Class, "s.Class" },
+            { DatabaseField.Math, "d.Math" },
+            { DatabaseField.MathComments, "d.MathComments" },
+            { DatabaseField.Reading, "d.Reading" },
+            { DatabaseField.ReadingComments, "d.ReadingComments" },
+            { DatabaseField.Writing, "d.Writing" },
+            { DatabaseField.WritingComments, "d.WritingComments" },
+            { DatabaseField.Science, "d.Science" },
+            { DatabaseField.History, "d.History" },
+            { DatabaseField.Geography, "d.Geography" },
+            { DatabaseField.MFL, "d.MFL" },
+            { DatabaseField.PE, "d.PE" },
+            { DatabaseField.Art, "d.Art" },
+            { DatabaseField.Music, "d.Music" },
+            { DatabaseField.DesignTechnology, "d.DesignTechnology" },
+            { DatabaseField.Computing, "d.Computing" },
+            { DatabaseField.RE, "d.RE" }
+        };
 
             //SQL query strings
             _getAllDataQuery = @"SELECT * FROM {0};";
@@ -68,7 +93,7 @@ namespace SchoolBookingApp.MVVM.Database
                     s.LastName,
                     s.DateOfBirth,
                     s.Class,
-                    GROUP_CONCAT(p.FirstName || ', ' || p.LastName || ', ' || ps.Relationship, ', ') AS ParentNames,
+                    GROUP_CONCAT(p.Id || ', ' || p.FirstName || ', ' || p.LastName || ', ' || ps.Relationship, ', ') AS ParentNames,
                     d.Math, d.MathComments,
                     d.Reading, d.ReadingComments,
                     d.Writing, d.WritingComments,
@@ -84,10 +109,10 @@ namespace SchoolBookingApp.MVVM.Database
                     c.SafeguardingNotes,
                     c.OtherNotes
                 FROM Students AS s
-                JOIN ParentStudents AS ps ON s.Id = ps.StudentId
-                JOIN Parents AS p ON ps.ParentId = p.Id
-                JOIN Data AS d ON s.Id = d.StudentId
-                JOIN Comments AS c ON s.Id = c.StudentId
+                LEFT JOIN ParentStudents AS ps ON s.Id = ps.StudentId
+                LEFT JOIN Parents AS p ON ps.ParentId = p.Id
+                LEFT JOIN Data AS d ON s.Id = d.StudentId
+                LEFT JOIN Comments AS c ON s.Id = c.StudentId
                 WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
         }
 
@@ -206,95 +231,28 @@ namespace SchoolBookingApp.MVVM.Database
 
 
         // Critera contain SQL query strings and their corresponding values. e.g. AND Age BETWEEN @AgeMin AND @AgeMax
-        public async Task<List<Student>> SearchByCriteria(List<(string, object[])> criteria)
+        public async Task<List<Student>> SearchByCriteria(List<SearchCriteria> criteria)
         {
             //Validate criteria
             if (criteria == null || criteria.Count == 0)
                 return [];
 
-            var results = new List<Student>();
-            var commandText = new StringBuilder(_searchByCriteriaBaseQuery);
-
-            foreach (var (query, _) in criteria)
-            {
-                commandText.Append(query);
-            }
-
-            commandText.Append(';');
+            var commandText = GenerateSearchQuery(criteria);
 
             try
             {
-                using var command = _connection.CreateCommand();
-                command.CommandText = commandText.ToString();
+                using var command = GenerateSearchCommand(commandText, criteria);
 
-                foreach (var (query, value) in criteria)
-                {
-                    var parameters = Regex.Matches(query, @"@[a-zA-z]+")
-                                        .Select(match => match.Value.ToString())
-                                        .ToList();
+                await using SqliteDataReader reader = await command.ExecuteReaderAsync();
 
-                    for (int i = 0; i < parameters.Count; i++)
-                    {
-                        command.Parameters.AddWithValue(parameters[i], value[i]);
-                    }
-                }
-
-                await using var reader = await command.ExecuteReaderAsync();
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        var student = new Student(
-                            reader.GetInt32(0),
-                            reader.GetString(1),
-                            reader.GetString(2),
-                            reader.GetDateTime(3),
-                            reader.GetString(4),
-                            ParseParentDetails(reader.GetString(5), reader.GetInt32(0)),
-                            new StudentDataRecord() {
-                                StudentId = reader.GetInt32(0),
-                                Math = reader.GetInt32(6),
-                                MathComments = reader.GetString(7),
-                                Reading = reader.GetInt32(8),
-                                ReadingComments = reader.GetString(9),
-                                Writing = reader.GetInt32(10),
-                                WritingComments = reader.GetString(11),
-                                Science = reader.GetInt32(12),
-                                History = reader.GetInt32(13),
-                                Geography = reader.GetInt32(14),
-                                MFL = reader.GetInt32(15),
-                                PE = reader.GetInt32(16),
-                                Art = reader.GetInt32(17),
-                                Music = reader.GetInt32(18),
-                                DesignTechnology = reader.GetInt32(19),
-                                Computing = reader.GetInt32(20),
-                                RE = reader.GetInt32(21)
-                            },
-                            new MeetingCommentsRecord() {
-                                StudentId = reader.GetInt32(0),
-                                GeneralComments = reader.GetString(22),
-                                PupilComments = reader.GetString(23),
-                                ParentComments = reader.GetString(24),
-                                BehaviorNotes = reader.GetString(25),
-                                AttendanceNotes = reader.GetString(26),
-                                HomeworkNotes = reader.GetString(27),
-                                ExtraCurricularNotes = reader.GetString(28),
-                                SpecialEducationalNeedsNotes = reader.GetString(29),
-                                SafeguardingNotes = reader.GetString(30),
-                                OtherNotes = reader.GetString(31)
-                            }
-                            );
-
-                        results.Add(student);
-                    }
-                }
+                List<Student> results = ReadStudentDataFromSearch(reader);
 
                 Log.Information($"Search by criteria returned {results.Count} results.");
                 return results;
             }
             catch (Exception ex)
             {
+                throw;
                 Log.Error(ex, "Error searching by criteria.");
                 return [];
             }
@@ -354,7 +312,7 @@ namespace SchoolBookingApp.MVVM.Database
         private string ConstructSearchCommandText(string tableName, string field)
         {
             var commandText = new StringBuilder();
-            
+
             if (field == "All")
             {
                 commandText.AppendFormat(_searchByKeywordQuery, tableName, "FirstName");
@@ -402,6 +360,230 @@ namespace SchoolBookingApp.MVVM.Database
             }
 
             return parents;
+        }
+
+        /// <summary>
+        /// Generates a SQL query string based on the provided search criteria. The criteria are expected to be a list of 
+        /// <see cref="SearchCriteria"/> objects, each containing a field, an operator, and parameters for the query.
+        /// </summary>
+        /// <param name="criteria">A list of <see cref="SearchCriteria"/> object containing the different criteria for 
+        /// the desired search.</param>
+        /// <returns>A string containing a SQL query to search across all data with the desired criteria.</returns>
+        private string GenerateSearchQuery(List<SearchCriteria> criteria)
+        {
+            var query = new StringBuilder(_searchByCriteriaBaseQuery);
+
+            int queryLine = 0;
+
+            foreach (var criterion in criteria)
+            {
+                string additionalQuery = GenerateCriteriaQuery(criterion.Field, criterion.Operator, queryLine.ToString());
+
+                if (!string.IsNullOrEmpty(additionalQuery))
+                    query.Append(additionalQuery);
+
+                queryLine++;
+            }
+
+            query.Append(" GROUP BY s.Id;");
+
+            return query.ToString();
+        }
+
+        /// <summary>
+        /// Generates a SQL query string for a specific field and operator, appending it to the base query.
+        /// </summary>
+        /// <param name="field">The name of the database field to be searched.</param>
+        /// <param name="op">The operator required for the desired search.</param>
+        /// <param name="queryLine">The number of the query to ensure accurate parameter assignment.</param>
+        /// <returns>A string containing part of a SQL query, used to add criteria to a search.</returns>
+        private string GenerateCriteriaQuery(DatabaseField field, SQLOperator op, string queryLine)
+        {
+            if (!_fieldMapping.TryGetValue(field, out var column))
+                return string.Empty;
+            
+            var query = new StringBuilder();
+            if (op == SQLOperator.Like || op == SQLOperator.NotLike)
+            {
+                query.Append($" AND LOWER({column}) ");
+            }
+            else
+            {
+                query.Append($" AND {column} ");
+            }
+
+            string parameter = $"@value{queryLine}", minParameter = $"@minValue{queryLine}", maxParameter = $"@maxValue{queryLine}";
+
+            switch (op)
+            {
+                case SQLOperator.Equals:
+                    query.Append($"= {parameter}");
+                    break;
+                case SQLOperator.NotEquals:
+                    query.Append($"<> {parameter}");
+                    break;
+                case SQLOperator.GreaterThan:
+                    query.Append($"> {parameter}");
+                    break;
+                case SQLOperator.LessThan:
+                    query.Append($"< {parameter}");
+                    break;
+                case SQLOperator.GreaterThanOrEqual:
+                    query.Append($">= {parameter}");
+                    break;
+                case SQLOperator.LessThanOrEqual:
+                    query.Append($"<= {parameter}");
+                    break;
+                case SQLOperator.Like:
+                    query.Append($"LIKE LOWER({parameter} + '%')");
+                    break;
+                case SQLOperator.NotLike:
+                    query.Append($"NOT LIKE LOWER({parameter} '%')");
+                    break;
+                case SQLOperator.Between:
+                    query.Append($"BETWEEN {minParameter} AND {maxParameter}");
+                    break;
+                default:
+                    Log.Error($"Invalid SQL operator: {op}");
+                    return string.Empty;
+            }
+
+            return query.ToString();
+        }
+
+        /// <summary>
+        /// Generates a SQL command for searching the database based on the provided command text and criteria.
+        /// </summary>
+        /// <param name="commandText">The SQL query for searching all data with the given criteria.</param>
+        /// <param name="criteria">A list of <see cref="SearchCriteria"/> containing the desired parameters for the 
+        /// <see cref="SqliteCommand"/>.</param>
+        /// <returns>A <see cref="SqliteCommand"/> to search the database with the given criteria.</returns>
+        /// <exception cref="ArgumentException">Thrown if there are not enough parameters for a BETWEEN operator, in 
+        /// which case an error would occur when trying to add a non-existant parameter.</exception>
+        private SqliteCommand GenerateSearchCommand(string commandText, List<SearchCriteria> criteria)
+        {
+            var command = _connection.CreateCommand();
+            command.CommandText = commandText;
+
+            var queryLine = 0;
+            foreach (var criterion in criteria)
+            {
+                if (criterion.Operator == SQLOperator.Between)
+                {
+                    if (criterion.Parameters.Length != 2)
+                    {
+                        Log.Error($"Invalid number of parameters for BETWEEN operator: {criterion.Parameters.Length}. Expected 2.");
+                        throw new ArgumentException("BETWEEN operator requires exactly two parameters.");
+                    }
+
+                    command.Parameters.AddWithValue($"@minValue{queryLine}", criterion.Parameters[0]);
+                    command.Parameters.AddWithValue($"@maxValue{queryLine}", criterion.Parameters[1]);
+                }
+                else if (criterion.Operator == SQLOperator.Like || criterion.Operator == SQLOperator.NotLike)
+                {
+                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0]);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0]);
+                }
+
+                queryLine++;
+            }
+            
+            return command;
+        }
+
+        /// <summary>
+        /// Reads student data from a <see cref="SqliteDataReader"/> and returns a list of <see cref="Student"/> objects.
+        /// </summary>
+        /// <param name="reader">A <see cref="SqliteDataReader"/> generated within the <see cref="SearchByCriteria"/> 
+        /// method to read data from the database with given criteria.</param>
+        /// <returns>A list of <see cref="Student"/> objects containing the search results.</returns>
+        private List<Student> ReadStudentDataFromSearch(SqliteDataReader reader)
+        {
+            var results = new List<Student>();
+            var count = 0;
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    var student = new Student(
+                        Id : GetSafeInt(reader, "Id"),
+                        FirstName: GetSafeString(reader, "FirstName"),
+                        LastName: GetSafeString(reader, "LastName"),
+                        DateOfBirth: GetSafeInt(reader, "DateOfBirth"),
+                        Class: GetSafeString(reader, "Class"),
+                        ParseParentDetails(GetSafeString(reader, "ParentNames"), GetSafeInt(reader, "Id")),
+                        new StudentDataRecord()
+                        {
+                            StudentId = GetSafeInt(reader, "Id"),
+                            Math = GetSafeInt(reader, "Math"),
+                            MathComments = GetSafeString(reader, "MathComments"),
+                            Reading = GetSafeInt(reader, "Reading"),
+                            ReadingComments = GetSafeString(reader, "ReadingComments"),
+                            Writing = GetSafeInt(reader, "Writing"),
+                            WritingComments = GetSafeString(reader, "WritingComments"),
+                            Science = GetSafeInt(reader, "Science"),
+                            History = GetSafeInt(reader, "History"),
+                            Geography = GetSafeInt(reader, "Geography"),
+                            MFL = GetSafeInt(reader, "MFL"),
+                            PE = GetSafeInt(reader, "PE"),
+                            Art = GetSafeInt(reader, "Art"),
+                            Music = GetSafeInt(reader, "Music"),
+                            DesignTechnology = GetSafeInt(reader, "DesignTechnology"),
+                            Computing = GetSafeInt(reader, "Computing"),
+                            RE = GetSafeInt(reader, "RE")
+                        },
+                        new MeetingCommentsRecord()
+                        {
+                            StudentId = GetSafeInt(reader, "Id"),
+                            GeneralComments = GetSafeString(reader, "GeneralComments"),
+                            PupilComments = GetSafeString(reader, "PupilComments"),
+                            ParentComments = GetSafeString(reader, "ParentComments"),
+                            BehaviorNotes = GetSafeString(reader, "BehaviorNotes"),
+                            AttendanceNotes = GetSafeString(reader, "AttendanceNotes"),
+                            HomeworkNotes = GetSafeString(reader, "HomeworkNotes"),
+                            ExtraCurricularNotes = GetSafeString(reader, "ExtraCurricularNotes"),
+                            SpecialEducationalNeedsNotes = GetSafeString(reader, "SpecialEducationalNeedsNotes"),
+                            SafeguardingNotes = GetSafeString(reader, "SafeguardingNotes"),
+                            OtherNotes = GetSafeString(reader, "OtherNotes")
+                        }
+                        );
+
+                    results.Add(student); count++;
+                }
+            }
+
+            return results;
+        }
+
+        //Static helper methods
+
+        /// <summary>
+        /// Retrieves a string value from a <see cref="SqliteDataReader"/> for a given column name, returning an empty 
+        /// string if the value is null or empty.
+        /// </summary>
+        /// <param name="reader">The <see cref="SqliteDataReader"/> used to read the search data.</param>
+        /// <param name="columnName">The field name for the column containing the desired data.</param>
+        /// <returns>A string containing the desired data.</returns>
+        private static string GetSafeString(SqliteDataReader reader, string columnName)
+        {
+            int ordinal = reader.GetOrdinal(columnName);
+            return !reader.IsDBNull(ordinal) ? reader.GetString(ordinal) : string.Empty;
+        }
+
+        /// <summary>
+        /// Retrieves an integer value from a <see cref="SqliteDataReader"/> for a given column name, returning 0 if the 
+        /// value is null or empty.
+        /// </summary>
+        /// <param name="reader">The <see cref="SqliteDataReader"/> used to read the search data.</param>
+        /// <param name="columnName">The field name for the column containing the desired data.</param>
+        /// <returns>The integer value of the desired data.</returns>
+        private static int GetSafeInt(SqliteDataReader reader, string columnName)
+        {
+            int ordinal = reader.GetOrdinal(columnName);
+            return !reader.IsDBNull(ordinal) ? reader.GetInt32(ordinal) : 0;
         }
     }
 }

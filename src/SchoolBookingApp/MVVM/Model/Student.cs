@@ -11,7 +11,7 @@ namespace SchoolBookingApp.MVVM.Model
         int Id,
         string FirstName,
         string LastName,
-        DateTime DateOfBirth,
+        int DateOfBirth,
         string Class,
         List<(Parent, string)> Parents,
         StudentDataRecord Data,

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SchoolBookingApp.MVVM.Database;
+using SchoolBookingApp.MVVM.Enums;
 using Serilog;
 
 namespace SchoolBookingAppTests.DatabaseTests
@@ -299,13 +300,51 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Empty(result);
         }
 
+        [Theory]
+        [MemberData(nameof(SearchByCriteriaValidMemberData))]
+        public async Task SearchByCriteria_ValidCriteria_ReturnsExpectedResults(
+            List<SearchCriteria> criteria, int expectedResultsCount, List<string> expectedFirstNames)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
 
+            //Act
+            var searchResults = await _readOperationService.SearchByCriteria(criteria);
+
+            //Assert
+            Assert.NotNull(searchResults);
+            Assert.Equal(expectedResultsCount, searchResults.Count);
+
+            foreach (var name in expectedFirstNames)
+                Assert.NotEmpty(searchResults.Where(result => result.FirstName == name));
+        }
 
 
 
         //Member data for tests.
+        public static IEnumerable<object[]> SearchByCriteriaValidMemberData()
+        {
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new SearchCriteria(
+                        Field: DatabaseField.FirstName,
+                        SQLOperator.Equals,
+                        [ "John"]
+                        ),
+                    new SearchCriteria(
+                        Field: DatabaseField.LastName,
+                        SQLOperator.Equals,
+                        [ "Doe" ]
+                        )
+                },
+                1,
+                new List<string> { "John" }
+            };
+        }
 
-        
 
         //Helper methods.
 
