@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SchoolBookingApp.MVVM.Database;
+using SchoolBookingApp.MVVM.Enums;
 using Serilog;
 
 namespace SchoolBookingAppTests.DatabaseTests
@@ -16,7 +17,6 @@ namespace SchoolBookingAppTests.DatabaseTests
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
-        private const string ValidFieldName = "LastName";
         private const string InvalidFieldName = "InvalidFieldName";
         private const string ValidKeyword = "Doe";
         private const string WhiteSpace = " ";
@@ -271,6 +271,21 @@ namespace SchoolBookingAppTests.DatabaseTests
         //SearchByCriteria tests.
 
         /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when the
+        /// criteria parameter is null. This ensures that if no criteria are specified, no valid results are returned.
+        /// </summary>
+        [Fact]
+        public async Task SearchByCriteria_NullCriteria_ReturnsEmptyList()
+        {
+            //Arrange & Act
+            var result = await _readOperationService.SearchByCriteria(null!);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        /// <summary>
         /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when no 
         /// criteria are provided. This ensures that if no criteria are specified, no valid results are returned.
         /// </summary>
@@ -283,6 +298,51 @@ namespace SchoolBookingAppTests.DatabaseTests
             //Assert
             Assert.NotNull(result);
             Assert.Empty(result);
+        }
+
+        [Theory]
+        [MemberData(nameof(SearchByCriteriaValidMemberData))]
+        public async Task SearchByCriteria_ValidCriteria_ReturnsExpectedResults(
+            List<SearchCriteria> criteria, int expectedResultsCount, List<string> expectedFirstNames)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var searchResults = await _readOperationService.SearchByCriteria(criteria);
+
+            //Assert
+            Assert.NotNull(searchResults);
+            Assert.Equal(expectedResultsCount, searchResults.Count);
+
+            foreach (var name in expectedFirstNames)
+                Assert.NotEmpty(searchResults.Where(result => result.FirstName == name));
+        }
+
+
+
+        //Member data for tests.
+        public static IEnumerable<object[]> SearchByCriteriaValidMemberData()
+        {
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new SearchCriteria(
+                        Field: DatabaseField.FirstName,
+                        SQLOperator.Equals,
+                        [ "John"]
+                        ),
+                    new SearchCriteria(
+                        Field: DatabaseField.LastName,
+                        SQLOperator.Equals,
+                        [ "Doe" ]
+                        )
+                },
+                1,
+                new List<string> { "John" }
+            };
         }
 
 

@@ -28,6 +28,7 @@ namespace SchoolBookingApp.MVVM.Factories
         private readonly string _applicationFolderName = connectionInformation.ApplicationFolder;
         private readonly string _databaseFolderName = connectionInformation.DatabaseFolder;
         private readonly string _databaseName = connectionInformation.DatabaseFileName;
+        private readonly string _databaseDirectoryPath = connectionInformation.DatabaseDirectoryPath;
 
         //Methods
 
@@ -54,9 +55,23 @@ namespace SchoolBookingApp.MVVM.Factories
             if (!connectionString.StartsWith("Data Source="))
                 throw new ArgumentException("Connection string must start with 'Data Source='.", nameof(connectionString));
 
+            EnsureDirectoryExists();
+
             var connection = new SqliteConnection(connectionString);
             await connection.OpenAsync();
             return connection;
+        }
+
+        /// <summary>
+        /// Creates an application folder, containing a database folder, if one doesn't exist already.
+        /// </summary>
+        /// <returns>True if the folder exists. False if it cannot be created.</returns>
+        private bool EnsureDirectoryExists()
+        {
+            if (Directory.Exists(_databaseDirectoryPath))
+                return true;
+            Directory.CreateDirectory(_databaseDirectoryPath);
+            return Directory.Exists(_databaseDirectoryPath);
         }
     }
 }
