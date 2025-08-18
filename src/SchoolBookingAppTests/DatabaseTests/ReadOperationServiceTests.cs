@@ -14,6 +14,7 @@ namespace SchoolBookingAppTests.DatabaseTests
     {
         private const string TestConnectionString = "Data Source=:memory:";
         private const int TotalNameRecords = 20;
+        private const int TotalStudentRecords = 10;
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
@@ -290,16 +291,29 @@ namespace SchoolBookingAppTests.DatabaseTests
         /// criteria are provided. This ensures that if no criteria are specified, no valid results are returned.
         /// </summary>
         [Fact]
-        public async Task SearchByCriteria_NoCriteria_ReturnsNoData()
+        public async Task SearchByCriteria_NoCriteria_ReturnsAllData()
         {
-            //Arrange & Act
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
             var result = await _readOperationService.SearchByCriteria([]);
 
             //Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.Equal(TotalStudentRecords, result.Count);
         }
 
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns the expected results 
+        /// from the database when valid criteria are provided. This ensures that the method can correctly filter the 
+        /// data based on the specified criteria and return the expected number of results.
+        /// </summary>
+        /// <param name="criteria">A list of <see cref="SearchCriteria"/> objects containing the criteria to filter 
+        /// search results by.</param>
+        /// <param name="expectedResultsCount">The number of results expected in the returned list.</param>
+        /// <param name="expectedFirstNames">The first names expected to be returned.</param>
         [Theory]
         [MemberData(nameof(SearchByCriteriaValidMemberData))]
         public async Task SearchByCriteria_ValidCriteria_ReturnsExpectedResults(
@@ -323,18 +337,22 @@ namespace SchoolBookingAppTests.DatabaseTests
 
 
         //Member data for tests.
+
+        /// <summary>
+        /// Provides valid member data for the <see cref="SearchByCriteria_ValidCriteria_ReturnsExpectedResults"/> test.
+        /// </summary>
         public static IEnumerable<object[]> SearchByCriteriaValidMemberData()
         {
             yield return new object[]
             {
                 new List<SearchCriteria>
                 {
-                    new SearchCriteria(
+                    new (
                         Field: DatabaseField.FirstName,
                         SQLOperator.Equals,
                         [ "John"]
                         ),
-                    new SearchCriteria(
+                    new (
                         Field: DatabaseField.LastName,
                         SQLOperator.Equals,
                         [ "Doe" ]
