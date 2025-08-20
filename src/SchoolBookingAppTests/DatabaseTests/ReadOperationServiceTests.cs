@@ -390,6 +390,31 @@ namespace SchoolBookingAppTests.DatabaseTests
                 3,
                 new List<string> { "Jackie", "Aisha", "Noah" }
             };
+            yield return new object[] {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.SafeguardingNotes,
+                        Operator: SQLOperator.NotEquals,
+                        Parameters: [ "n/a" ]
+                        )
+                },
+                3,
+                new List<string> { "Jane", "Ibrahim", "Noah" }
+            };
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.SpecialEducationalNeedsNotes,
+                        Operator: SQLOperator.NotEquals,
+                        Parameters: [ "n/a" ]
+                        )
+                },
+                3,
+                new List<string> { "Sally", "Aisha", "Liam" }
+            };
         }
 
 
@@ -430,9 +455,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         {
             try
             {
-                using var transaction = _connection.BeginTransaction();
-
-                var studentCommand = _connection.CreateCommand();
+                using var studentCommand = _connection.CreateCommand();
                 studentCommand.CommandText = @"
                 INSERT INTO Students (FirstName, LastName, DateOfBirth, Class)
                 VALUES
@@ -449,7 +472,7 @@ namespace SchoolBookingAppTests.DatabaseTests
                 ;";
                 await studentCommand.ExecuteNonQueryAsync();
 
-                var parentsCommand = _connection.CreateCommand();
+                using var parentsCommand = _connection.CreateCommand();
                 parentsCommand.CommandText = @"
                 INSERT INTO Parents (FirstName, LastName)
                 VALUES
@@ -466,7 +489,7 @@ namespace SchoolBookingAppTests.DatabaseTests
                 ;";
                 await parentsCommand.ExecuteNonQueryAsync();
 
-                var relationshipCommand = _connection.CreateCommand();
+                using var relationshipCommand = _connection.CreateCommand();
                 relationshipCommand.CommandText = @"
                 INSERT INTO ParentStudents (ParentId, StudentId, Relationship)
                 VALUES
@@ -485,7 +508,7 @@ namespace SchoolBookingAppTests.DatabaseTests
                 ;";
                 await relationshipCommand.ExecuteNonQueryAsync();
 
-                var dataCommand = _connection.CreateCommand();
+                using var dataCommand = _connection.CreateCommand();
                 dataCommand.CommandText = @"
                 INSERT INTO Data
                     (StudentId, Math, MathComments, Reading, ReadingComments, Writing, WritingComments,
@@ -514,7 +537,7 @@ namespace SchoolBookingAppTests.DatabaseTests
                 ;";
                 await dataCommand.ExecuteNonQueryAsync();
 
-                var commentsCommand = _connection.CreateCommand();
+                using var commentsCommand = _connection.CreateCommand();
                 commentsCommand.CommandText = @"
                 INSERT INTO Comments (
                 StudentId, GeneralComments, PupilComments, ParentComments, BehaviorNotes, AttendanceNotes, HomeworkNotes,
@@ -522,10 +545,28 @@ namespace SchoolBookingAppTests.DatabaseTests
                 )
                 VALUES 
                 (1, 'Very helpful child', 'I feel confident', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
-                'Part of the school choir', 'n/a', 'n/a', 'Look for lost jumper', 20250710)
+                'Part of the school choir', 'n/a', 'n/a', 'Look for lost jumper', 20250710),
+                (2, 'Great work this term', 'I''m loving my learning.', 'They struggle with homework.', 'Very focused', 'n/a', 'Often late.',
+                'Plays for the football team.', 'n/a', 'Dad back in prison.', 'n/a', 20250710),
+                (3, 'A difficult term', 'I like playtime', 'Tough to get them to school', 'Very disruptive', 'Often absent on Mondays', 'None completed',
+                'n/a', 'ADHD assessment booked', 'n/a', 'n/a', 20250710),
+                (4, 'A very quiet child', 'I like to play with my friends', 'They are very shy', 'Very quiet', 'n/a', 'n/a',
+                'n/a', 'n/a', 'n/a', 'Wants to start a newspaper club', 20250710),
+                (5, 'A very bright child', 'I love reading', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'Joining the orchestra', 'n/a', 'Notes on file. See DG.', 'n/a', 20250710),
+                (6, 'A very helpful child', 'I like to help my friends', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'n/a', 'Speech and language assessment booked', 'n/a', 'Wants to start a gardening club', 20250710),
+                (7, 'FInding learning hard', 'I love PE', 'They enjoy football', 'Trying hard', 'Reached 100% attendance', 'Extra spellings',
+                'Plays for the football team', 'Dyslexia assessment results on file', 'n/a', 'Keeps forgetting football kit', 20250710),
+                (8, 'Great improvement', 'I feel much happier', 'They are much more settled', 'Role model. Very focused.', 'n/a', 'Excellent effort',
+                'Part of the school choir', 'n/a', 'n/a', 'n/a', 20250710),
+                (9, 'Trying hard with learning', 'I am enjoying my maths', 'They are reading lots at home', 'Great effort', '100% again', 'Completed extra projects',
+                'n/a', 'n/a', 'n/a', 'n/a', 20250710),
+                (10, 'Very difficult term.', 'n/a', 'We are really worried about their attitude', 'Very difficult. See file.', 'Dipped below 85%', 'None handed in.',
+                'n/a', 'n/a', 'See file. Speak to DG.', 'Book appointment with DG for further discussions.', 20250710)
                 ;";
+                await commentsCommand.ExecuteNonQueryAsync();
 
-                await transaction.CommitAsync();
                 return true;
             }
             catch (Exception ex)

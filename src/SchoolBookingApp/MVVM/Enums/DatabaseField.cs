@@ -12,6 +12,7 @@ namespace SchoolBookingApp.MVVM.Enums
     /// </summary>
     public enum DatabaseField
     {
+        StudentId,
         FirstName,
         LastName,
         DateOfBirth,
@@ -43,6 +44,7 @@ namespace SchoolBookingApp.MVVM.Enums
         ExtraCurricularNotes,
         SpecialEducationalNeedsNotes,
         SafeguardingNotes,
-        OtherNotes
+        OtherNotes,
+        DateAdded
     }
 }
