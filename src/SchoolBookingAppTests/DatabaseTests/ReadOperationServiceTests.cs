@@ -349,17 +349,46 @@ namespace SchoolBookingAppTests.DatabaseTests
                 {
                     new (
                         Field: DatabaseField.FirstName,
-                        SQLOperator.Equals,
-                        [ "John"]
+                        Operator: SQLOperator.Equals,
+                        Parameters: [ "John"]
                         ),
                     new (
                         Field: DatabaseField.LastName,
-                        SQLOperator.Equals,
-                        [ "Doe" ]
+                        Operator: SQLOperator.Equals,
+                        Parameters: [ "Doe" ]
                         )
                 },
                 1,
                 new List<string> { "John" }
+            };
+            yield return new object[] {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Computing,
+                        Operator: SQLOperator.GreaterThanOrEqual,
+                        Parameters: [ 3 ]
+                        )
+                },
+                2,
+                new List<string> { "John", "Noah" }
+            };
+            yield return new object[] {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Math,
+                        Operator: SQLOperator.LessThan,
+                        Parameters: [ 3 ]
+                        ),
+                    new (
+                        Field: DatabaseField.Art,
+                        Operator: SQLOperator.Between,
+                        Parameters: [ 1, 4 ]
+                        )
+                },
+                0,
+                new List<string> { }
             };
         }
 
@@ -455,6 +484,35 @@ namespace SchoolBookingAppTests.DatabaseTests
                     (10, 10, 'Mother')
                 ;";
                 await relationshipCommand.ExecuteNonQueryAsync();
+
+                var dataCommand = _connection.CreateCommand();
+                dataCommand.CommandText = @"
+                INSERT INTO Data
+                    (StudentId, Math, MathComments, Reading, ReadingComments, Writing, WritingComments,
+                    Science, History, Geography, MFL, PE, Art, Music, DesignTechnology, Computing, RE)
+                VALUES
+                    (1, 3, 'Great work', 5, 'Getting fluent', 1, 'Cannot write',
+                    2, 5, 4, 2, 5, 1, 5, 3, 4, 3),
+                    (2, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (3, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (4, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (5, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (6, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (7, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (8, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (9, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (10, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 5, 3)
+                ;";
+                await dataCommand.ExecuteNonQueryAsync();
 
                 await transaction.CommitAsync();
                 return true;
