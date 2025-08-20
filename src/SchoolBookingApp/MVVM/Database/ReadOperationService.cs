@@ -234,7 +234,7 @@ namespace SchoolBookingApp.MVVM.Database
         public async Task<List<Student>> SearchByCriteria(List<SearchCriteria> criteria)
         {
             //Validate criteria
-            if (criteria == null || criteria.Count == 0)
+            if (criteria == null)
                 return [];
 
             var commandText = GenerateSearchQuery(criteria);
@@ -252,7 +252,6 @@ namespace SchoolBookingApp.MVVM.Database
             }
             catch (Exception ex)
             {
-                throw;
                 Log.Error(ex, "Error searching by criteria.");
                 return [];
             }
@@ -336,7 +335,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="childId">The student Id of the child with a relationship to the list of adults.</param>
         /// <returns>A list of <see cref="Parent"/> objects for a given child with their relationship.</returns>
         /// <remarks>This is used to parse details from the <see cref="ReadOperationService.SearchByCriteria"/> method.</remarks>
-        private List<(Parent, string)> ParseParentDetails(string parentList, int childId)
+        private static List<(Parent, string)> ParseParentDetails(string parentList, int childId)
         {
             var parents = new List<(Parent, string)>();
 
@@ -352,7 +351,7 @@ namespace SchoolBookingApp.MVVM.Database
                     int.Parse(parentDetails[i]),
                     parentDetails[i + 1],
                     parentDetails[i + 2],
-                    new List<(int id, string relationship)> { (childId, parentDetails[i + 3]) }
+                    [ (childId, parentDetails[i + 3]) ]
                 );
 
                 parents.Add((nextParent, parentDetails[i + 3]));
@@ -500,7 +499,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="reader">A <see cref="SqliteDataReader"/> generated within the <see cref="SearchByCriteria"/> 
         /// method to read data from the database with given criteria.</param>
         /// <returns>A list of <see cref="Student"/> objects containing the search results.</returns>
-        private List<Student> ReadStudentDataFromSearch(SqliteDataReader reader)
+        private static List<Student> ReadStudentDataFromSearch(SqliteDataReader reader)
         {
             var results = new List<Student>();
             var count = 0;

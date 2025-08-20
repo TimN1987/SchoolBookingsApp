@@ -14,6 +14,7 @@ namespace SchoolBookingAppTests.DatabaseTests
     {
         private const string TestConnectionString = "Data Source=:memory:";
         private const int TotalNameRecords = 20;
+        private const int TotalStudentRecords = 10;
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
@@ -290,16 +291,29 @@ namespace SchoolBookingAppTests.DatabaseTests
         /// criteria are provided. This ensures that if no criteria are specified, no valid results are returned.
         /// </summary>
         [Fact]
-        public async Task SearchByCriteria_NoCriteria_ReturnsNoData()
+        public async Task SearchByCriteria_NoCriteria_ReturnsAllData()
         {
-            //Arrange & Act
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
             var result = await _readOperationService.SearchByCriteria([]);
 
             //Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
+            Assert.Equal(TotalStudentRecords, result.Count);
         }
 
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns the expected results 
+        /// from the database when valid criteria are provided. This ensures that the method can correctly filter the 
+        /// data based on the specified criteria and return the expected number of results.
+        /// </summary>
+        /// <param name="criteria">A list of <see cref="SearchCriteria"/> objects containing the criteria to filter 
+        /// search results by.</param>
+        /// <param name="expectedResultsCount">The number of results expected in the returned list.</param>
+        /// <param name="expectedFirstNames">The first names expected to be returned.</param>
         [Theory]
         [MemberData(nameof(SearchByCriteriaValidMemberData))]
         public async Task SearchByCriteria_ValidCriteria_ReturnsExpectedResults(
@@ -323,25 +337,58 @@ namespace SchoolBookingAppTests.DatabaseTests
 
 
         //Member data for tests.
+
+        /// <summary>
+        /// Provides valid member data for the <see cref="SearchByCriteria_ValidCriteria_ReturnsExpectedResults"/> test.
+        /// </summary>
         public static IEnumerable<object[]> SearchByCriteriaValidMemberData()
         {
             yield return new object[]
             {
                 new List<SearchCriteria>
                 {
-                    new SearchCriteria(
+                    new (
                         Field: DatabaseField.FirstName,
-                        SQLOperator.Equals,
-                        [ "John"]
+                        Operator: SQLOperator.Equals,
+                        Parameters: [ "John"]
                         ),
-                    new SearchCriteria(
+                    new (
                         Field: DatabaseField.LastName,
-                        SQLOperator.Equals,
-                        [ "Doe" ]
+                        Operator: SQLOperator.Equals,
+                        Parameters: [ "Doe" ]
                         )
                 },
                 1,
                 new List<string> { "John" }
+            };
+            yield return new object[] {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Computing,
+                        Operator: SQLOperator.GreaterThanOrEqual,
+                        Parameters: [ 3 ]
+                        )
+                },
+                4,
+                new List<string> { "John", "Sally", "Ibrahim", "Emma" }
+            };
+            yield return new object[] {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Math,
+                        Operator: SQLOperator.LessThan,
+                        Parameters: [ 3 ]
+                        ),
+                    new (
+                        Field: DatabaseField.Art,
+                        Operator: SQLOperator.Between,
+                        Parameters: [ 1, 4 ]
+                        )
+                },
+                3,
+                new List<string> { "Jackie", "Aisha", "Noah" }
             };
         }
 
@@ -437,6 +484,46 @@ namespace SchoolBookingAppTests.DatabaseTests
                     (10, 10, 'Mother')
                 ;";
                 await relationshipCommand.ExecuteNonQueryAsync();
+
+                var dataCommand = _connection.CreateCommand();
+                dataCommand.CommandText = @"
+                INSERT INTO Data
+                    (StudentId, Math, MathComments, Reading, ReadingComments, Writing, WritingComments,
+                    Science, History, Geography, MFL, PE, Art, Music, DesignTechnology, Computing, RE)
+                VALUES
+                    (1, 3, 'Great work', 5, 'Getting fluent', 1, 'Cannot write',
+                    2, 5, 4, 2, 5, 1, 5, 3, 4, 3),
+                    (2, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (3, 5, 'Great progress', 5, 'Very confident', 3, 'Developing confidence',
+                    5, 5, 5, 4, 4, 5, 4, 4, 3, 5),
+                    (4, 2, 'Learning to count', 1, 'Starting with first sounds', 2, 'Can write letters',
+                    1, 2, 2, 2, 1, 1, 2, 1, 2, 2),
+                    (5, 1, 'Just beginning', 5, 'Already fluent', 5, 'Has written a novel',
+                    1, 5, 5, 5, 5, 5, 1, 1, 5, 1),
+                    (6, 2, 'Tries very hard', 3, 'Starting to read words', 2, 'Can write words',
+                    2, 3, 1, 1, 3, 4, 2, 1, 2, 3),
+                    (7, 5, 'Practically perfect', 5, 'Very confident', 3, 'Learning to use full stops',
+                    5, 3, 2, 3, 1, 5, 5, 5, 2, 3),
+                    (8, 2, 'Making progress', 4, 'Can read quite well', 3, 'Tries very hard',
+                    4, 4, 4, 3, 3, 5, 3, 4, 4, 3),
+                    (9, 4, 'Very methodical', 4, 'Confident but erratic', 2, 'Must try harder',
+                    3, 2, 5, 4, 1, 5, 3, 5, 1, 2),
+                    (10, 1, 'Finds it very hard', 5, 'Loves reading all day', 1, 'Learning to hold a pencil',
+                    3, 5, 1, 2, 4, 2, 3, 3, 2, 3)
+                ;";
+                await dataCommand.ExecuteNonQueryAsync();
+
+                var commentsCommand = _connection.CreateCommand();
+                commentsCommand.CommandText = @"
+                INSERT INTO Comments (
+                StudentId, GeneralComments, PupilComments, ParentComments, BehaviorNotes, AttendanceNotes, HomeworkNotes,
+                ExtraCurricularNotes, SpecialEducationalNeedsNotes, SafeguardingNotes, OtherNotes, DateAdded
+                )
+                VALUES 
+                (1, 'Very helpful child', 'I feel confident', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'Part of the school choir', 'n/a', 'n/a', 'Look for lost jumper', 20250710)
+                ;";
 
                 await transaction.CommitAsync();
                 return true;
