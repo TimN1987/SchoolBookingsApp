@@ -370,8 +370,8 @@ namespace SchoolBookingAppTests.DatabaseTests
                         Parameters: [ 3 ]
                         )
                 },
-                2,
-                new List<string> { "John", "Noah" }
+                4,
+                new List<string> { "John", "Sally", "Ibrahim", "Emma" }
             };
             yield return new object[] {
                 new List<SearchCriteria>
@@ -387,8 +387,8 @@ namespace SchoolBookingAppTests.DatabaseTests
                         Parameters: [ 1, 4 ]
                         )
                 },
-                0,
-                new List<string> { }
+                3,
+                new List<string> { "Jackie", "Aisha", "Noah" }
             };
         }
 
@@ -495,24 +495,35 @@ namespace SchoolBookingAppTests.DatabaseTests
                     2, 5, 4, 2, 5, 1, 5, 3, 4, 3),
                     (2, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
                     5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (3, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (4, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (5, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (6, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (7, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (8, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (9, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
-                    (10, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
-                    5, 4, 5, 2, 3, 5, 3, 4, 5, 3)
+                    (3, 5, 'Great progress', 5, 'Very confident', 3, 'Developing confidence',
+                    5, 5, 5, 4, 4, 5, 4, 4, 3, 5),
+                    (4, 2, 'Learning to count', 1, 'Starting with first sounds', 2, 'Can write letters',
+                    1, 2, 2, 2, 1, 1, 2, 1, 2, 2),
+                    (5, 1, 'Just beginning', 5, 'Already fluent', 5, 'Has written a novel',
+                    1, 5, 5, 5, 5, 5, 1, 1, 5, 1),
+                    (6, 2, 'Tries very hard', 3, 'Starting to read words', 2, 'Can write words',
+                    2, 3, 1, 1, 3, 4, 2, 1, 2, 3),
+                    (7, 5, 'Practically perfect', 5, 'Very confident', 3, 'Learning to use full stops',
+                    5, 3, 2, 3, 1, 5, 5, 5, 2, 3),
+                    (8, 2, 'Making progress', 4, 'Can read quite well', 3, 'Tries very hard',
+                    4, 4, 4, 3, 3, 5, 3, 4, 4, 3),
+                    (9, 4, 'Very methodical', 4, 'Confident but erratic', 2, 'Must try harder',
+                    3, 2, 5, 4, 1, 5, 3, 5, 1, 2),
+                    (10, 1, 'Finds it very hard', 5, 'Loves reading all day', 1, 'Learning to hold a pencil',
+                    3, 5, 1, 2, 4, 2, 3, 3, 2, 3)
                 ;";
                 await dataCommand.ExecuteNonQueryAsync();
+
+                var commentsCommand = _connection.CreateCommand();
+                commentsCommand.CommandText = @"
+                INSERT INTO Comments (
+                StudentId, GeneralComments, PupilComments, ParentComments, BehaviorNotes, AttendanceNotes, HomeworkNotes,
+                ExtraCurricularNotes, SpecialEducationalNeedsNotes, SafeguardingNotes, OtherNotes, DateAdded
+                )
+                VALUES 
+                (1, 'Very helpful child', 'I feel confident', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'Part of the school choir', 'n/a', 'n/a', 'Look for lost jumper', 20250710)
+                ;";
 
                 await transaction.CommitAsync();
                 return true;
