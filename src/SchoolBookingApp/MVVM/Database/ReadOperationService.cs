@@ -59,28 +59,39 @@ namespace SchoolBookingApp.MVVM.Database
                 { "Comments", ["Id", "StudentId", "GeneralComments", "PupilComments", "ParentComments", "BehaviorNotes", "AttendanceNotes", "HomeworkNotes", "ExtraCurricularNotes", "SpecialEducationalNeedsNotes", "SafeguardingNotes", "OtherNotes"] }
             };
             _fieldMapping = new()
-        {
-            { DatabaseField.FirstName, "s.FirstName" },
-            { DatabaseField.LastName, "s.LastName" },
-            { DatabaseField.DateOfBirth, "s.DateOfBirth" },
-            { DatabaseField.Class, "s.Class" },
-            { DatabaseField.Math, "d.Math" },
-            { DatabaseField.MathComments, "d.MathComments" },
-            { DatabaseField.Reading, "d.Reading" },
-            { DatabaseField.ReadingComments, "d.ReadingComments" },
-            { DatabaseField.Writing, "d.Writing" },
-            { DatabaseField.WritingComments, "d.WritingComments" },
-            { DatabaseField.Science, "d.Science" },
-            { DatabaseField.History, "d.History" },
-            { DatabaseField.Geography, "d.Geography" },
-            { DatabaseField.MFL, "d.MFL" },
-            { DatabaseField.PE, "d.PE" },
-            { DatabaseField.Art, "d.Art" },
-            { DatabaseField.Music, "d.Music" },
-            { DatabaseField.DesignTechnology, "d.DesignTechnology" },
-            { DatabaseField.Computing, "d.Computing" },
-            { DatabaseField.RE, "d.RE" }
-        };
+            {
+                { DatabaseField.FirstName, "s.FirstName" },
+                { DatabaseField.LastName, "s.LastName" },
+                { DatabaseField.DateOfBirth, "s.DateOfBirth" },
+                { DatabaseField.Class, "s.Class" },
+                { DatabaseField.Math, "d.Math" },
+                { DatabaseField.MathComments, "d.MathComments" },
+                { DatabaseField.Reading, "d.Reading" },
+                { DatabaseField.ReadingComments, "d.ReadingComments" },
+                { DatabaseField.Writing, "d.Writing" },
+                { DatabaseField.WritingComments, "d.WritingComments" },
+                { DatabaseField.Science, "d.Science" },
+                { DatabaseField.History, "d.History" },
+                { DatabaseField.Geography, "d.Geography" },
+                { DatabaseField.MFL, "d.MFL" },
+                { DatabaseField.PE, "d.PE" },
+                { DatabaseField.Art, "d.Art" },
+                { DatabaseField.Music, "d.Music" },
+                { DatabaseField.DesignTechnology, "d.DesignTechnology" },
+                { DatabaseField.Computing, "d.Computing" },
+                { DatabaseField.RE, "d.RE" },
+                { DatabaseField.GeneralComments, "c.GeneralComments" },
+                { DatabaseField.PupilComments, "c.PupilComments" },
+                { DatabaseField.ParentComments, "c.ParentComments" },
+                { DatabaseField.BehaviorNotes, "c.BehaviorNotes" },
+                { DatabaseField.AttendanceNotes, "c.AttendanceNotes" },
+                { DatabaseField.HomeworkNotes, "c.HomeworkNotes" },
+                { DatabaseField.ExtraCurricularNotes, "c.ExtraCurricularNotes" },
+                { DatabaseField.SpecialEducationalNeedsNotes, "c.SpecialEducationalNeedsNotes" },
+                { DatabaseField.SafeguardingNotes, "c.SafeguardingNotes" },
+                { DatabaseField.OtherNotes, "c.OtherNotes" },
+                { DatabaseField.DateAdded, "c.DateAdded" }
+            };
 
             //SQL query strings
             _getAllDataQuery = @"SELECT * FROM {0};";
@@ -107,7 +118,8 @@ namespace SchoolBookingApp.MVVM.Database
                     c.ExtraCurricularNotes,
                     c.SpecialEducationalNeedsNotes,
                     c.SafeguardingNotes,
-                    c.OtherNotes
+                    c.OtherNotes,
+                    c.DateAdded
                 FROM Students AS s
                 LEFT JOIN ParentStudents AS ps ON s.Id = ps.StudentId
                 LEFT JOIN Parents AS p ON ps.ParentId = p.Id
@@ -434,13 +446,16 @@ namespace SchoolBookingApp.MVVM.Database
                     query.Append($"<= {parameter}");
                     break;
                 case SQLOperator.Like:
-                    query.Append($"LIKE LOWER({parameter} + '%')");
+                    query.Append($"LIKE LOWER({parameter})");
                     break;
                 case SQLOperator.NotLike:
-                    query.Append($"NOT LIKE LOWER({parameter} '%')");
+                    query.Append($"NOT LIKE LOWER({parameter})");
                     break;
                 case SQLOperator.Between:
                     query.Append($"BETWEEN {minParameter} AND {maxParameter}");
+                    break;
+                case SQLOperator.NotBetween:
+                    query.Append($"NOT BETWEEN {minParameter} AND {maxParameter}");
                     break;
                 default:
                     Log.Error($"Invalid SQL operator: {op}");
@@ -467,7 +482,7 @@ namespace SchoolBookingApp.MVVM.Database
             var queryLine = 0;
             foreach (var criterion in criteria)
             {
-                if (criterion.Operator == SQLOperator.Between)
+                if (criterion.Operator == SQLOperator.Between || criterion.Operator == SQLOperator.NotBetween)
                 {
                     if (criterion.Parameters.Length != 2)
                     {
@@ -480,7 +495,7 @@ namespace SchoolBookingApp.MVVM.Database
                 }
                 else if (criterion.Operator == SQLOperator.Like || criterion.Operator == SQLOperator.NotLike)
                 {
-                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0]);
+                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0].ToString() + '%');
                 }
                 else
                 {
