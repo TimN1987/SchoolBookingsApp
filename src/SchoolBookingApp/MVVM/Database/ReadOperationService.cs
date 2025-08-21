@@ -446,13 +446,16 @@ namespace SchoolBookingApp.MVVM.Database
                     query.Append($"<= {parameter}");
                     break;
                 case SQLOperator.Like:
-                    query.Append($"LIKE LOWER({parameter} + '%')");
+                    query.Append($"LIKE LOWER({parameter})");
                     break;
                 case SQLOperator.NotLike:
-                    query.Append($"NOT LIKE LOWER({parameter} '%')");
+                    query.Append($"NOT LIKE LOWER({parameter})");
                     break;
                 case SQLOperator.Between:
                     query.Append($"BETWEEN {minParameter} AND {maxParameter}");
+                    break;
+                case SQLOperator.NotBetween:
+                    query.Append($"NOT BETWEEN {minParameter} AND {maxParameter}");
                     break;
                 default:
                     Log.Error($"Invalid SQL operator: {op}");
@@ -479,7 +482,7 @@ namespace SchoolBookingApp.MVVM.Database
             var queryLine = 0;
             foreach (var criterion in criteria)
             {
-                if (criterion.Operator == SQLOperator.Between)
+                if (criterion.Operator == SQLOperator.Between || criterion.Operator == SQLOperator.NotBetween)
                 {
                     if (criterion.Parameters.Length != 2)
                     {
@@ -492,7 +495,7 @@ namespace SchoolBookingApp.MVVM.Database
                 }
                 else if (criterion.Operator == SQLOperator.Like || criterion.Operator == SQLOperator.NotLike)
                 {
-                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0]);
+                    command.Parameters.AddWithValue($"@value{queryLine}", criterion.Parameters[0].ToString() + '%');
                 }
                 else
                 {

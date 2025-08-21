@@ -415,6 +415,80 @@ namespace SchoolBookingAppTests.DatabaseTests
                 3,
                 new List<string> { "Sally", "Aisha", "Liam" }
             };
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.DateAdded,
+                        Operator: SQLOperator.Equals,
+                        Parameters: [ 20250710 ]
+                        )
+                },
+                10,
+                new List<string> { "John", "Jane", "Sally", "Jackie", "Ibrahim", "Aisha", "Liam", "Emma", "Olivia", "Noah" }
+            };
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Math,
+                        Operator: SQLOperator.GreaterThanOrEqual,
+                        Parameters: [ 5 ]
+                        ),
+                    new (
+                        Field: DatabaseField.Reading,
+                        Operator: SQLOperator.LessThan,
+                        Parameters: [ 3 ]
+                        )
+                },
+                1,
+                new List<string> { "Jane" }
+            };
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.Science,
+                        Operator: SQLOperator.NotBetween,
+                        Parameters: [ 2, 4 ]
+                        )
+                },
+                5,
+                new List<string> { "Jane", "Sally", "Jackie", "Ibrahim", "Liam" }
+            };
+            yield return new object[]
+            {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.FirstName,
+                        Operator: SQLOperator.Like,
+                        Parameters: [ "J" ]
+                        )
+                },
+                3,
+                new List<string> { "John", "Jane", "Jackie" }
+            };
+            yield return new object[]             {
+                new List<SearchCriteria>
+                {
+                    new (
+                        Field: DatabaseField.LastName,
+                        Operator: SQLOperator.NotLike,
+                        Parameters: [ "D" ]
+                        ),
+                    new (
+                        Field: DatabaseField.FirstName,
+                        Operator: SQLOperator.NotLike,
+                        Parameters: [ "I" ]
+                        )
+                },
+                7,
+                new List<string> { "Sally", "Jackie", "Aisha", "Liam", "Emma", "Olivia", "Noah" }
+            };
         }
 
 
