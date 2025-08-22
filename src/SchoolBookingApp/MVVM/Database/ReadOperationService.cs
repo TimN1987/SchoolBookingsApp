@@ -16,6 +16,10 @@ using Serilog;
 
 namespace SchoolBookingApp.MVVM.Database
 {
+    /// <summary>
+    /// Defines a contract for the <see cref="ReadOperationService"/> class. Ensures that methods for retrieving key lists 
+    /// of data and performing searches by keywords or user-generated criteria.
+    /// </summary>
     public interface IReadOperationService
     {
         Task<List<SearchResult>> GetAllSearchData();
@@ -29,6 +33,12 @@ namespace SchoolBookingApp.MVVM.Database
         Task<List<Student>> GetClassList(string className);
     }
 
+    /// <summary>
+    /// A class for handling read operations on the database with a focus on student and parent information, data and 
+    /// meeting comments. Enables the user to retrieve key lists of information or data as well as providing search 
+    /// functionality, both by keyword or by lists of key criteria. Includes helper methods to ensure that these functions 
+    /// can be performed straightforwardly.
+    /// </summary>
     public class ReadOperationService : IReadOperationService
     {
         private readonly SqliteConnection _connection;
@@ -371,16 +381,33 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of <see cref="SearchResult"/>s for all students in the database, containing student id, first 
+        /// name and last name. Allows the user to see a list of all students for easy selection and searching.
+        /// </summary>
+        /// <returns>A list of <see cref="SearchResult"/> records for all the students, containing id, first name and last 
+        /// name.</returns>
         public async Task<List<SearchResult>> GetStudentList()
         {
             return await ReadAllNameDataFromTable("Students");
         }
 
+        /// <summary>
+        /// Retrieves a list of <see cref="SearchResult"/>s for all parents in the database, containing parent id, first 
+        /// name and last name. Allows the user to see a list of all parents for easy selection and searching.
+        /// </summary>
+        /// <returns>A list of <see cref="SearchResult"/> records for all the students, containing id, first name and last 
+        /// name.</returns>
         public async Task<List<SearchResult>> GetParentList()
         {
             return await ReadAllNameDataFromTable("Parents");
         }
 
+        /// <summary>
+        /// Returns a list of all the classes included in the <c>Students</c> table in the database. Allows the user to 
+        /// quickly see all current classes for easy class selection or searching by class.
+        /// </summary>
+        /// <returns>A list of strings containing the current class names in the <c>Students</c> table.</returns>
         public async Task<List<string>> ListClasses()
         {
             var results = new List<string>();
@@ -409,6 +436,13 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Returns a list of <see cref="Student"/> records for each student in a given class. Allows the user to access 
+        /// information about all students in the same class.
+        /// </summary>
+        /// <param name="className">The name of the class list that should be returned.</param>
+        /// <returns>A list of <see cref="Student"/> records for the given class name.</returns>
+        /// <exception cref="ArgumentException">Thrown if the class name is null, empty or whitespace.</exception>
         public async Task<List<Student>> GetClassList(string className)
         {
             if (string.IsNullOrWhiteSpace(className))
@@ -423,8 +457,6 @@ namespace SchoolBookingApp.MVVM.Database
 
             return await SearchByCriteria(criteria);
         }
-
-
 
         //Helper methods
 
@@ -726,8 +758,6 @@ namespace SchoolBookingApp.MVVM.Database
 
             return results;
         }
-
-        //Static helper methods
 
         /// <summary>
         /// Retrieves a string value from a <see cref="SqliteDataReader"/> for a given column name, returning an empty 
