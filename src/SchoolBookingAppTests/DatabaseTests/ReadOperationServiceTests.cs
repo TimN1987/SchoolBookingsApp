@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Enums;
+using SchoolBookingApp.MVVM.Model;
 using Serilog;
 
 namespace SchoolBookingAppTests.DatabaseTests
@@ -334,6 +335,51 @@ namespace SchoolBookingAppTests.DatabaseTests
                 Assert.NotEmpty(searchResults.Where(result => result.FirstName == name));
         }
 
+        //GetStudentData tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid (<= 0) student id is passed as the 
+        /// parameter.
+        /// </summary>
+        [Fact]
+        public async Task GetStudentData_InvalidStudentId_ThrowsArgumentException()
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _readOperationService.GetStudentData(0));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetStudentData"/> method retrieves the correct student data 
+        /// from the database using the given student id. Checks that the correct first name and number of parents are 
+        /// returned in the correct type of result.
+        /// </summary>
+        /// <param name="id">The given student id.</param>
+        /// <param name="expectedFirstName">The expected first name for the given student id.</param>
+        /// <param name="expectedParentsCount">The expected number of parents for the given student id.</param>
+        [Theory]
+        [InlineData (1, "John", 2)]
+        [InlineData (2, "Jane", 2)]
+        [InlineData (3, "Sally", 1)]
+        [InlineData (4, "Jackie", 1)]
+        [InlineData (5, "Ibrahim", 1)]
+        public async Task GetStudentData_ValidStudentId_ReturnsCorrectStudentData(
+            int id, string expectedFirstName, int expectedParentsCount)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var studentData = await _readOperationService.GetStudentData(id);
+
+            //Assert
+            Assert.NotNull(studentData);
+            Assert.IsType<Student>(studentData);
+            Assert.Equal(id, studentData.Id);
+            Assert.Equal(expectedFirstName, studentData.FirstName);
+            Assert.Equal(expectedParentsCount, studentData.Parents.Count);
+        }
 
 
         //Member data for tests.
