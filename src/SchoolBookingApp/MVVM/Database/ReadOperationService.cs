@@ -132,15 +132,15 @@ namespace SchoolBookingApp.MVVM.Database
                 LEFT JOIN Comments AS c ON s.Id = c.StudentId
                 WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
             _parentListQuery = @"
-            SELECT 
-                p.FirstName, 
-                p.LastName, 
-                ps.Relationshio,
-                ps.StudentId AS ChildId,
-            FROM Parents AS p
-            LEFT JOIN ParentStudents AS ps
-            ON p.Id = ps.Parentid
-            WHERE p.Id = @id;";
+                SELECT 
+                    p.FirstName, 
+                    p.LastName, 
+                    ps.Relationship,
+                    ps.StudentId AS ChildId
+                FROM Parents AS p
+                LEFT JOIN ParentStudents AS ps
+                ON p.Id = ps.ParentId
+                WHERE p.Id = @id;";
         }
 
         //Methods
@@ -291,7 +291,13 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
-        //UNTESTED
+        /// <summary>
+        /// Retrieves all of the data stored for a specific student based on their Id number. This includes names, parent 
+        /// information, academic data and meeting records.
+        /// </summary>
+        /// <param name="id">The student id for the given student.</param>
+        /// <returns>A <see cref="Student"/> record containing all the data for given student.</returns>
+        /// <exception cref="ArgumentException">Thrown if an invalid student id (<= 0) is entered.</exception>
         public async Task<Student> GetStudentData(int id)
         {
             if (id <= 0)
@@ -307,6 +313,14 @@ namespace SchoolBookingApp.MVVM.Database
             return (await SearchByCriteria(criteria)).First();
         }
 
+        /// <summary>
+        /// Retrieves all information for a given parent from their parent id, including first name, last name and a list 
+        /// of children with their relationship to the parent. Allows a user to view all the information stored about a 
+        /// given parent.
+        /// </summary>
+        /// <param name="id">The parent id for the given parent.</param>
+        /// <returns>A <see cref="Parent"/> record containing all information for the given parent.</returns>
+        /// <exception cref="ArgumentException">Thrown if an invalid id (<= 0) is entered.</exception>
         public async Task<Parent> GetParentInformation(int id)
         {
             if (id <= 0)

@@ -16,6 +16,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         private const string TestConnectionString = "Data Source=:memory:";
         private const int TotalNameRecords = 20;
         private const int TotalStudentRecords = 10;
+        private const int TotalParentRecords = 10;
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
@@ -381,6 +382,97 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Equal(expectedParentsCount, studentData.Parents.Count);
         }
 
+        //GetParentInformation tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown if an invalid parent id (<= 0) is passed as the 
+        /// parameter.
+        /// </summary>
+        [Fact]
+        public async Task GetParentInformation_InvalidParentId_ThrowsArgumentException()
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _readOperationService.GetParentInformation(0));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetParentInformation"/> method retrieves the correct parent 
+        /// information. Checks that the information is of the correct type and not null. Also checks that the expected 
+        /// id, first name and number of children are returned.
+        /// </summary>
+        /// <param name="id">The parent id for the given parent.</param>
+        /// <param name="expectedFirstName">The expected first name for the given parent.</param>
+        /// <param name="expectedChildrenCount">The expected number of children for the given parent.</param>
+        /// <returns></returns>
+        [Theory]
+        [InlineData(1, "Simon", 2)]
+        [InlineData(2, "Jennifer", 2)]
+        [InlineData(3, "Mark", 1)]
+        [InlineData(4, "Lisa", 1)]
+        [InlineData(5, "Ali", 1)]
+        public async Task GetParentInformation(int id, string expectedFirstName, int expectedChildrenCount)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var parentData = await _readOperationService.GetParentInformation(id);
+
+            //Assert
+            Assert.NotNull(parentData);
+            Assert.IsType<Parent>(parentData);
+            Assert.Equal(id, parentData.Id);
+            Assert.Equal(expectedFirstName, parentData.FirstName);
+            Assert.Equal(expectedChildrenCount, parentData.Children.Count);
+        }
+
+        //GetStudentList tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetStudentList"/> method returns a non-null list of <see 
+        /// cref="SearchResult"/> records with the correct number of students.
+        /// </summary>
+        [Fact]
+        public async Task GetStudentList_ValidDataInTable_RetrievesAllStudents()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var students = await _readOperationService.GetStudentList();
+
+            //Assert
+            Assert.NotNull(students);
+            Assert.Equal(TotalStudentRecords, students.Count);
+            Assert.Equal("John", students.First().FirstName);
+            Assert.All(students, student => Assert.Equal("Students", student.Category));
+        }
+
+        //GetParentList tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetParentList"/> method returns a non-null list of <see 
+        /// cref="SearchResult"/> records with the correct number of parents.
+        /// </summary>
+        [Fact]
+        public async Task GetParentList_ValidDataInTable_RetrievesAllParents()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var parents = await _readOperationService.GetParentList();
+
+            //Assert
+            Assert.NotNull(parents);
+            Assert.Equal(TotalParentRecords, parents.Count);
+            Assert.Equal("Simon", parents.First().FirstName);
+            Assert.All(parents, parent => Assert.Equal("Parents", parent.Category));
+        }
 
         //Member data for tests.
 
