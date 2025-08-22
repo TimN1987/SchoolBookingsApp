@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Enums;
+using SchoolBookingApp.MVVM.Model;
 using Serilog;
 
 namespace SchoolBookingAppTests.DatabaseTests
@@ -15,10 +16,13 @@ namespace SchoolBookingAppTests.DatabaseTests
         private const string TestConnectionString = "Data Source=:memory:";
         private const int TotalNameRecords = 20;
         private const int TotalStudentRecords = 10;
+        private const int TotalParentRecords = 10;
+        private const int NumberOfClasses = 5;
 
         private const string InvalidTableName = "InvalidTableName";
         private const string ValidTableName = "Students";
         private const string InvalidFieldName = "InvalidFieldName";
+        private const string InvalidClassName = "InvalidClassName";
         private const string ValidKeyword = "Doe";
         private const string WhiteSpace = " ";
 
@@ -334,7 +338,231 @@ namespace SchoolBookingAppTests.DatabaseTests
                 Assert.NotEmpty(searchResults.Where(result => result.FirstName == name));
         }
 
+        //GetStudentData tests.
 
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid (<= 0) student id is passed as the 
+        /// parameter.
+        /// </summary>
+        [Fact]
+        public async Task GetStudentData_InvalidStudentId_ThrowsArgumentException()
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _readOperationService.GetStudentData(0));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetStudentData"/> method retrieves the correct student data 
+        /// from the database using the given student id. Checks that the correct first name and number of parents are 
+        /// returned in the correct type of result.
+        /// </summary>
+        /// <param name="id">The given student id.</param>
+        /// <param name="expectedFirstName">The expected first name for the given student id.</param>
+        /// <param name="expectedParentsCount">The expected number of parents for the given student id.</param>
+        [Theory]
+        [InlineData (1, "John", 2)]
+        [InlineData (2, "Jane", 2)]
+        [InlineData (3, "Sally", 1)]
+        [InlineData (4, "Jackie", 1)]
+        [InlineData (5, "Ibrahim", 1)]
+        public async Task GetStudentData_ValidStudentId_ReturnsCorrectStudentData(
+            int id, string expectedFirstName, int expectedParentsCount)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var studentData = await _readOperationService.GetStudentData(id);
+
+            //Assert
+            Assert.NotNull(studentData);
+            Assert.IsType<Student>(studentData);
+            Assert.Equal(id, studentData.Id);
+            Assert.Equal(expectedFirstName, studentData.FirstName);
+            Assert.Equal(expectedParentsCount, studentData.Parents.Count);
+        }
+
+        //GetParentInformation tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown if an invalid parent id (<= 0) is passed as the 
+        /// parameter.
+        /// </summary>
+        [Fact]
+        public async Task GetParentInformation_InvalidParentId_ThrowsArgumentException()
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _readOperationService.GetParentInformation(0));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetParentInformation"/> method retrieves the correct parent 
+        /// information. Checks that the information is of the correct type and not null. Also checks that the expected 
+        /// id, first name and number of children are returned.
+        /// </summary>
+        /// <param name="id">The parent id for the given parent.</param>
+        /// <param name="expectedFirstName">The expected first name for the given parent.</param>
+        /// <param name="expectedChildrenCount">The expected number of children for the given parent.</param>
+        /// <returns></returns>
+        [Theory]
+        [InlineData(1, "Simon", 2)]
+        [InlineData(2, "Jennifer", 2)]
+        [InlineData(3, "Mark", 1)]
+        [InlineData(4, "Lisa", 1)]
+        [InlineData(5, "Ali", 1)]
+        public async Task GetParentInformation(int id, string expectedFirstName, int expectedChildrenCount)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var parentData = await _readOperationService.GetParentInformation(id);
+
+            //Assert
+            Assert.NotNull(parentData);
+            Assert.IsType<Parent>(parentData);
+            Assert.Equal(id, parentData.Id);
+            Assert.Equal(expectedFirstName, parentData.FirstName);
+            Assert.Equal(expectedChildrenCount, parentData.Children.Count);
+        }
+
+        //GetStudentList tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetStudentList"/> method returns a non-null list of <see 
+        /// cref="SearchResult"/> records with the correct number of students.
+        /// </summary>
+        [Fact]
+        public async Task GetStudentList_ValidDataInTable_RetrievesAllStudents()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var students = await _readOperationService.GetStudentList();
+
+            //Assert
+            Assert.NotNull(students);
+            Assert.Equal(TotalStudentRecords, students.Count);
+            Assert.Equal("John", students.First().FirstName);
+            Assert.All(students, student => Assert.Equal("Students", student.Category));
+        }
+
+        //GetParentList tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetParentList"/> method returns a non-null list of <see 
+        /// cref="SearchResult"/> records with the correct number of parents.
+        /// </summary>
+        [Fact]
+        public async Task GetParentList_ValidDataInTable_RetrievesAllParents()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var parents = await _readOperationService.GetParentList();
+
+            //Assert
+            Assert.NotNull(parents);
+            Assert.Equal(TotalParentRecords, parents.Count);
+            Assert.Equal("Simon", parents.First().FirstName);
+            Assert.All(parents, parent => Assert.Equal("Parents", parent.Category));
+        }
+
+        //ListClasses tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.ListClasses"/> method returns a list of all the classes 
+        /// included in the <c>Students</c> table.
+        /// </summary>
+        [Fact]
+        public async Task ListClasses_ValidDataInTable_ReturnsListOfAllClasses()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var classes = await _readOperationService.ListClasses();
+
+            //Assert
+            Assert.NotNull(classes);
+            Assert.Equal(NumberOfClasses, classes.Count);
+            Assert.Equal(["5B", "4C", "3B", "2A", "1B"], classes);
+        }
+
+        //GetClassList tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid class name is passed ad the 
+        /// parameter to the <see cref="ReadOperationService.GetClassList"/> method. This includes null, an empty string 
+        /// or whitespace.
+        /// </summary>
+        /// <param name="className">The invalid class name.</param>
+        [Theory]
+        [InlineData(null!)]
+        [InlineData("")]
+        [InlineData(WhiteSpace)]
+        public async Task GetClassList_InvalidClassNames_ThrowsArgumentException(string className)
+        {
+            //Arrange, Act & Assert
+            await Assert.ThrowsAsync<ArgumentException> (async () =>
+                await _readOperationService.GetClassList(className));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.GetClassList"/> method returns the correct list of students 
+        /// when a valid class name is passed as the parameter.
+        /// </summary>
+        /// <param name="className">A valid class name.</param>
+        /// <param name="expectedStudentCount">The number of students in the class.</param>
+        /// <param name="expectedFirstNames">The first names of the students in the class.</param>
+        [Theory]
+        [MemberData(nameof(GetClassListValidMemberData))]
+        public async Task GetClassList_ValidClassName_ReturnsExpectedStudentList(
+            string className, int expectedStudentCount, List<string> expectedFirstNames)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var classList = await _readOperationService.GetClassList(className);
+
+            //Assert
+            Assert.NotNull(classList);
+            Assert.IsType<Student>(classList.First());
+            Assert.Equal(expectedStudentCount, classList.Count);
+            foreach (var student in classList)
+                Assert.Contains(student.FirstName, expectedFirstNames);
+        }
+
+        /// <summary>
+        /// Verifies that an empty list is returned when the <see cref="ReadOperationService.GetClassList"/> method is 
+        /// called with a non-existant class name. Ensures that the method does not erroneously return results when 
+        /// there should be none to find.
+        /// </summary>
+        [Fact]
+        public async Task GetClassList_ClassNameDoesNotExist_ReturnsNoResults()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var classList = await _readOperationService.GetClassList(InvalidClassName);
+
+            //Assert
+            Assert.NotNull(classList);
+            Assert.Empty(classList);
+        }
 
         //Member data for tests.
 
@@ -472,7 +700,8 @@ namespace SchoolBookingAppTests.DatabaseTests
                 3,
                 new List<string> { "John", "Jane", "Jackie" }
             };
-            yield return new object[]             {
+            yield return new object[]
+            {
                 new List<SearchCriteria>
                 {
                     new (
@@ -491,6 +720,31 @@ namespace SchoolBookingAppTests.DatabaseTests
             };
         }
 
+        /// <summary>
+        /// Provides valid member data for the <see cref="GetClassList_ValidClassName_ReturnsExpectedStudentList"/> test.
+        /// </summary>
+        public static IEnumerable<object[]> GetClassListValidMemberData()
+        {
+            yield return new object[] {
+                "5B", 2, new List<string> { "John", "Jane" }
+            };
+            yield return new object[]
+            {
+                "4C", 3, new List<string> { "Sally", "Jackie", "Ibrahim" }
+            };
+            yield return new object[]
+            {
+                "3B", 2, new List<string> { "Aisha", "Liam" }
+            };
+            yield return new object[]
+            {
+                "2A", 2, new List<string> { "Emma", "Olivia" }
+            };
+            yield return new object[]
+            {
+                "1B", 1, new List<string> { "Noah" }
+            };
+        }
 
         //Helper methods.
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
@@ -15,20 +16,30 @@ using Serilog;
 
 namespace SchoolBookingApp.MVVM.Database
 {
+    /// <summary>
+    /// Defines a contract for the <see cref="ReadOperationService"/> class. Ensures that methods for retrieving key lists 
+    /// of data and performing searches by keywords or user-generated criteria.
+    /// </summary>
     public interface IReadOperationService
     {
         Task<List<SearchResult>> GetAllSearchData();
         Task<List<SearchResult>> SearchByKeyword(string keyword, string? tableName = null, string? field = null);
-        Task<List<Student>> SearchByCriteria(List<(string, object[])> criteria);
-        Task<Student> GetStudentData(int Id);
-        Task<Parent> GetParentInformation(int Id);
+        Task<List<Student>> SearchByCriteria(List<SearchCriteria> criteria);
+        Task<Student> GetStudentData(int id);
+        Task<Parent> GetParentInformation(int id);
         Task<List<SearchResult>> GetStudentList();
         Task<List<SearchResult>> GetParentList();
-        Task<List<string>> GetListOfClasses();
+        Task<List<string>> ListClasses();
         Task<List<Student>> GetClassList(string className);
     }
 
-    public class ReadOperationService
+    /// <summary>
+    /// A class for handling read operations on the database with a focus on student and parent information, data and 
+    /// meeting comments. Enables the user to retrieve key lists of information or data as well as providing search 
+    /// functionality, both by keyword or by lists of key criteria. Includes helper methods to ensure that these functions 
+    /// can be performed straightforwardly.
+    /// </summary>
+    public class ReadOperationService : IReadOperationService
     {
         private readonly SqliteConnection _connection;
         private readonly HashSet<string> _validTables;
@@ -40,7 +51,9 @@ namespace SchoolBookingApp.MVVM.Database
         private readonly string _getAllDataQuery;
         private readonly string _searchByKeywordQuery;
         private readonly string _searchByKeywordAdditionalFieldsQuery;
+        private readonly string _listClassesQuery;
         private readonly string _searchByCriteriaBaseQuery;
+        private readonly string _parentListQuery;
 
         public ReadOperationService(SqliteConnection connection)
         {
@@ -60,6 +73,7 @@ namespace SchoolBookingApp.MVVM.Database
             };
             _fieldMapping = new()
             {
+                { DatabaseField.StudentId, "s.Id" },
                 { DatabaseField.FirstName, "s.FirstName" },
                 { DatabaseField.LastName, "s.LastName" },
                 { DatabaseField.DateOfBirth, "s.DateOfBirth" },
@@ -97,6 +111,7 @@ namespace SchoolBookingApp.MVVM.Database
             _getAllDataQuery = @"SELECT * FROM {0};";
             _searchByKeywordQuery = @"SELECT * FROM {0} WHERE LOWER({1}) LIKE @Keyword";
             _searchByKeywordAdditionalFieldsQuery = @" OR LOWER({0}) LIKE @Keyword";
+            _listClassesQuery = @"SELECT DISTINCT Class FROM Students;";
             _searchByCriteriaBaseQuery = @"
                 SELECT 
                     s.Id,
@@ -126,6 +141,16 @@ namespace SchoolBookingApp.MVVM.Database
                 LEFT JOIN Data AS d ON s.Id = d.StudentId
                 LEFT JOIN Comments AS c ON s.Id = c.StudentId
                 WHERE 1 = 1"; //Base query for searching by criteria, to be appended with conditions.
+            _parentListQuery = @"
+                SELECT 
+                    p.FirstName, 
+                    p.LastName, 
+                    ps.Relationship,
+                    ps.StudentId AS ChildId
+                FROM Parents AS p
+                LEFT JOIN ParentStudents AS ps
+                ON p.Id = ps.ParentId
+                WHERE p.Id = @id;";
         }
 
         //Methods
@@ -241,8 +266,15 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
-
-        // Critera contain SQL query strings and their corresponding values. e.g. AND Age BETWEEN @AgeMin AND @AgeMax
+        /// <summary>
+        /// Searches the database for students that match all of a list of criteria. Allows a user to retrieve all the 
+        /// information stored about students based on a range of criteria across all the information tables in the 
+        /// database (for example, greater than a value, equals a value or not between two values).
+        /// </summary>
+        /// <param name="criteria">A list of <see cref="SearchCriteria"/> containing the field to search on, the type of 
+        /// comparison and the search parameters.</param>
+        /// <returns>A list of <see cref="Student"/> records that match the search criteria. If there are no matching 
+        /// students, an empty list is returned. If there are no criteria, all students are included in the results.</returns>
         public async Task<List<Student>> SearchByCriteria(List<SearchCriteria> criteria)
         {
             //Validate criteria
@@ -269,7 +301,162 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Retrieves all of the data stored for a specific student based on their Id number. This includes names, parent 
+        /// information, academic data and meeting records.
+        /// </summary>
+        /// <param name="id">The student id for the given student.</param>
+        /// <returns>A <see cref="Student"/> record containing all the data for given student.</returns>
+        /// <exception cref="ArgumentException">Thrown if an invalid student id (<= 0) is entered.</exception>
+        public async Task<Student> GetStudentData(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid student Id.");
 
+            var criteria = new List<SearchCriteria>
+            {
+                new (
+                    DatabaseField.StudentId, SQLOperator.Equals, [ id ]
+                    )
+            };
+
+            return (await SearchByCriteria(criteria)).First();
+        }
+
+        /// <summary>
+        /// Retrieves all information for a given parent from their parent id, including first name, last name and a list 
+        /// of children with their relationship to the parent. Allows a user to view all the information stored about a 
+        /// given parent.
+        /// </summary>
+        /// <param name="id">The parent id for the given parent.</param>
+        /// <returns>A <see cref="Parent"/> record containing all information for the given parent.</returns>
+        /// <exception cref="ArgumentException">Thrown if an invalid id (<= 0) is entered.</exception>
+        public async Task<Parent> GetParentInformation(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Invalid parent Id.");
+
+            try
+            {
+                using var command = _connection.CreateCommand();
+                command.CommandText = _parentListQuery;
+                command.Parameters.AddWithValue("@id", id);
+                await using var reader = await command.ExecuteReaderAsync();
+
+                if (reader.HasRows)
+                {
+                    var firstName = string.Empty;
+                    var lastName = string.Empty;
+                    var children = new List<(int id, string relationship)>();
+
+                    while (reader.Read())
+                    {
+                        if (string.IsNullOrEmpty(firstName))
+                            firstName = GetSafeString(reader, "FirstName");
+                        if (string.IsNullOrEmpty(lastName))
+                            lastName = GetSafeString(reader, "LastName");
+                        var relationship = GetSafeString(reader, "Relationship");
+                        var childId = GetSafeInt(reader, "ChildId");
+                        children.Add((childId, relationship));
+                    }
+
+                    return new Parent(
+                        id,
+                        firstName,
+                        lastName,
+                        children
+                        );
+                }
+                else throw new InvalidOperationException("Could not find parent information.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error retrieving parent information.");
+                return new Parent(
+                    id,
+                    "No name found.",
+                    "No name found.",
+                    []
+                    );
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of <see cref="SearchResult"/>s for all students in the database, containing student id, first 
+        /// name and last name. Allows the user to see a list of all students for easy selection and searching.
+        /// </summary>
+        /// <returns>A list of <see cref="SearchResult"/> records for all the students, containing id, first name and last 
+        /// name.</returns>
+        public async Task<List<SearchResult>> GetStudentList()
+        {
+            return await ReadAllNameDataFromTable("Students");
+        }
+
+        /// <summary>
+        /// Retrieves a list of <see cref="SearchResult"/>s for all parents in the database, containing parent id, first 
+        /// name and last name. Allows the user to see a list of all parents for easy selection and searching.
+        /// </summary>
+        /// <returns>A list of <see cref="SearchResult"/> records for all the students, containing id, first name and last 
+        /// name.</returns>
+        public async Task<List<SearchResult>> GetParentList()
+        {
+            return await ReadAllNameDataFromTable("Parents");
+        }
+
+        /// <summary>
+        /// Returns a list of all the classes included in the <c>Students</c> table in the database. Allows the user to 
+        /// quickly see all current classes for easy class selection or searching by class.
+        /// </summary>
+        /// <returns>A list of strings containing the current class names in the <c>Students</c> table.</returns>
+        public async Task<List<string>> ListClasses()
+        {
+            var results = new List<string>();
+            
+            try
+            {
+                var command = _connection.CreateCommand();
+                command.CommandText = _listClassesQuery;
+
+                await using var reader = await command.ExecuteReaderAsync();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        results.Add(reader.GetString(0));
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error listing classes.");
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of <see cref="Student"/> records for each student in a given class. Allows the user to access 
+        /// information about all students in the same class.
+        /// </summary>
+        /// <param name="className">The name of the class list that should be returned.</param>
+        /// <returns>A list of <see cref="Student"/> records for the given class name.</returns>
+        /// <exception cref="ArgumentException">Thrown if the class name is null, empty or whitespace.</exception>
+        public async Task<List<Student>> GetClassList(string className)
+        {
+            if (string.IsNullOrWhiteSpace(className))
+                throw new ArgumentException("Class name cannot be null or empty.", nameof(className));
+
+            var criteria = new List<SearchCriteria>
+            {
+                new (
+                    DatabaseField.Class, SQLOperator.Equals, [ className ]
+                    )
+            };
+
+            return await SearchByCriteria(criteria);
+        }
 
         //Helper methods
 
@@ -571,8 +758,6 @@ namespace SchoolBookingApp.MVVM.Database
 
             return results;
         }
-
-        //Static helper methods
 
         /// <summary>
         /// Retrieves a string value from a <see cref="SqliteDataReader"/> for a given column name, returning an empty 
