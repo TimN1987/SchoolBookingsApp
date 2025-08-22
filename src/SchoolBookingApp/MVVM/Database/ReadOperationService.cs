@@ -320,7 +320,8 @@ namespace SchoolBookingApp.MVVM.Database
                     )
             };
 
-            return (await SearchByCriteria(criteria)).First();
+            return (await SearchByCriteria(criteria)).FirstOrDefault()
+                ?? new Student(id, "No student found", "No student found", 0, "", [], new(), new());
         }
 
         /// <summary>
