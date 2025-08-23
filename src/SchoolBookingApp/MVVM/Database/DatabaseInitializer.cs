@@ -95,7 +95,14 @@ namespace SchoolBookingApp.MVVM.Database
                     DateAdded INTEGER NOT NULL,
                     FOREIGN KEY (StudentId) REFERENCES Students(Id) ON DELETE CASCADE
                 );";
-        private readonly string _createBookingsTable = string.Empty; //complete for the bookings table
+        private readonly string _createBookingsTable = @"
+                    CREATE TABLE IF NOT EXISTS Bookings (
+                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        StudentId INTEGER NOT NULL,
+                        BookingDate INTEGER NOT NULL,
+                        TimeSlot INTEGER NOT NULL
+                        FOREIGN KEY (StudentId) REFERENCES Students(Id) ON DELETE CASCADE
+                    );";   
 
         //Connection information
         private readonly SqliteConnection _connection = connection
@@ -203,11 +210,16 @@ namespace SchoolBookingApp.MVVM.Database
                 commentsCommand.CommandText = _createCommentsTable;
                 commentsCommand.Transaction = transaction;
 
+                var bookingsCommand = _connection.CreateCommand();
+                bookingsCommand.CommandText = _createBookingsTable;
+                bookingsCommand.Transaction = transaction;
+
                 await parentsCommand.ExecuteNonQueryAsync();
                 await studentsCommand.ExecuteNonQueryAsync();
                 await parentStudentsCommand.ExecuteNonQueryAsync();
                 await dataCommand.ExecuteNonQueryAsync();
                 await commentsCommand.ExecuteNonQueryAsync();
+                await bookingsCommand.ExecuteNonQueryAsync();
 
                 await transaction.CommitAsync();
                 return true;
