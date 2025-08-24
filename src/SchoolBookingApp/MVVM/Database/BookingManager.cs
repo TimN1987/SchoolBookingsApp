@@ -62,11 +62,11 @@ namespace SchoolBookingApp.MVVM.Database
         public async Task<bool> CreateBooking(Booking booking)
         {
             //Validate the booking information. ArgumentException will be thrown if the data is invalid.
-            if (ValidateBookingInformaton(booking))
+            if (await ValidateBookingInformaton(booking))
                 Log.Information("Booking information validated successfully.");
 
             //Check that the booking does not conflict with any existing bookings, both by student it and by date and time.
-            if (!IsUnqiueBooking(booking))
+            if (!await IsUniqueBooking(booking))
                 throw new ArgumentException("The provided booking information conflicts with an existing booking.", nameof(booking));
 
             try
@@ -97,13 +97,13 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="bookingInformation">The <see cref="Booking"/> record containing the booking information.</param>
         /// <returns><c>True</c> if all the data is valid.</returns>
         /// <exception cref="ArgumentException">Thrown if any of the data is invalid.</exception>
-        private bool ValidateBookingInformaton(Booking bookingInformation)
+        private async Task<bool> ValidateBookingInformaton(Booking bookingInformation)
         {
             //Check the student Id is valid
             if (bookingInformation.StudentId <= 0)
                 throw new ArgumentException("A valid student Id must be provided.", nameof(bookingInformation));
 
-            if (!IsValidStudent(bookingInformation.StudentId))
+            if (!await IsValidStudent(bookingInformation.StudentId))
                 throw new ArgumentException("The provided student Id does not exist for exactly one student.", nameof(bookingInformation));
 
             //Check the date is valid
@@ -125,14 +125,14 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="studentId">The id number for the student to be validated.</param>
         /// <returns><c>True</c> if exactly one student with the given id number is found. <c>False</c> if the data cannot 
         /// be validated or if an incorrect number of students are found matching the id number.</returns>
-        private bool IsValidStudent(int studentId)
+        private async Task<bool> IsValidStudent(int studentId)
         {
             try
             {
-                using var command = _connection.CreateCommand();
+                await using var command = _connection.CreateCommand();
                 command.CommandText = @"SELECT COUNT(*) AS Total FROM Students WHERE Id = @id;";
                 command.Parameters.AddWithValue("@id", studentId);
-                var result = command.ExecuteScalar();
+                var result = await command.ExecuteScalarAsync();
 
                 var count = Convert.ToInt32(result);
                 return count == 1;
@@ -152,11 +152,11 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="bookingInformation">The <see cref="Booking"/> record containing the student id, date and time.</param>
         /// <returns><c>True</c> if the StudentId and combination of BookingDate and TimeSlot fields are unique. 
         /// <c>False</c> if any matches are found.</returns>
-        private bool IsUnqiueBooking(Booking bookingInformation)
+        private async Task<bool> IsUniqueBooking(Booking bookingInformation)
         {
             try
             {
-                using var command = _connection.CreateCommand();
+                await using var command = _connection.CreateCommand();
                 command.CommandText = @"
                     SELECT COUNT(*) AS Total 
                     FROM Bookings 
@@ -165,7 +165,7 @@ namespace SchoolBookingApp.MVVM.Database
                 command.Parameters.AddWithValue("@date", bookingInformation.DateString);
                 command.Parameters.AddWithValue("@time", bookingInformation.TimeString);
                 command.Parameters.AddWithValue("@id", bookingInformation.StudentId);
-                var result = command.ExecuteScalar();
+                var result = await command.ExecuteScalarAsync();
                 var count = Convert.ToInt32(result);
                 return count == 0;
             }
