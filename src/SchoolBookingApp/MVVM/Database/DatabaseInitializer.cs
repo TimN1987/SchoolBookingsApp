@@ -99,8 +99,8 @@ namespace SchoolBookingApp.MVVM.Database
                     CREATE TABLE IF NOT EXISTS Bookings (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         StudentId INTEGER NOT NULL,
-                        BookingDate INTEGER NOT NULL,
-                        TimeSlot INTEGER NOT NULL
+                        BookingDate TEXT NOT NULL,
+                        TimeSlot TEXT NOT NULL,
                         FOREIGN KEY (StudentId) REFERENCES Students(Id) ON DELETE CASCADE
                     );";   
 
