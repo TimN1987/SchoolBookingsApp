@@ -17,7 +17,7 @@ namespace SchoolBookingApp.MVVM.Database
     {
         Task<bool> CreateBooking(Booking bookingInformation);
         Task<bool> UpdateBooking(Booking bookingInformation);
-        Task<bool> DeleteBooking(Booking bookingInformation);
+        Task<bool> DeleteBooking(int studentId);
         Task<List<Booking>> ListBookings();
         Task<Booking> RetrieveBookingInformation(Booking booking);
         Task<bool> ClearBookings();
@@ -87,6 +87,20 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        public async Task<bool> UpdateBooking(Booking bookingInformationToUpdate)
+        {
+            //Validate the booking information. ArgumentException will be thrown if the data is invalid.
+            if (await ValidateBookingInformation(bookingInformationToUpdate))
+                Log.Information("Booking update information validated successfully.");
+
+            /* Check that the updated booking date and time does not conflict with any existing bookings and that there is 
+            already a booking for the given student. */
+            if (!await IsUniqueBooking(bookingInformationToUpdate, isUpdate: true))
+                throw new ArgumentException("The provided booking information conflicts with an existing booking.", nameof(bookingInformationToUpdate));
+
+            return true;
+        }
+
 
         //Private helper methods
 
@@ -152,7 +166,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="bookingInformation">The <see cref="Booking"/> record containing the student id, date and time.</param>
         /// <returns><c>True</c> if the StudentId and combination of BookingDate and TimeSlot fields are unique. 
         /// <c>False</c> if any matches are found.</returns>
-        private async Task<bool> IsUniqueBooking(Booking bookingInformation)
+        private async Task<bool> IsUniqueBooking(Booking bookingInformation, bool isUpdate = false)
         {
             try
             {
@@ -160,14 +174,25 @@ namespace SchoolBookingApp.MVVM.Database
                 command.CommandText = @"
                     SELECT COUNT(*) AS Total 
                     FROM Bookings 
-                    WHERE (BookingDate = @date AND TimeSlot = @time)
-                    OR StudentId = @id;";
+                    WHERE BookingDate = @date AND TimeSlot = @time;";
                 command.Parameters.AddWithValue("@date", bookingInformation.DateString);
                 command.Parameters.AddWithValue("@time", bookingInformation.TimeString);
-                command.Parameters.AddWithValue("@id", bookingInformation.StudentId);
                 var result = await command.ExecuteScalarAsync();
                 var count = Convert.ToInt32(result);
-                return count == 0;
+
+                command.CommandText = @"
+                        SELECT COUNT(*) AS Total 
+                        FROM Bookings 
+                        WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", bookingInformation.StudentId);
+                result = await command.ExecuteScalarAsync();
+                count += Convert.ToInt32(result);
+
+                /*If this is an update operation, the student Id should already have a booking and so the final count 
+                value should be 1. For a create operation, there should be no existing bookings and no matching date and 
+                time pairings, so the final count should be 0.*/
+
+                return isUpdate ? count == 1 : count == 0;
             }
             catch
             {
