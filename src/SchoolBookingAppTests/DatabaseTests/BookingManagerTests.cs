@@ -135,7 +135,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         public static IEnumerable<object[]> CreateBookingInvalidMemberData()
         {
             yield return new object[] { new Booking(-1, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
-            yield return new object[] { new Booking(10, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
+            yield return new object[] { new Booking(11, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, null, new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 14), null) };
             yield return new object[] { new Booking(-5, string.Empty, string.Empty, null, null) };

@@ -62,7 +62,7 @@ namespace SchoolBookingApp.MVVM.Database
         public async Task<bool> CreateBooking(Booking booking)
         {
             //Validate the booking information. ArgumentException will be thrown if the data is invalid.
-            if (await ValidateBookingInformaton(booking))
+            if (await ValidateBookingInformation(booking))
                 Log.Information("Booking information validated successfully.");
 
             //Check that the booking does not conflict with any existing bookings, both by student it and by date and time.
@@ -97,7 +97,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="bookingInformation">The <see cref="Booking"/> record containing the booking information.</param>
         /// <returns><c>True</c> if all the data is valid.</returns>
         /// <exception cref="ArgumentException">Thrown if any of the data is invalid.</exception>
-        private async Task<bool> ValidateBookingInformaton(Booking bookingInformation)
+        private async Task<bool> ValidateBookingInformation(Booking bookingInformation)
         {
             //Check the student Id is valid
             if (bookingInformation.StudentId <= 0)
