@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.DependencyInjection;
 using SchoolBookingApp.MVVM.Database;
 using Serilog;
 
@@ -12,6 +13,7 @@ namespace SchoolBookingAppTests.DatabaseTests
     public class BookingManagerTests
     {
         private const string TestConnectionString = "Data Source=:memory:";
+        private const int InitialTotalRecords = 5;
         private const int TotalRecordsAfterOneInsertion = 6;
 
         private readonly DatabaseConnectionInformation _connectionInformation;
@@ -88,7 +90,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         /// </summary>
         /// <param name="invalidBookingInformation">A <see cref="Booking"/> record containing invalid data.</param>
         [Theory]
-        [MemberData(nameof(CreateBookingInvalidMemberData))]
+        [MemberData(nameof(CreateUpdateBookingInvalidMemberData))]
         public async Task CreateBooking_InvalidBookingInformation_ThrowsArgumentException(Booking invalidBookingInformation)
         {
             //Arrange
@@ -100,6 +102,14 @@ namespace SchoolBookingAppTests.DatabaseTests
                 await _bookingManager.CreateBooking(invalidBookingInformation));
         }
 
+        /// <summary>
+        /// Verifies that a booking is successfully created when valid booking information is provided to the <see 
+        /// cref="BookingManager.CreateBooking"/> method. Uses member data to provide a range of valid data with different 
+        /// student Ids, dates and times using the different constructors of the <see cref="Booking"/>. Ensures that the 
+        /// method successfully creates exactly one new record in the <c>Bookings</c> table with the expected details.
+        /// </summary>
+        /// <param name="validBookingInformation">A <see cref="Booking"/> record containing a valid student id for a 
+        /// student who exists in the <c>Students</c> table and a unique, valid booking date and time.</param>
         [Theory]
         [MemberData(nameof(CreateBookingValidMemberData))]
         public async Task CreateBooking_ValidBookingInformation_CreatesBookingSuccessfully(Booking validBookingInformation)
@@ -122,17 +132,120 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Equal(TotalRecordsAfterOneInsertion, await CountBookings());
         }
 
+        //UpdateBooking tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when invalid booking information is provided to the 
+        /// <see cref="BookingManager.UpdateBooking(Booking)"/> method. Uses member data to provide a range of invalid 
+        /// data with cases where one or more elements should throw an <see cref="ArgumentException"/>. Ensures that any 
+        /// invalid data is correctly identified and handled, preventing invalid records from being created in the database 
+        /// or displayed to the user.
+        /// </summary>
+        /// <param name="invalidBookingInformation">A <see cref="Booking"/> record containing invalid data.</param>
+        [Theory]
+        [MemberData(nameof(CreateUpdateBookingInvalidMemberData))]
+        public async Task UpdateBooking_InvalidBookingInformation_ThrowsArgumentException(
+            Booking invalidBookingInformation)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _bookingManager.UpdateBooking(invalidBookingInformation));
+        }
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when valid booking information is provided to the 
+        /// <see cref="BookingManager.UpdateBooking"/> method but where the student Id does not have an existing booking. 
+        /// Ensures that an attempt to update a non-existent booking is correctly identified and handled, preventing any 
+        /// issues when attempting to update records in the database.
+        /// </summary>
+        /// <param name="bookingInformation">A <see cref="Booking"/> <see langword="struct"/> containing a valid 
+        /// student id and a unique, valid booking date and time.</param>
+        [Theory]
+        [MemberData(nameof(UpdateBookingNoBookingToUpdateMemberData))]
+        public async Task UpdateBooking_NoExistingBooking_ThrowsArgumentException(Booking bookingInformation)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _bookingManager.UpdateBooking(bookingInformation));
+        }
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when valid booking information is provided to the 
+        /// <see cref="BookingManager.UpdateBooking"/> method but where the time slot clashes with an existing booking for 
+        /// a different student on the same date. Ensures that an attempt to update a booking to a time slot that is already 
+        /// booked is correctly identified and handled, preventing double-booking and ensuring the integrity of the 
+        /// booking system.
+        /// </summary>
+        /// <param name="bookingInformation">A <see cref="Booking"/> <see langword="struct"/> containing valid booking 
+        /// data with a valid booking for the given student id, but where the selected time slot on the given date is 
+        /// already booked.</param>
+        [Theory]
+        [MemberData(nameof(UpdateBookingsTimeSlotClashMemberData))]
+        public async Task UpdateBooking_TimeSlotClash_ThrowsArgumentException(Booking bookingInformation)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _bookingManager.UpdateBooking(bookingInformation));
+        }
+
+        /// <summary>
+        /// Verifies that a booking is successfully updated when valid booking information is provided to the <see 
+        /// cref="BookingManager.UpdateBooking"/> method. Uses member data to provide a range of valid data with student 
+        /// ids that already have a booking and different dates and times using the different constructors of the <see 
+        /// cref="Booking"/> <see langword="struct"/>. Ensures that the method successfully updates the selected records 
+        /// with date and time values that do not clash with any other existing bookings.
+        /// </summary>
+        /// <param name="updatedBookingInformation">A <see cref="Booking"/> <see langword="struct"/> containing a valid 
+        /// student id which already has a booking in the <c>Bookings</c> table and a valid booking date and time slot 
+        /// that have not already been booked.</param>
+        [Theory]
+        [MemberData(nameof(UpdateBookingValidMemberData))]
+        public async Task UpdateBooking_ValidBookingInformation_UpdatesTheRecordSuccessfully(
+            Booking updatedBookingInformation)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var result = await _bookingManager.UpdateBooking(updatedBookingInformation);
+
+            //Assert
+            Assert.True(result);
+            Assert.Equal(InitialTotalRecords, await CountBookings());
+            Assert.Equal(
+                updatedBookingInformation.DateString,
+                await RetrieveBookingDate(updatedBookingInformation.StudentId));
+            Assert.Equal(
+                updatedBookingInformation.TimeString,
+                await RetrieveTimeSlot(updatedBookingInformation.StudentId));
+        }
+
+        //DeleteBooking tests.
 
 
         //Member Data
 
         /// <summary>
-        /// Provides member data for the <see cref="CreateBooking_InvalidBookingInformation_ThrowsArgumentException"/> test. 
-        /// Includes a range of invalid data with cases where one or more elements should throw an <see 
-        /// cref="ArgumentException"/>. This includes values <= 0, dates and times in an invalid format and a student Id 
-        /// that is not found in the <c>Students</c> table.
+        /// Provides member data for the <see cref="CreateBooking_InvalidBookingInformation_ThrowsArgumentException"/> test 
+        /// and the <see cref="UpdateBooking_InvalidBookingInformation_ThrowsArgumentException"/> test. Includes a range of 
+        /// invalid data with cases where one or more elements should throw an <see cref="ArgumentException"/>. This 
+        /// includes values <= 0, dates and times in an invalid format and a student Id that is not found in the 
+        /// <c>Students</c> table.
         /// </summary>
-        public static IEnumerable<object[]> CreateBookingInvalidMemberData()
+        public static IEnumerable<object[]> CreateUpdateBookingInvalidMemberData()
         {
             yield return new object[] { new Booking(-1, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(11, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
@@ -173,6 +286,64 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(8, new DateTime(2025, 11, 20, 15, 45, 0)) };
             yield return new object[] { new Booking(9, new DateTime(2025, 12, 05, 18, 15, 0)) };
             yield return new object[] { new Booking(10, new DateTime(2025, 01, 11, 15, 00, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="UpdateBooking_NoExistingBooking_ThrowsArgumentException"/> test. 
+        /// Includes a range of valid data with different student Ids, dates and times using the different constructors of 
+        /// the <see cref="Booking"/> <see langword="struct"/> but where the student Id does not have an existing booking 
+        /// in the <c>Bookings</c> table. Ensures that an <see cref="ArgumentException"/> is thrown when attempting to 
+        /// update a booking that does not exist.
+        /// </summary>
+        public static IEnumerable<object[]> UpdateBookingNoBookingToUpdateMemberData()
+        {
+            yield return new object[] { new Booking(6, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
+            yield return new object[] { new Booking(7, "2025-10-01", "17:30") };
+            yield return new object[] { new Booking(8, new DateTime(2025, 11, 20, 15, 45, 0)) };
+            yield return new object[] { new Booking(9, string.Empty, string.Empty, new DateTime(2025, 12, 05), new TimeSpan(18, 15, 0)) };
+            yield return new object[] { new Booking(10, string.Empty, string.Empty, new DateTime(2026, 01, 10), new TimeSpan(16, 30, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="UpdateBooking_TimeSlotClash_ThrowsInvalidOperationException"/> test. 
+        /// Includes a range of valid data with different student Ids, dates and times using the different constructors of 
+        /// the <see cref="Booking"/> <see langword="struct"/> but where the time slot clashes with an existing booking for 
+        /// a different student on the same date. Ensures that an <see cref="ArgumentException"/> is thrown when attempting 
+        /// to update a booking to a time slot that is already booked.
+        /// </summary>
+        public static IEnumerable<object[]> UpdateBookingsTimeSlotClashMemberData()
+        {
+            yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 15), new TimeSpan(16, 10, 0)) };
+            yield return new object[] { new Booking(2, "2025-09-15", "16:20") };
+            yield return new object[] { new Booking(3, new DateTime(2025, 09, 15, 16, 30, 0)) };
+            yield return new object[] { new Booking(4, string.Empty, string.Empty, new DateTime(2025, 09, 15), new TimeSpan(16, 40, 0)) };
+            yield return new object[] { new Booking(5, string.Empty, string.Empty, new DateTime(2025, 09, 15), new TimeSpan(16, 00, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="UpdateBooking_ValidBookingInformation_UpdatesTheRecordSuccessfully"/> 
+        /// test. Ensures that the selected record is updated with the correct new booking date and time slot. Includes a 
+        /// range of valid data with different student Ids, dates and times using the different constructors of the 
+        /// <see cref="Booking"/> <see langword="struct"/>.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<object[]> UpdateBookingValidMemberData()
+        {
+            yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
+            yield return new object[] { new Booking(2, string.Empty, string.Empty, new DateTime(2025, 10, 01), new TimeSpan(17, 30, 0)) };
+            yield return new object[] { new Booking(3, string.Empty, string.Empty, new DateTime(2025, 11, 20), new TimeSpan(15, 45, 0)) };
+            yield return new object[] { new Booking(4, string.Empty, string.Empty, new DateTime(2025, 12, 05), new TimeSpan(18, 15, 0)) };
+            yield return new object[] { new Booking(5, string.Empty, string.Empty, new DateTime(2026, 01, 10), new TimeSpan(16, 30, 0)) };
+            yield return new object[] { new Booking(1, "2025-09-14", "16:00") };
+            yield return new object[] { new Booking(2, "2025-10-01", "17:30") };
+            yield return new object[] { new Booking(3, "2025-11-20", "15:45") };
+            yield return new object[] { new Booking(4, "2025-12-05", "18:15") };
+            yield return new object[] { new Booking(5, "2026-01-10", "16:30") };
+            yield return new object[] { new Booking(1, new DateTime(2025, 09, 14, 16, 0, 0)) };
+            yield return new object[] { new Booking(2, new DateTime(2025, 10, 01, 17, 30, 0)) };
+            yield return new object[] { new Booking(3, new DateTime(2025, 11, 20, 15, 45, 0)) };
+            yield return new object[] { new Booking(4, new DateTime(2025, 12, 05, 18, 15, 0)) };
+            yield return new object[] { new Booking(5, new DateTime(2025, 01, 11, 15, 00, 0)) };
         }
 
         //Helper Methods
@@ -237,11 +408,11 @@ namespace SchoolBookingAppTests.DatabaseTests
                         BookingDate,
                         TimeSlot)
                     VALUES
-                        (1, 20250915, 1600),
-                        (2, 20250915, 1610),
-                        (3, 20250915, 1620),
-                        (4, 20250915, 1630),
-                        (5, 20250915, 1640)
+                        (1, '2025-09-15', '16:00'),
+                        (2, '2025-09-15', '16:10'),
+                        (3, '2025-09-15', '16:20'),
+                        (4, '2025-09-15', '16:30'),
+                        (5, '2025-09-15', '16:40')
                     ;";
                 bookingsCommand.Transaction = transaction;
                 rowsAffected += await bookingsCommand.ExecuteNonQueryAsync();
@@ -313,6 +484,56 @@ namespace SchoolBookingAppTests.DatabaseTests
             catch (Exception ex)
             {
                 Log.Error(ex, "An error occurred while counting entries in the {TableName} table.", "Bookings");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the booking date for a given student id. Used to verify that the booking date is as expected after 
+        /// an update operation.
+        /// </summary>
+        /// <param name="studentId">The student id for the record that has been updated.</param>
+        private async Task<string> RetrieveBookingDate(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT BookingDate 
+                    FROM Bookings 
+                    WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString() ?? string.Empty;
+            }
+            catch
+            {
+                Log.Error("An error occurred while retrieving the booking date.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the booking time for a given student id. Used to verify that the booking time is as expected after 
+        /// an update operation.
+        /// </summary>
+        /// <param name="studentId">The student id for the record that has been updated.</param>
+        private async Task<string> RetrieveTimeSlot(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT TimeSlot 
+                    FROM Bookings 
+                    WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString() ?? string.Empty;
+            }
+            catch
+            {
+                Log.Error("An error occurred while retrieving the booking time slot.");
                 throw;
             }
         }
