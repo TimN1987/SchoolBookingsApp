@@ -37,6 +37,10 @@ namespace SchoolBookingApp.MVVM.Database
         private const string InsertBookingQuery = @"
             INSERT INTO Bookings (StudentId, BookingDate, TimeSlot)
             VALUES (@id, @date, @time);";
+        private const string UpdateBookingQuery = @"
+            UPDATE Bookings
+            SET BookingDate = @date, TimeSlot = @time
+            WHERE StudentId = @id;";
 
         public BookingManager(SqliteConnection connection)
         {
@@ -87,6 +91,18 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Updates a specified booking in the <c>Bookings</c> table using the provided <see cref="Booking"/> information. 
+        /// Used to modify an existing booking in the database. Validates the provided information, checking that the 
+        /// selected student already has a booking, and checks for conflicts with existing data before attempting to update 
+        /// the record.
+        /// </summary>
+        /// <param name="bookingInformationToUpdate">A <see cref="Booking"/> <see langword="struct"/> containing a 
+        /// valid student id where the student already has a booking in the <c>Bookings</c> table, and a booking date and 
+        /// time which have not already been booked.</param>
+        /// <returns><c>True</c> if the record is successfully updated. <c>False if the record fails to update correctly.</c></returns>
+        /// <exception cref="ArgumentException">Thrown if the student id, date or time are invalid, or if the given 
+        /// student does not have a booking already or the booking data and time are already booked.</exception>
         public async Task<bool> UpdateBooking(Booking bookingInformationToUpdate)
         {
             //Validate the booking information. ArgumentException will be thrown if the data is invalid.
@@ -98,7 +114,22 @@ namespace SchoolBookingApp.MVVM.Database
             if (!await IsUniqueBooking(bookingInformationToUpdate, isUpdate: true))
                 throw new ArgumentException("The provided booking information conflicts with an existing booking.", nameof(bookingInformationToUpdate));
 
-            return true;
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = UpdateBookingQuery;
+                command.Parameters.AddWithValue("@id", bookingInformationToUpdate.StudentId);
+                command.Parameters.AddWithValue("@date", bookingInformationToUpdate.DateString);
+                command.Parameters.AddWithValue("@time", bookingInformationToUpdate.TimeString);
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                return rowsAffected == 1; //Only one row should be affected during the update process.
+            }
+            catch (Exception ex)
+            {
+                Log.Error("An error occurred while updating the booking: {Message}", ex.Message);
+                return false;
+            }
         }
 
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.DependencyInjection;
 using SchoolBookingApp.MVVM.Database;
 using Serilog;
 
@@ -12,6 +13,7 @@ namespace SchoolBookingAppTests.DatabaseTests
     public class BookingManagerTests
     {
         private const string TestConnectionString = "Data Source=:memory:";
+        private const int InitialTotalRecords = 5;
         private const int TotalRecordsAfterOneInsertion = 6;
 
         private readonly DatabaseConnectionInformation _connectionInformation;
@@ -198,6 +200,40 @@ namespace SchoolBookingAppTests.DatabaseTests
                 await _bookingManager.UpdateBooking(bookingInformation));
         }
 
+        /// <summary>
+        /// Verifies that a booking is successfully updated when valid booking information is provided to the <see 
+        /// cref="BookingManager.UpdateBooking"/> method. Uses member data to provide a range of valid data with student 
+        /// ids that already have a booking and different dates and times using the different constructors of the <see 
+        /// cref="Booking"/> <see langword="struct"/>. Ensures that the method successfully updates the selected records 
+        /// with date and time values that do not clash with any other existing bookings.
+        /// </summary>
+        /// <param name="updatedBookingInformation">A <see cref="Booking"/> <see langword="struct"/> containing a valid 
+        /// student id which already has a booking in the <c>Bookings</c> table and a valid booking date and time slot 
+        /// that have not already been booked.</param>
+        [Theory]
+        [MemberData(nameof(UpdateBookingValidMemberData))]
+        public async Task UpdateBooking_ValidBookingInformation_UpdatesTheRecordSuccessfully(
+            Booking updatedBookingInformation)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            var result = await _bookingManager.UpdateBooking(updatedBookingInformation);
+
+            //Assert
+            Assert.True(result);
+            Assert.Equal(InitialTotalRecords, await CountBookings());
+            Assert.Equal(
+                updatedBookingInformation.DateString,
+                await RetrieveBookingDate(updatedBookingInformation.StudentId));
+            Assert.Equal(
+                updatedBookingInformation.TimeString,
+                await RetrieveTimeSlot(updatedBookingInformation.StudentId));
+        }
+
+        //DeleteBooking tests.
 
 
         //Member Data
@@ -282,6 +318,32 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(3, new DateTime(2025, 09, 15, 16, 30, 0)) };
             yield return new object[] { new Booking(4, string.Empty, string.Empty, new DateTime(2025, 09, 15), new TimeSpan(16, 40, 0)) };
             yield return new object[] { new Booking(5, string.Empty, string.Empty, new DateTime(2025, 09, 15), new TimeSpan(16, 00, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="UpdateBooking_ValidBookingInformation_UpdatesTheRecordSuccessfully"/> 
+        /// test. Ensures that the selected record is updated with the correct new booking date and time slot. Includes a 
+        /// range of valid data with different student Ids, dates and times using the different constructors of the 
+        /// <see cref="Booking"/> <see langword="struct"/>.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<object[]> UpdateBookingValidMemberData()
+        {
+            yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
+            yield return new object[] { new Booking(2, string.Empty, string.Empty, new DateTime(2025, 10, 01), new TimeSpan(17, 30, 0)) };
+            yield return new object[] { new Booking(3, string.Empty, string.Empty, new DateTime(2025, 11, 20), new TimeSpan(15, 45, 0)) };
+            yield return new object[] { new Booking(4, string.Empty, string.Empty, new DateTime(2025, 12, 05), new TimeSpan(18, 15, 0)) };
+            yield return new object[] { new Booking(5, string.Empty, string.Empty, new DateTime(2026, 01, 10), new TimeSpan(16, 30, 0)) };
+            yield return new object[] { new Booking(1, "2025-09-14", "16:00") };
+            yield return new object[] { new Booking(2, "2025-10-01", "17:30") };
+            yield return new object[] { new Booking(3, "2025-11-20", "15:45") };
+            yield return new object[] { new Booking(4, "2025-12-05", "18:15") };
+            yield return new object[] { new Booking(5, "2026-01-10", "16:30") };
+            yield return new object[] { new Booking(1, new DateTime(2025, 09, 14, 16, 0, 0)) };
+            yield return new object[] { new Booking(2, new DateTime(2025, 10, 01, 17, 30, 0)) };
+            yield return new object[] { new Booking(3, new DateTime(2025, 11, 20, 15, 45, 0)) };
+            yield return new object[] { new Booking(4, new DateTime(2025, 12, 05, 18, 15, 0)) };
+            yield return new object[] { new Booking(5, new DateTime(2025, 01, 11, 15, 00, 0)) };
         }
 
         //Helper Methods
@@ -422,6 +484,56 @@ namespace SchoolBookingAppTests.DatabaseTests
             catch (Exception ex)
             {
                 Log.Error(ex, "An error occurred while counting entries in the {TableName} table.", "Bookings");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the booking date for a given student id. Used to verify that the booking date is as expected after 
+        /// an update operation.
+        /// </summary>
+        /// <param name="studentId">The student id for the record that has been updated.</param>
+        private async Task<string> RetrieveBookingDate(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT BookingDate 
+                    FROM Bookings 
+                    WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString() ?? string.Empty;
+            }
+            catch
+            {
+                Log.Error("An error occurred while retrieving the booking date.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the booking time for a given student id. Used to verify that the booking time is as expected after 
+        /// an update operation.
+        /// </summary>
+        /// <param name="studentId">The student id for the record that has been updated.</param>
+        private async Task<string> RetrieveTimeSlot(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT TimeSlot 
+                    FROM Bookings 
+                    WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString() ?? string.Empty;
+            }
+            catch
+            {
+                Log.Error("An error occurred while retrieving the booking time slot.");
                 throw;
             }
         }
