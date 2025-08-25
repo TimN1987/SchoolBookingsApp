@@ -15,6 +15,7 @@ namespace SchoolBookingAppTests.DatabaseTests
         private const string TestConnectionString = "Data Source=:memory:";
         private const int InitialTotalRecords = 5;
         private const int TotalRecordsAfterOneInsertion = 6;
+        private const int TotalRecordsAfterOneDeletion = 4;
 
         private readonly DatabaseConnectionInformation _connectionInformation;
         private readonly SqliteConnection _connection;
@@ -234,6 +235,58 @@ namespace SchoolBookingAppTests.DatabaseTests
         }
 
         //DeleteBooking tests.
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid <paramref name="studentId"/> is 
+        /// passed as the parameter of the <see cref="BookingManager.DeleteBooking"/> method. A <paramref name="studentId"/> 
+        /// is invalid if it is <= 0 or if there is not already a booking with that <paramref name="studentId"/> in the 
+        /// <c>Bookings</c> table.
+        /// </summary>
+        /// <param name="studentId">The StudentId field for the record to be deleted.</param>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(15)]
+        [InlineData(20)]
+        [InlineData(-5)]
+        [InlineData(100)]
+        public async Task DeleteBooking_InvalidStudentId_ThrowsArgumentException(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _bookingManager.DeleteBooking(studentId));
+        }
+
+        /// <summary>
+        /// Verifies that a record is successfully deleted when a valid <paramref name="studentId"/> is passed as the 
+        /// parameter to the <see cref="BookingManager.DeleteBooking"/> method. A valid <paramref name="studentId"/> must 
+        /// be > 0 and already have a record in the <c>Bookings</c> table to delete.
+        /// </summary>
+        /// <param name="studentId">The StudentId field for the record to be deleted.</param>
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(5)]
+        public async Task DeleteBooking_ValidStudentId_ExactlyOneRecordDeleted(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            bool result = await _bookingManager.DeleteBooking(studentId);
+
+            //Assert
+            Assert.True(result);
+            Assert.Equal(TotalRecordsAfterOneDeletion, await CountBookings());
+            Assert.Equal(0, await CountRecordsById(studentId));
+        }
 
 
         //Member Data
@@ -534,6 +587,32 @@ namespace SchoolBookingAppTests.DatabaseTests
             catch
             {
                 Log.Error("An error occurred while retrieving the booking time slot.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Counts how many records are in the <c>Bookings</c> table with a given student id. Used to check whether any 
+        /// records for the given student id are still remaining after a deletion or that there is only one record with 
+        /// the given student id after a record is created or updated.
+        /// </summary>
+        /// <param name="studentId">The student id that any matching records must have in the StudentId field.</param>
+        /// <returns>The number of records with the given student id field.</returns>
+        private async Task<int> CountRecordsById(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"SELECT COUNT(*) FROM Bookings WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                var count = Convert.ToInt32(result);
+
+                return count;
+            }
+            catch
+            {
+                Log.Error("An error occurred while counting bookings with the StudentId: " + studentId);
                 throw;
             }
         }

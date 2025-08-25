@@ -41,6 +41,15 @@ namespace SchoolBookingApp.MVVM.Database
             UPDATE Bookings
             SET BookingDate = @date, TimeSlot = @time
             WHERE StudentId = @id;";
+        private const string DeleteBookingQuery = @"
+            DELETE FROM Bookings
+            WHERE StudentId = @id;";
+        private const string BookingInformationQuery = @"
+            SELECT b.StudentId, s.FirstName, s.LastName, b.BookingDate, b.TimeSlot 
+            FROM Bookings AS b 
+            LEFT JOIN Students AS s 
+            ON b.StudentId = s.Id";
+        private const string BookingInformationCondition = @" WHERE StudentId = @id;";
 
         public BookingManager(SqliteConnection connection)
         {
@@ -132,6 +141,37 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Deletes a record from the <c>Bookings</c> table where the StudentId field matches the given <paramref 
+        /// name="studentId"/>. Checks that the given <paramref name="studentId"/> is valid, and that a booking already 
+        /// exists in the <c>Bookings</c> table to be deleted. Used when a single booking needs to be removed from the 
+        /// <c>Bookings</c> table rather than changing the date or timeslot.
+        /// </summary>
+        /// <param name="studentId">The StudentId field for the record to be deleted.</param>
+        /// <returns><c>True</c> if the record is successfully deleted. <c>False</c> if the record could not be deleted.</returns>
+        /// <exception cref="ArgumentException">Thrown if the <paramref name="studentId"/> is invalid or if there is not a 
+        /// record with the given <paramref name="studentId"/> to delete.</exception>
+        public async Task<bool> DeleteBooking(int studentId)
+        {
+            if (!await IsValidStudent(studentId))
+                throw new ArgumentException("Cannot delete a record with an invalid student id. The id must be > 0 and a booking must already exist for the student id.");
+
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = DeleteBookingQuery;
+                command.Parameters.AddWithValue("@id", studentId);
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                return rowsAffected == 1;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("An error occurred while deleting a record.", ex.Message);
+                return false;
+            }
+        }
+
 
         //Private helper methods
 
@@ -172,6 +212,9 @@ namespace SchoolBookingApp.MVVM.Database
         /// be validated or if an incorrect number of students are found matching the id number.</returns>
         private async Task<bool> IsValidStudent(int studentId)
         {
+            if (studentId <= 0)
+                return false;
+            
             try
             {
                 await using var command = _connection.CreateCommand();
