@@ -288,6 +288,145 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Equal(0, await CountRecordsById(studentId));
         }
 
+        //ListBookings tests.
+
+        /// <summary>
+        /// Verifies that an empty list is returned when the <see cref="BookingManager.ListBookings"/> method is called 
+        /// with an empty <c>Bookings</c> table.
+        /// </summary>
+        [Fact]
+        public async Task ListBookings_EmptyTable_ReturnsEmptyList()
+        {
+            //Arrange
+            await ClearTables();
+
+            //Act
+            List<Booking> result = await _bookingManager.ListBookings();
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        /// <summary>
+        /// Verifies that all records from the <c>Bookings</c> table are returned when the <see 
+        /// cref="BookingManager.ListBookings"/> method is called.
+        /// </summary>
+        /// <param name="expectedResults">A list containing <see cref="Booking"/> <see langword="struct"/>s for all the 
+        /// records in the <c>Bookings</c> table to compare to the actual results.</param>
+        [Theory]
+        [MemberData(nameof(ListBookingsExpectedResultsMemberData))]
+        public async Task ListBookings_BookingsInTable_ReturnsAllBookings(List<Booking> expectedResults)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            List<Booking> results = await _bookingManager.ListBookings();
+
+            //Assert
+            Assert.NotNull(results);
+            Assert.Equal(InitialTotalRecords, results.Count);
+            Assert.Equal(expectedResults, results);
+        }
+
+        //RetrieveBookingInformation tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> throws an <see 
+        /// cref="ArgumentException"/> when an invalid student it is passed as the argument. An invalid student id could be 
+        /// <= 0 or a student id that does not exist in the <c>Students</c> table. Used to check that no search is 
+        /// performed for a student that does not exist.
+        /// </summary>
+        /// <param name="studentId">The student id for a student that does not exist.</param>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(20)]
+        [InlineData(-5)]
+        [InlineData(11)]
+        public async Task RetrieveBookingInformation_InvalidStudentIdInput_ThrowsArgumentException(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _bookingManager.RetrieveBookingInformation(studentId));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> method throws an <see 
+        /// cref="InvalidOperationException"/> if a valid student id is passed but where there is no booking in the
+        /// <c>Bookings</c> table to retrieve. Used to check that the method does not try to retrieve booking information 
+        /// for a booking that does not exist.
+        /// </summary>
+        /// <param name="studentId">The student id for a valid student who does not have a booking.</param>
+        [Theory]
+        [InlineData(6)]
+        [InlineData(7)]
+        [InlineData(8)]
+        [InlineData(9)]
+        [InlineData(10)]
+        public async Task RetrieveBookingInformation_NoBookingForStudentId_ThrowsInvalidOperationException(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _bookingManager.RetrieveBookingInformation(studentId));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> method correctly retrieves all the 
+        /// booking information for a valid, given student id. Checks that the returned <see cref="Booking"/> <see 
+        /// langword="struct"/> matches the expected booking information. Used to help the user retrieve all relevant 
+        /// booking information for a selected student.
+        /// </summary>
+        /// <param name="studentId">The student id for the selected student.</param>
+        /// <param name="expectedBooking">A <see cref="Booking"/> <see langword="struct"/> containing the expected 
+        /// data to be retrieved from the database. Used to compare to the actual data returned.</param>
+        [Theory]
+        [MemberData(nameof(RetrieveBookingInformationValidMemberData))]
+        public async Task RetrieveBookingInformation_ValidStudentIdInput_ReturnsCorrectBookingInformation(
+            int studentId, Booking expectedBooking)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            Booking booking = await _bookingManager.RetrieveBookingInformation(studentId);
+
+            //Assert
+            Assert.Equal(expectedBooking, booking);
+        }
+
+        //ClearBookings tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.ClearBookings"/> method deletes all records from the <c>Bookings</c> 
+        /// table. Checks that the method returns true and that the table is empty after the method is called. Ensures that 
+        /// the <c>Bookings</c> table can be cleared for new bookings, for example before a new Parents' Evening.
+        /// </summary>
+        [Fact]
+        public async Task ClearBookings_BookingsTableExists_NoRecordsLeftInTable()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            bool result = await _bookingManager.ClearBookings();
+
+            //Assert
+            Assert.True(result);
+            Assert.Equal(0, await CountBookings());
+        }
 
         //Member Data
 
@@ -304,7 +443,7 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(11, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, null, new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 14), null) };
-            yield return new object[] { new Booking(-5, string.Empty, string.Empty, null, null) };
+            yield return new object[] { new Booking(-5, null!, null!) };
             yield return new object[] { new Booking(20, string.Empty, string.Empty, new DateTime(2025, 09, 14), null) };
             yield return new object[] { new Booking(7, string.Empty, string.Empty, null, new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(0, "2025-09-14", "16:00") };
@@ -397,6 +536,48 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(3, new DateTime(2025, 11, 20, 15, 45, 0)) };
             yield return new object[] { new Booking(4, new DateTime(2025, 12, 05, 18, 15, 0)) };
             yield return new object[] { new Booking(5, new DateTime(2025, 01, 11, 15, 00, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="ListBookings_BookingsInTable_ReturnsAllBookings"/> test. Used to check 
+        /// that the correct list of <see cref="Booking"/> <see langword="struct"/>s is returned when the <see 
+        /// cref="BookingManager.ListBookings"/> method is called.
+        /// </summary>
+        public static IEnumerable<object[]> ListBookingsExpectedResultsMemberData()
+        {
+            yield return new object[] { new List<Booking>
+                { 
+                    new(1, "John", "Doe", new DateTime(2025, 9, 15), new TimeSpan(16, 0, 0)),
+                    new(2, "Jane", "Smith", new DateTime(2025, 9, 15), new TimeSpan(16, 10, 0)),
+                    new(3, "Alice", "Johnson", new DateTime(2025, 9, 15), new TimeSpan(16, 20, 0)),
+                    new(4, "Bob", "Brown", new DateTime(2025, 9, 15), new TimeSpan(16, 30, 0)),
+                    new(5, "Charlie", "Davis", new DateTime(2025, 9, 15), new TimeSpan(16, 40, 0))
+                }
+            };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="RetrieveBookingInformation_ValidStudentIdInput_ReturnsCorrectBookingInformation"/> 
+        /// test. Used to check that all the correct booking information is retrieved from the database for the given student id 
+        /// when the <see cref="BookingManager.RetrieveBookingInformation"/> method is called.
+        /// </summary>
+        public static IEnumerable<object[]> RetrieveBookingInformationValidMemberData()
+        {
+            yield return new object[] { 
+                1, new Booking(1, "John", "Doe", new DateTime(2025, 9, 15), new TimeSpan(16, 0, 0))
+            };
+            yield return new object[] {
+                2, new Booking(2, "Jane", "Smith", new DateTime(2025, 9, 15), new TimeSpan(16, 10, 0))
+            };
+            yield return new object[] {
+                3, new Booking(3, "Alice", "Johnson", new DateTime(2025, 9, 15), new TimeSpan(16, 20, 0))
+            };
+            yield return new object[] {
+                4, new Booking(4, "Bob", "Brown", new DateTime(2025, 9, 15), new TimeSpan(16, 30, 0))
+            };
+            yield return new object[] {
+                5, new Booking(5, "Charlie", "Davis", new DateTime(2025, 9, 15), new TimeSpan(16, 40, 0))
+            };
         }
 
         //Helper Methods
