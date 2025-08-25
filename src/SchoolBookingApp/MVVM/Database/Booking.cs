@@ -32,8 +32,8 @@ namespace SchoolBookingApp.MVVM.Database
             : this(studentId, string.Empty, string.Empty, dateTime?.Date, dateTime?.TimeOfDay) { }
 
         /// <summary>
-        /// Alternative constructor for inputting a new booking to the Bookings table with the date and time as strings. 
-        /// Used when reading from the database where date and time are stored as TEXT.
+        /// Alternative constructor for reading a booking from the Bookings table with the date and time as strings. This 
+        /// facilitates easy reading from the <b>Bookings</b> table as the date and time are stored as TEXT.
         /// </summary>
         /// <param name="studentId">The id for the selected student.</param>
         /// <param name="date">The date of the meeting as a string in the format "yyyy-MM-dd".</param>
@@ -43,6 +43,22 @@ namespace SchoolBookingApp.MVVM.Database
                   DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
                   TimeSpan.TryParse(time, out var timeSlot) ? timeSlot : null) { }
 
+        /// <summary>
+        /// Alternative constructor for reading a booking from the Bookings table with the date and time as strings. This 
+        /// facilitates easy reading from the <b>Bookings</b> table as the date and time are stored as TEXT. This 
+        /// constructor also takes the student's first name and last name as arguments to ensure that all data needed for 
+        /// display in a bookings list is stored together.
+        /// </summary>
+        /// <param name="studentId">The id for the selected student.</param>
+        /// <param name="firstName">The first name of the student.</param>
+        /// <param name="lastName">The last name of the student.</param>
+        /// <param name="date">The date of the meeting as a string in the format "yyyy-MM-dd".</param>
+        /// <param name="time">The start time of the meeting as a string in the format "HH:mm".</param>
+        public Booking(int studentId, string firstName, string lastName, string date, string time)
+            : this(studentId, firstName, lastName,
+                  DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
+                  TimeSpan.TryParse(time, out var timeSlot) ? timeSlot : null)
+        { }
 
         /// <summary>
         /// Retrieves the booking date as a string in the format "yyyy-MM-dd". Used for storing the date in the database 

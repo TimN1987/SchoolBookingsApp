@@ -288,6 +288,49 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Equal(0, await CountRecordsById(studentId));
         }
 
+        //ListBookings tests.
+
+        /// <summary>
+        /// Verifies that an empty list is returned when the <see cref="BookingManager.ListBookings"/> method is called 
+        /// with an empty <c>Bookings</c> table.
+        /// </summary>
+        [Fact]
+        public async Task ListBookings_EmptyTable_ReturnsEmptyList()
+        {
+            //Arrange
+            await ClearTables();
+
+            //Act
+            List<Booking> result = await _bookingManager.ListBookings();
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        /// <summary>
+        /// Verifies that all records from the <c>Bookings</c> table are returned when the <see 
+        /// cref="BookingManager.ListBookings"/> method is called.
+        /// </summary>
+        /// <param name="expectedResults">A list containing <see cref="Booking"/> <see langword="struct"/>s for all the 
+        /// records in the <c>Bookings</c> table to compare to the actual results.</param>
+        [Theory]
+        [MemberData(nameof(ListBookingsExpectedResultsMemberData))]
+        public async Task ListBookings_BookingsInTable_ReturnsAllBookings(List<Booking> expectedResults)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            List<Booking> results = await _bookingManager.ListBookings();
+
+            //Assert
+            Assert.NotNull(results);
+            Assert.Equal(InitialTotalRecords, results.Count);
+            Assert.Equal(expectedResults, results);
+        }
+
 
         //Member Data
 
@@ -304,7 +347,7 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(11, string.Empty, string.Empty, new DateTime(2025, 09, 14), new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, null, new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(1, string.Empty, string.Empty, new DateTime(2025, 09, 14), null) };
-            yield return new object[] { new Booking(-5, string.Empty, string.Empty, null, null) };
+            yield return new object[] { new Booking(-5, null!, null!) };
             yield return new object[] { new Booking(20, string.Empty, string.Empty, new DateTime(2025, 09, 14), null) };
             yield return new object[] { new Booking(7, string.Empty, string.Empty, null, new TimeSpan(16, 0, 0)) };
             yield return new object[] { new Booking(0, "2025-09-14", "16:00") };
@@ -397,6 +440,24 @@ namespace SchoolBookingAppTests.DatabaseTests
             yield return new object[] { new Booking(3, new DateTime(2025, 11, 20, 15, 45, 0)) };
             yield return new object[] { new Booking(4, new DateTime(2025, 12, 05, 18, 15, 0)) };
             yield return new object[] { new Booking(5, new DateTime(2025, 01, 11, 15, 00, 0)) };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="ListBookings_BookingsInTable_ReturnsAllBookings"/> test. Used to check 
+        /// that the correct list of <see cref="Booking"/> <see langword="struct"/>s is returned when the <see 
+        /// cref="BookingManager.ListBookings"/> method is called.
+        /// </summary>
+        public static IEnumerable<object[]> ListBookingsExpectedResultsMemberData()
+        {
+            yield return new object[] { new List<Booking>
+                { 
+                    new(1, "John", "Doe", new DateTime(2025, 9, 15), new TimeSpan(16, 0, 0)),
+                    new(2, "Jane", "Smith", new DateTime(2025, 9, 15), new TimeSpan(16, 10, 0)),
+                    new(3, "Alice", "Johnson", new DateTime(2025, 9, 15), new TimeSpan(16, 20, 0)),
+                    new(4, "Bob", "Brown", new DateTime(2025, 9, 15), new TimeSpan(16, 30, 0)),
+                    new(5, "Charlie", "Davis", new DateTime(2025, 9, 15), new TimeSpan(16, 40, 0))
+                }
+            };
         }
 
         //Helper Methods

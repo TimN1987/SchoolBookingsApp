@@ -42,14 +42,13 @@ namespace SchoolBookingApp.MVVM.Database
             SET BookingDate = @date, TimeSlot = @time
             WHERE StudentId = @id;";
         private const string DeleteBookingQuery = @"
-            DELETE FROM Bookings
-            WHERE StudentId = @id;";
+            DELETE FROM Bookings";
         private const string BookingInformationQuery = @"
             SELECT b.StudentId, s.FirstName, s.LastName, b.BookingDate, b.TimeSlot 
             FROM Bookings AS b 
             LEFT JOIN Students AS s 
             ON b.StudentId = s.Id";
-        private const string BookingInformationCondition = @" WHERE StudentId = @id;";
+        private const string StudentIdCondition = @" WHERE StudentId = @id;";
 
         public BookingManager(SqliteConnection connection)
         {
@@ -159,7 +158,7 @@ namespace SchoolBookingApp.MVVM.Database
             try
             {
                 await using var command = _connection.CreateCommand();
-                command.CommandText = DeleteBookingQuery;
+                command.CommandText = DeleteBookingQuery + StudentIdCondition;
                 command.Parameters.AddWithValue("@id", studentId);
                 int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -167,8 +166,36 @@ namespace SchoolBookingApp.MVVM.Database
             }
             catch (Exception ex)
             {
-                Log.Error("An error occurred while deleting a record.", ex.Message);
+                Log.Error("An error occurred while deleting a record: {Message}.", ex.Message);
                 return false;
+            }
+        }
+
+        public async Task<List<Booking>> ListBookings()
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = BookingInformationQuery + ';';
+                await using var reader = await command.ExecuteReaderAsync();
+
+                var bookingsList = new List<Booking>();
+
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        Booking booking = GetSafeBooking(reader);
+                        bookingsList.Add(booking);
+                    }
+                }
+
+                return bookingsList;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("An error occurred while retrieving the bookings list: {Message}.", ex.Message);
+                throw;
             }
         }
 
@@ -299,6 +326,28 @@ namespace SchoolBookingApp.MVVM.Database
         {
             int ordinal = reader.GetOrdinal(columnName);
             return !reader.IsDBNull(ordinal) ? reader.GetInt32(ordinal) : 0;
+        }
+
+        /// <summary>
+        /// Safely retrieves all booking information from a <see cref="SqliteDataReader"/> and returns it as a <see 
+        /// cref="Booking"/> <see langword="struct"/>. Used to safely retrieve all data for a given booking from the 
+        /// <c>Bookings</c> and <c>Students</c> tables.
+        /// </summary>
+        /// <param name="reader">A <see cref="SqliteDataReader"/> used to read the booking information from the 
+        /// database.</param>
+        private static Booking GetSafeBooking(SqliteDataReader reader)
+        {
+            var bookingInformation = new Booking
+            (
+                GetSafeInt(reader, "StudentId"),
+                GetSafeString(reader, "FirstName"),
+                GetSafeString(reader, "LastName"),
+                GetSafeString(reader, "BookingDate"),
+                GetSafeString(reader, "TimeSLot")
+            );
+
+            return bookingInformation;
+
         }
     }
 }
