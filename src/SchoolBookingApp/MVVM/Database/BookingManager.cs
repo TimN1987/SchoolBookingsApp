@@ -19,7 +19,7 @@ namespace SchoolBookingApp.MVVM.Database
         Task<bool> UpdateBooking(Booking bookingInformation);
         Task<bool> DeleteBooking(int studentId);
         Task<List<Booking>> ListBookings();
-        Task<Booking> RetrieveBookingInformation(Booking booking);
+        Task<Booking> RetrieveBookingInformation(int studentId);
         Task<bool> ClearBookings();
     }   
 
@@ -29,7 +29,7 @@ namespace SchoolBookingApp.MVVM.Database
     /// deleting individual bookings as well as clearing all the bookings. Allows the user to keep track of booking 
     /// information, ensuring that there are no clashes.
     /// </summary>
-    public class BookingManager
+    public class BookingManager : IBookingManager
     {
         private readonly SqliteConnection _connection;
 
@@ -207,6 +207,70 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Retrieves a <see cref="Booking"/> <see langword="struct"/> containing the booking information from the 
+        /// <c>Bookings</c> and <c>Students</c> tables for the given <paramref name="studentId"/>. Used to get all 
+        /// relevant information about a booking for a given student. Includes the student id, first name, last name, 
+        /// booking date and time slot.
+        /// </summary>
+        /// <param name="studentId">The student id for the desired booking information.</param>
+        /// <returns>A <see cref="Booking"/> <see langword="struct"/> containing all the booking information for the 
+        /// selected student. A returned <see cref="Booking"/> with a <c>StudentId</c> of 0 indicates a failed read 
+        /// operation for a valid <paramref name="studentId"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown if the student id represents a student that does not exist in the 
+        /// database.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the student id does not have an associated booking, and 
+        /// so no information can be read.</exception>
+        public async Task<Booking> RetrieveBookingInformation(int studentId)
+        {
+            if (!await IsValidStudent(studentId))
+                throw new ArgumentException("Cannot retrieve booking information for a student that does not exist.");
+
+            if (!await HasValidBooking(studentId))
+                throw new InvalidOperationException("No valid booking exists, so no information can be read for student: " + studentId);
+     
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = BookingInformationQuery + StudentIdCondition;
+                command.Parameters.AddWithValue("@id", studentId);
+                await using var reader = await command.ExecuteReaderAsync();
+
+                if (reader.Read())
+                {
+                    return GetSafeBooking(reader);
+                }
+
+                return new Booking(0, new DateTime(2025, 01, 01, 01, 01, 01));
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error retrieving booking information from the database.", ex.Message);
+                return new Booking(0, new DateTime(2025, 01, 01, 01, 01, 01));
+            }
+        }
+
+        /// <summary>
+        /// Clears all records from the <c>Bookings</c> table. Used to remove all bookings from the database, for example 
+        /// after a series of meetings have been completed or before taking bookings for a new series of meetings.
+        /// </summary>
+        /// <returns><c>True</c> if the records were successfully deleted. <c>False</c> if an error occurred during 
+        /// deletion.</returns>
+        public async Task<bool> ClearBookings()
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = DeleteBookingQuery + ';';
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("An error occurred while clearing the Bookings table.", ex.Message);
+                return false;
+            }
+        }
 
         //Private helper methods
 
@@ -306,6 +370,34 @@ namespace SchoolBookingApp.MVVM.Database
             catch
             {
                 Log.Error("An error occurred while checking for existing bookings.");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks that a given student has a valid booking. Used to check that a booking exists before trying to read 
+        /// the booking information from it.
+        /// </summary>
+        /// <param name="studentId">The student id for the given student.</param>
+        /// <returns><c>true</c> if a valid booking exists, else <c>false</c>.</returns>
+        private async Task<bool> HasValidBooking(int studentId)
+        {
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT COUNT(*) 
+                    FROM Bookings 
+                    WHERE StudentId = @id;";
+                command.Parameters.AddWithValue("@id", studentId);
+                var result = await command.ExecuteScalarAsync();
+                var count = Convert.ToInt32(result);
+
+                return count == 1;
+            }
+            catch
+            {
+                Log.Error("An error occurred while checking the student has a valid booking.");
                 return false;
             }
         }

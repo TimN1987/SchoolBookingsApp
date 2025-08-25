@@ -331,6 +331,102 @@ namespace SchoolBookingAppTests.DatabaseTests
             Assert.Equal(expectedResults, results);
         }
 
+        //RetrieveBookingInformation tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> throws an <see 
+        /// cref="ArgumentException"/> when an invalid student it is passed as the argument. An invalid student id could be 
+        /// <= 0 or a student id that does not exist in the <c>Students</c> table. Used to check that no search is 
+        /// performed for a student that does not exist.
+        /// </summary>
+        /// <param name="studentId">The student id for a student that does not exist.</param>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(20)]
+        [InlineData(-5)]
+        [InlineData(11)]
+        public async Task RetrieveBookingInformation_InvalidStudentIdInput_ThrowsArgumentException(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () => 
+                await _bookingManager.RetrieveBookingInformation(studentId));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> method throws an <see 
+        /// cref="InvalidOperationException"/> if a valid student id is passed but where there is no booking in the
+        /// <c>Bookings</c> table to retrieve. Used to check that the method does not try to retrieve booking information 
+        /// for a booking that does not exist.
+        /// </summary>
+        /// <param name="studentId">The student id for a valid student who does not have a booking.</param>
+        [Theory]
+        [InlineData(6)]
+        [InlineData(7)]
+        [InlineData(8)]
+        [InlineData(9)]
+        [InlineData(10)]
+        public async Task RetrieveBookingInformation_NoBookingForStudentId_ThrowsInvalidOperationException(int studentId)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _bookingManager.RetrieveBookingInformation(studentId));
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.RetrieveBookingInformation"/> method correctly retrieves all the 
+        /// booking information for a valid, given student id. Checks that the returned <see cref="Booking"/> <see 
+        /// langword="struct"/> matches the expected booking information. Used to help the user retrieve all relevant 
+        /// booking information for a selected student.
+        /// </summary>
+        /// <param name="studentId">The student id for the selected student.</param>
+        /// <param name="expectedBooking">A <see cref="Booking"/> <see langword="struct"/> containing the expected 
+        /// data to be retrieved from the database. Used to compare to the actual data returned.</param>
+        [Theory]
+        [MemberData(nameof(RetrieveBookingInformationValidMemberData))]
+        public async Task RetrieveBookingInformation_ValidStudentIdInput_ReturnsCorrectBookingInformation(
+            int studentId, Booking expectedBooking)
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            Booking booking = await _bookingManager.RetrieveBookingInformation(studentId);
+
+            //Assert
+            Assert.Equal(expectedBooking, booking);
+        }
+
+        //ClearBookings tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="BookingManager.ClearBookings"/> method deletes all records from the <c>Bookings</c> 
+        /// table. Checks that the method returns true and that the table is empty after the method is called. Ensures that 
+        /// the <c>Bookings</c> table can be cleared for new bookings, for example before a new Parents' Evening.
+        /// </summary>
+        [Fact]
+        public async Task ClearBookings_BookingsTableExists_NoRecordsLeftInTable()
+        {
+            //Arrange
+            await ClearTables();
+            await AddDefaultData();
+
+            //Act
+            bool result = await _bookingManager.ClearBookings();
+
+            //Assert
+            Assert.True(result);
+            Assert.Equal(0, await CountBookings());
+        }
 
         //Member Data
 
@@ -457,6 +553,30 @@ namespace SchoolBookingAppTests.DatabaseTests
                     new(4, "Bob", "Brown", new DateTime(2025, 9, 15), new TimeSpan(16, 30, 0)),
                     new(5, "Charlie", "Davis", new DateTime(2025, 9, 15), new TimeSpan(16, 40, 0))
                 }
+            };
+        }
+
+        /// <summary>
+        /// Provides member data for the <see cref="RetrieveBookingInformation_ValidStudentIdInput_ReturnsCorrectBookingInformation"/> 
+        /// test. Used to check that all the correct booking information is retrieved from the database for the given student id 
+        /// when the <see cref="BookingManager.RetrieveBookingInformation"/> method is called.
+        /// </summary>
+        public static IEnumerable<object[]> RetrieveBookingInformationValidMemberData()
+        {
+            yield return new object[] { 
+                1, new Booking(1, "John", "Doe", new DateTime(2025, 9, 15), new TimeSpan(16, 0, 0))
+            };
+            yield return new object[] {
+                2, new Booking(2, "Jane", "Smith", new DateTime(2025, 9, 15), new TimeSpan(16, 10, 0))
+            };
+            yield return new object[] {
+                3, new Booking(3, "Alice", "Johnson", new DateTime(2025, 9, 15), new TimeSpan(16, 20, 0))
+            };
+            yield return new object[] {
+                4, new Booking(4, "Bob", "Brown", new DateTime(2025, 9, 15), new TimeSpan(16, 30, 0))
+            };
+            yield return new object[] {
+                5, new Booking(5, "Charlie", "Davis", new DateTime(2025, 9, 15), new TimeSpan(16, 40, 0))
             };
         }
 
