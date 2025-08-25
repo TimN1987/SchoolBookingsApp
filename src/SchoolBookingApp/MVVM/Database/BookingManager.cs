@@ -171,6 +171,14 @@ namespace SchoolBookingApp.MVVM.Database
             }
         }
 
+        /// <summary>
+        /// Retrieves a list of <see cref="Booking"/> <see langword="struct"/>s containing all the bookings from the 
+        /// <c>Bookings</c> table with the matching names from the <c>Students</c> table. Includes the students ids with 
+        /// the matching first names, last names, booking dates and time slots. Used to display all bookings for a user to 
+        /// see a timetable or visually identify gaps in the schedule.
+        /// </summary>
+        /// <returns>A list of <see cref="Booking"/> <see langword="struct"/>s containing all the bookings in the 
+        /// database.</returns>
         public async Task<List<Booking>> ListBookings()
         {
             try
@@ -343,7 +351,7 @@ namespace SchoolBookingApp.MVVM.Database
                 GetSafeString(reader, "FirstName"),
                 GetSafeString(reader, "LastName"),
                 GetSafeString(reader, "BookingDate"),
-                GetSafeString(reader, "TimeSLot")
+                GetSafeString(reader, "TimeSlot")
             );
 
             return bookingInformation;
