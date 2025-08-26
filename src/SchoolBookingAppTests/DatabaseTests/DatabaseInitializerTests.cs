@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Serilog;
 using Serilog.Sinks.File;
 using SchoolBookingApp.MVVM.Database;
+using System.IO;
 
 namespace SchoolBookingAppTests.DatabaseTests
 {

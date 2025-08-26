@@ -203,7 +203,7 @@ namespace SchoolBookingApp.MVVM.Database
             catch (Exception ex)
             {
                 Log.Error("An error occurred while retrieving the bookings list: {Message}.", ex.Message);
-                throw;
+                return [];
             }
         }
 
