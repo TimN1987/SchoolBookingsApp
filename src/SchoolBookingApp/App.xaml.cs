@@ -110,6 +110,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(connection);
         services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
         services.AddSingleton<ICreateOperationService, CreateOperationService>();
+
+        //Factories
+        services.AddSingleton<IViewFactory, ViewFactory>();
     }
 }
 
