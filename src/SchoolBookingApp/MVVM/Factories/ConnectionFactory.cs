@@ -24,7 +24,8 @@ namespace SchoolBookingApp.MVVM.Factories
     public class ConnectionFactory(DatabaseConnectionInformation connectionInformation) : IConnectionFactory
     {
         //Fields
-        private readonly DatabaseConnectionInformation _connectionInformation = connectionInformation;
+        private readonly DatabaseConnectionInformation _connectionInformation = connectionInformation 
+            ?? throw new ArgumentNullException(nameof(connectionInformation));
         private readonly string _applicationFolderName = connectionInformation.ApplicationFolder;
         private readonly string _databaseFolderName = connectionInformation.DatabaseFolder;
         private readonly string _databaseName = connectionInformation.DatabaseFileName;
