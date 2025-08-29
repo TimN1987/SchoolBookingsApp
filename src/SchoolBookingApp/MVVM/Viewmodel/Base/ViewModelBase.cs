@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SchoolBookingApp.MVVM.Viewmodel
+namespace SchoolBookingApp.MVVM.Viewmodel.Base
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {

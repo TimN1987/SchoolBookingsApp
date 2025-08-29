@@ -18,6 +18,7 @@ namespace SchoolBookingAppTests.FactoryTests
         private readonly IServiceCollection _serviceCollection;
         private readonly IServiceProvider _emptyServiceProvider;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private readonly ViewFactory _emptyFactory;
         private readonly ViewFactory _viewFactory;
 
@@ -29,8 +30,10 @@ namespace SchoolBookingAppTests.FactoryTests
             _serviceCollection.AddTransient<MockView>();
             _serviceProvider = _serviceCollection.BuildServiceProvider();
 
-            _emptyFactory = new ViewFactory(_emptyServiceProvider);
-            _viewFactory = new ViewFactory(_serviceProvider);
+            _eventAggregator = new EventAggregator();
+
+            _emptyFactory = new ViewFactory(_emptyServiceProvider, _eventAggregator);
+            _viewFactory = new ViewFactory(_serviceProvider, _eventAggregator);
         }
 
         //Constructor tests.
@@ -41,10 +44,10 @@ namespace SchoolBookingAppTests.FactoryTests
         /// created with no valid <see cref="ServiceProvider"/> to retrieve the required <see cref="UserControl"/>s;
         /// </summary>
         [Fact]
-        public static void Constructor_NullParameter_ThrowsArgumentNullException()
+        public void Constructor_NullParameter_ThrowsArgumentNullException()
         {
             //Arrange, Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new ViewFactory(null!));
+            Assert.Throws<ArgumentNullException>(() => new ViewFactory(null!, _eventAggregator));
         }
 
         /// <summary>
@@ -56,8 +59,8 @@ namespace SchoolBookingAppTests.FactoryTests
         public void Constructor_ValidServiceProviderParameter_CreatesInstance()
         {
             //Arrange & Act
-            var emptyFactory = new ViewFactory(_emptyServiceProvider);
-            var viewFactory = new ViewFactory(_serviceProvider);
+            var emptyFactory = new ViewFactory(_emptyServiceProvider, _eventAggregator);
+            var viewFactory = new ViewFactory(_serviceProvider, _eventAggregator);
 
             //Assert
             Assert.NotNull(emptyFactory);
