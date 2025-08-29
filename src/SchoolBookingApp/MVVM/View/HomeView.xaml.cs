@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using SchoolBookingApp.MVVM.Viewmodel;
 
 namespace SchoolBookingApp.MVVM.View
 {
@@ -20,9 +21,10 @@ namespace SchoolBookingApp.MVVM.View
     /// </summary>
     public partial class HomeView : UserControl
     {
-        public HomeView()
+        public HomeView(HomeViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
     }
 }

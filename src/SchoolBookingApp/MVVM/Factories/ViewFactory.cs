@@ -5,17 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using SchoolBookingApp.MVVM.Services;
+using SchoolBookingApp.MVVM.Viewmodel;
 using Serilog;
 
 namespace SchoolBookingApp.MVVM.Factories
 {
     /// <summary>
     /// Defines a contract for the <see cref="ViewFactory"/> <see langword="class"/>. Ensures that the <see cref="ViewFactory"/> 
-    /// contains a method to create a view of type <see cref="UserControl"/>.
+    /// contains a method to create a view of type <see cref="UserControl"/> and a method to send a request to the 
+    /// <see cref="MainViewModel"/> to display a view.
     /// </summary>
     public interface IViewFactory
     {
-        T CreateView<T>() where T : UserControl;
+        TView CreateView<TView>() where TView : UserControl;
+        void RequestView<TView>() where TView : UserControl;
     }
 
     /// <summary>
@@ -24,13 +28,17 @@ namespace SchoolBookingApp.MVVM.Factories
     /// </summary>
     /// <param name="serviceProvider">The instance of the <see cref="IServiceProvider"/> created on startup and used to 
     /// register the views and viewmodels.</param>
+    /// <param name="eventAggregator">The application's <see cref="EventAggregator"/> instance used to notify the 
+    /// <see cref="MainViewModel"/> that a given view should be displayed.</param>
     /// <remarks>All views and their associated viewmodels must be correctly registered with the <see cref="IServiceProvider"/>
     /// DI container. The viewmodels should be set as the DataContext for their associated view through constructor 
     /// injection.</remarks>
-    public class ViewFactory(IServiceProvider serviceProvider) : IViewFactory
+    public class ViewFactory(IServiceProvider serviceProvider, IEventAggregator eventAggregator) : IViewFactory
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider 
             ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly IEventAggregator _eventAggregator = eventAggregator 
+            ?? throw new ArgumentNullException(nameof(eventAggregator));
         
         /// <summary>
         /// Creates an instance of a view that is registered with the <see cref="IServiceProvider"/> DI container. Used to 
@@ -50,17 +58,27 @@ namespace SchoolBookingApp.MVVM.Factories
         /// CurrentView = _viewFactory.CreateView<HomeView>();
         /// </code>
         /// </example>
-        public T CreateView<T>() where T : UserControl
+        public TView CreateView<TView>() where TView : UserControl
         {
             try
             {
-                return _serviceProvider.GetRequiredService<T>();
+                return _serviceProvider.GetRequiredService<TView>();
             }
             catch (InvalidOperationException ex)
             {
-                Log.Error(ex, $"An error occurred creating instance of view: {typeof(T).FullName}. Check DI registration.");
+                Log.Error(ex, $"An error occurred creating instance of view: {typeof(TView).FullName}. Check DI registration.");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Sends a message to the <see cref="MainViewModel"/> with <see cref="EventAggregator"/> to request that the 
+        /// given view be displayed. Used for navigation between views in the application.
+        /// </summary>
+        /// <typeparam name="TView">The view of type <see cref="UserControl"/> to be displayed.</typeparam>
+        public void RequestView<TView>() where TView : UserControl
+        {
+            _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(TView));
         }
     }
 }
