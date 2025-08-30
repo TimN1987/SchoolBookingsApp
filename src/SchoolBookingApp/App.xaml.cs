@@ -101,15 +101,22 @@ public static class ServiceCollectionExtensions
     {
         //Views
         services.AddSingleton<MainWindow>();
+        services.AddTransient<HomeView>();
 
         //Viewmodels
         services.AddSingleton<MainViewModel>();
+        services.AddTransient<HomeViewModel>();
 
         //Services
         services.AddSingleton(connectionInformation);
         services.AddSingleton(connection);
+        services.AddSingleton<IEventAggregator, EventAggregator>();
         services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
+        services.AddSingleton<IBookingManager, BookingManager>();
         services.AddSingleton<ICreateOperationService, CreateOperationService>();
+        services.AddSingleton<IReadOperationService, ReadOperationService>();
+        services.AddSingleton<IUpdateOperationService, UpdateOperationService>();
+        services.AddSingleton<IDeleteOperationService, DeleteOperationService>();
 
         //Factories
         services.AddSingleton<IViewFactory, ViewFactory>();
