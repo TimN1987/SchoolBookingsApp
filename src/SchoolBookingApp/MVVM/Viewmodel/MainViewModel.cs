@@ -36,7 +36,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Text properties for binding to Button content in the MainWindow.
         public string HomeButtonText => "Home";
-
+        //Add other button names
 
         public MainViewModel(IEventAggregator eventAggregator, IViewFactory viewFactory)
         {

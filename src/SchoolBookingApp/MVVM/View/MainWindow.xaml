@@ -3,10 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
+        xmlns:view="clr-namespace:SchoolBookingApp.MVVM.View"
+        xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
+        xmlns:converter="clr-namespace:SchoolBookingApp.MVVM.Converters"
+        xmlns:controls="clr-namespace:SchoolBookingApp.MVVM.CustomControls"
+        d:DataContext="{d:DesignInstance viewmodel:MainViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+    <Window.Resources>
+        <converter:ViewToEnabledConverter x:Key="ViewToEnabledConverter"/>
+    </Window.Resources>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Left">
+            <controls:MainNavigationButton TargetView="Home"/>
+        </StackPanel>
+        <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
+                        Style="{DynamicResource MainWindow}"/>
+    </DockPanel>
 </Window>
