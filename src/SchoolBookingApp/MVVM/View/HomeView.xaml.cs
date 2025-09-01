@@ -21,10 +21,12 @@ namespace SchoolBookingApp.MVVM.View
     /// </summary>
     public partial class HomeView : UserControl
     {
+        private readonly HomeViewModel _homeViewModel;
         public HomeView(HomeViewModel viewModel)
         {
             InitializeComponent();
-            DataContext = viewModel;
+            _homeViewModel = viewModel;
+            DataContext = _homeViewModel;
         }
     }
 }

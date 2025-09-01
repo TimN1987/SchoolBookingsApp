@@ -29,6 +29,9 @@ namespace SchoolBookingAppTests.ViewModelTests
             _readOperationServiceMock
                 .Setup(x => x.GetStudentList())
                 .ReturnsAsync([]);
+            _readOperationServiceMock
+                .Setup(x => x.GetParentList())
+                .ReturnsAsync([]);
         }
 
         //Constructor tests.

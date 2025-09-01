@@ -43,7 +43,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             .FirstOrDefault(booking => booking.BookingDate >= DateTime.Now);
 
         //Text for UI features
-        public string SelectBookingButtonText = "View booking";
+        public string DashboardTitleText => "Bookings Dashboard";
+        public string TotalStudentsText => "Total students:";
+        public string TotalBookingsText => "Total bookings:";
+        public string TotalParentsText => "Total parents:";
+        public string SelectBookingButtonText => "View booking";
 
         public HomeViewModel(
             IEventAggregator eventAggregator, 

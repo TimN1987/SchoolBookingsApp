@@ -14,7 +14,23 @@
     </Style>
     <!-- MainWindow navigation button style -->
     <Style TargetType="{x:Type Button}" x:Key="MainWindowNavigationButton">
-        <Setter Property="MinWidth" Value="200"/>
-        <Setter Property="MinHeight" Value="75"/>
+        <Setter Property="Width" Value="150"/>
+        <Setter Property="MinHeight" Value="50"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="Margin" Value="20, 5, 20, 5"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="DarkSlateGray"
+                            BorderBrush="Black"
+                            BorderThickness="2"
+                            CornerRadius="5">
+                        <ContentPresenter VerticalAlignment="Center"
+                                          HorizontalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

@@ -6,6 +6,7 @@
         xmlns:view="clr-namespace:SchoolBookingApp.MVVM.View"
         xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
         xmlns:converter="clr-namespace:SchoolBookingApp.MVVM.Converters"
+        xmlns:controls="clr-namespace:SchoolBookingApp.MVVM.CustomControls"
         d:DataContext="{d:DesignInstance viewmodel:MainViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -14,9 +15,7 @@
     </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Left">
-            <Button Content="{Binding HomeButtonText, Mode=OneWay}"
-                    Style="{DynamicResource MainWindowNavigationButton}"
-                    IsEnabled="{Binding CurrentView, Converter={StaticResource ViewToEnabledConverter}, ConverterParameter={x:Type view:HomeView}}"/>
+            <controls:MainNavigationButton TargetView="Home"/>
         </StackPanel>
         <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
                         Style="{DynamicResource MainWindow}"/>
