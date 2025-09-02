@@ -26,7 +26,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IViewFactory _viewFactory;
         private readonly IEventAggregator _eventAggregator;
         private UserControl? _currentView;
+
+        //Commands
         private ChangePageCommand<HomeView>? _homeViewCommand;
+        private ChangePageCommand<AddStudentView>? _addStudentViewCommand;
+        private ChangePageCommand<AddParentView>? _addParentViewCommand;
 
         /// <summary>
         /// The current <see cref="UserControl"/> that is displayed in the <see cref="MainWindow"/>'s <see 
@@ -38,6 +42,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set => SetProperty(ref _currentView, value);
         }
 
+        //Commands
         public ChangePageCommand<HomeView>? HomeViewCommand
         {
             get
@@ -48,12 +53,36 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        public ChangePageCommand<AddStudentView>? AddStudentViewCommand
+        {
+            get
+            {
+                if (_addStudentViewCommand == null)
+                    _addStudentViewCommand = new ChangePageCommand<AddStudentView>(_eventAggregator);
+                return _addStudentViewCommand;
+            }
+        }
+
+        public ChangePageCommand<AddParentView>? AddParentViewCommand
+        {
+            get
+            {
+                if (_addParentViewCommand == null)
+                    _addParentViewCommand = new ChangePageCommand<AddParentView>(_eventAggregator);
+                return _addParentViewCommand;
+            }
+        }
+
         //Text properties for binding to Button content in the MainWindow.
         public static string HomeButtonText => "Home";
-        //Add other button names
+        public static string AddStudentButtonText => "Add Student";
+        public static string AddParentButtonText => "Add Parent";
+
 
         //Image properties for binding to Button content in the MainWindow.
-        public static ImageSource HomeButtonUri => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/home.png", UriKind.Absolute));
+        public static ImageSource HomeButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/home.png", UriKind.Absolute));
+        public static ImageSource AddStudentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addstudent.png", UriKind.Absolute));
+        public static ImageSource AddParentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addparent.png", UriKind.Absolute));
 
         public MainViewModel(IEventAggregator eventAggregator, IViewFactory viewFactory)
         {

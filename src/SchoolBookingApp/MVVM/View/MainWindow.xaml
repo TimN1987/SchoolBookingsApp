@@ -16,10 +16,27 @@
     <DockPanel Style="{DynamicResource MainWindowDockPanelBackground}">
         <StackPanel DockPanel.Dock="Left"
                     Style="{DynamicResource MainWindowButtonStackPanel}">
-            <Button Content="{Binding HomeButtonUri}"
+            <Button Content="{Binding HomeButtonImage}"
                     Tag="{Binding HomeButtonText}"
                     Command="{Binding HomeViewCommand}"
-                    Style="{DynamicResource MainWindowNavigationButton}"/>
+                    Style="{DynamicResource MainWindowNavigationButton}"
+                    IsEnabled="{Binding CurrentView,
+                                Converter={StaticResource ViewToEnabledConverter}, 
+                                ConverterParameter={x:Type view:HomeView}}"/>
+            <Button Content="{Binding AddStudentButtonImage}"
+                    Tag="{Binding AddStudentButtonText}"
+                    Command="{Binding AddStudentViewCommand}"
+                    Style="{DynamicResource MainWindowNavigationButton}"
+                    IsEnabled="{Binding CurrentView, 
+                                Converter={StaticResource ViewToEnabledConverter}, 
+                                ConverterParameter={x:Type view:AddStudentView}}"/>
+            <Button Content="{Binding AddParentButtonImage}"
+                    Tag="{Binding AddParentButtonText}"
+                    Command="{Binding AddParentViewCommand}"
+                    Style="{DynamicResource MainWindowNavigationButton}"
+                    IsEnabled="{Binding CurrentView, 
+                                Converter={StaticResource ViewToEnabledConverter}, 
+                                ConverterParameter={x:Type view:AddParentView}}"/>
         </StackPanel>
         <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
                         Style="{DynamicResource MainWindow}"/>
