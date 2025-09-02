@@ -5,7 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Factories;
 using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.View;
@@ -23,6 +26,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IViewFactory _viewFactory;
         private readonly IEventAggregator _eventAggregator;
         private UserControl? _currentView;
+        private ChangePageCommand<HomeView>? _homeViewCommand;
 
         /// <summary>
         /// The current <see cref="UserControl"/> that is displayed in the <see cref="MainWindow"/>'s <see 
@@ -34,9 +38,22 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set => SetProperty(ref _currentView, value);
         }
 
+        public ChangePageCommand<HomeView>? HomeViewCommand
+        {
+            get
+            {
+                if (_homeViewCommand == null)
+                    _homeViewCommand = new ChangePageCommand<HomeView>(_eventAggregator);
+                return _homeViewCommand;
+            }
+        }
+
         //Text properties for binding to Button content in the MainWindow.
-        public string HomeButtonText => "Home";
+        public static string HomeButtonText => "Home";
         //Add other button names
+
+        //Image properties for binding to Button content in the MainWindow.
+        public static ImageSource HomeButtonUri => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/home.png", UriKind.Absolute));
 
         public MainViewModel(IEventAggregator eventAggregator, IViewFactory viewFactory)
         {
@@ -48,6 +65,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _currentView = _viewFactory.CreateView<HomeView>();
             _eventAggregator.GetEvent<NavigateToViewEvent>()
                 .Subscribe(viewType => ChangeView(viewType));
+
+            _homeViewCommand = null;
         }
 
         /// <summary>

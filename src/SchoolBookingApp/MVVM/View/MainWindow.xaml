@@ -13,9 +13,13 @@
     <Window.Resources>
         <converter:ViewToEnabledConverter x:Key="ViewToEnabledConverter"/>
     </Window.Resources>
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Left">
-            <controls:MainNavigationButton TargetView="Home"/>
+    <DockPanel Style="{DynamicResource MainWindowDockPanelBackground}">
+        <StackPanel DockPanel.Dock="Left"
+                    Style="{DynamicResource MainWindowButtonStackPanel}">
+            <Button Content="{Binding HomeButtonUri}"
+                    Tag="{Binding HomeButtonText}"
+                    Command="{Binding HomeViewCommand}"
+                    Style="{DynamicResource MainWindowNavigationButton}"/>
         </StackPanel>
         <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
                         Style="{DynamicResource MainWindow}"/>
