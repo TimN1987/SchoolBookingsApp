@@ -18,10 +18,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IBookingManager _bookingManager;
         private readonly IReadOperationService _readOperationService;
         
-        private List<Booking> _bookings;
+        private readonly List<Booking> _bookings;
         private Booking? _selectedBooking;
-        private List<SearchResult> _students;
-        private int _parentsCount;
+        private readonly List<SearchResult> _students;
+        private readonly int _parentsCount;
 
         //private ChangePageCommand<BookingView> _changePageCommand; -> change to the booking view
 
@@ -35,9 +35,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public int ParentsCount => _parentsCount;
         public int BookingsCount => _bookings.Count;
         public int StudentsCount => _students.Count;
-        public int StudentsNotBookedCount => StudentsCount - BookingsCount;
-        public double StudentsBookedPercentage => StudentsCount == 0 ? 0
+        public double StudentsBookedPercentage => StudentsCount == 0 ? 40
             : (double)BookingsCount / StudentsCount * 100;
+        public double StudentsUnbookedPercentage => 100 - StudentsBookedPercentage;
         public Booking? NextMeeting => _bookings
             .OrderBy(booking => booking.BookingDate)
             .FirstOrDefault(booking => booking.BookingDate >= DateTime.Now);

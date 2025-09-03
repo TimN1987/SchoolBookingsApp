@@ -53,8 +53,23 @@
                               StartColor="DarkSlateGray"
                               StopColor="DarkGray"/>
         </Grid>
-        <Viewbox DockPanel.Dock="Bottom" Height="auto">
-            
-        </Viewbox>
+        <Grid Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0"
+                     Stretch="Uniform">
+                <controls:BookingsPieChart BookedPercentage="{Binding StudentsBookedPercentage, Mode=OneWay}"
+                                       BookedColor="Red"
+                                       UnbookedPercentage="{Binding StudentsUnbookedPercentage, Mode=OneWay}"
+                                       UnbookedColor="Blue"/>
+            </Viewbox>
+            <StackPanel Grid.Column="1">
+                <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
+                          SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"/>
+                <Button Content="{Binding SelectBookingButtonText}"/>
+            </StackPanel>
+        </Grid>
     </DockPanel>
 </UserControl>

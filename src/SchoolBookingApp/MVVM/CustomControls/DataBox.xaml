@@ -36,7 +36,8 @@
                            Text="{Binding Title, ElementName=root}" 
                            FontWeight="Bold"
                            FontSize="18"
-                           Foreground="{Binding Foreground, ElementName=root}"/>
+                           Foreground="{Binding Foreground, ElementName=root}"
+                           HorizontalAlignment="Center"/>
                 <TextBlock Grid.Row="1"
                            Text="{Binding Number, ElementName=root}"
                            FontWeight="Bold"
