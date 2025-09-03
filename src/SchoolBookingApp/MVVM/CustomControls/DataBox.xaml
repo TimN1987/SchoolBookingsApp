@@ -6,18 +6,59 @@
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.CustomControls"
              mc:Ignorable="d"
              x:Name="root">
+    <Grid x:Name="contentGrid"
+          Width="150" Height="150"
+          RenderTransformOrigin="0.5,0.5"
+          Background="Transparent">
+        <Grid.RenderTransform>
+            <ScaleTransform ScaleX="1" ScaleY="1"/>
+        </Grid.RenderTransform>
         <Border CornerRadius="8"
-            BorderBrush="Gray"
-            BorderThickness="1"
-            Padding="8"
-            Margin="4"
-            Background="{Binding Background, ElementName=root}">
-            <StackPanel>
-                <TextBlock Text="{Binding Title, ElementName=root}" 
-                       FontWeight="Bold"
-                       FontSize="14"/>
-                <TextBlock Text="{Binding Number, ElementName=root}" 
-                       FontSize="18"/>
-            </StackPanel>
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="8"
+                Margin="4">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="{Binding StartColor, ElementName=root}" Offset="0"/>
+                    <GradientStop Color="{Binding StopColor, ElementName=root}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="4*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Text="{Binding Title, ElementName=root}" 
+                           FontWeight="Bold"
+                           FontSize="18"
+                           Foreground="{Binding Foreground, ElementName=root}"/>
+                <TextBlock Grid.Row="1"
+                           Text="{Binding Number, ElementName=root}"
+                           FontWeight="Bold"
+                           FontSize="50"
+                           Foreground="{Binding Foreground, ElementName=root}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Grid>
         </Border>
-    </UserControl>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal"/>
+                <VisualState x:Name="MouseOver">
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="contentGrid"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                         To="1.1"
+                                         Duration="0:0:0.3"/>
+                        <DoubleAnimation Storyboard.TargetName="contentGrid"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                         To="1.1"
+                                         Duration="0:0:0.3"/>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</UserControl>

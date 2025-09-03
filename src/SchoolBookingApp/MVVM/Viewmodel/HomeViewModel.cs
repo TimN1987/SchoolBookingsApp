@@ -44,9 +44,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Text for UI features
         public string DashboardTitleText => "Bookings Dashboard";
-        public string TotalStudentsText => "Total students:";
-        public string TotalBookingsText => "Total bookings:";
-        public string TotalParentsText => "Total parents:";
+        public string TotalStudentsText => "Total students";
+        public string TotalBookingsText => "Total bookings";
+        public string TotalParentsText => "Total parents";
         public string SelectBookingButtonText => "View booking";
 
         public HomeViewModel(
