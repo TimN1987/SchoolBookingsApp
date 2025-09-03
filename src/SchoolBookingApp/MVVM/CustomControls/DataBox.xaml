@@ -11,7 +11,10 @@
           RenderTransformOrigin="0.5,0.5"
           Background="Transparent">
         <Grid.RenderTransform>
-            <ScaleTransform ScaleX="1" ScaleY="1"/>
+            <TransformGroup>
+                <ScaleTransform x:Name="scaleTransform" ScaleX="1" ScaleY="1"/>
+                <RotateTransform x:Name="rotateTransform" Angle="0"/>
+            </TransformGroup>
         </Grid.RenderTransform>
         <Border CornerRadius="8"
                 BorderBrush="Gray"
@@ -47,15 +50,25 @@
             <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Normal"/>
                 <VisualState x:Name="MouseOver">
-                    <Storyboard>
-                        <DoubleAnimation Storyboard.TargetName="contentGrid"
-                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                    <Storyboard FillBehavior="Stop">
+                        <DoubleAnimation Storyboard.TargetName="scaleTransform"
+                                         Storyboard.TargetProperty="ScaleX"
                                          To="1.1"
                                          Duration="0:0:0.3"/>
-                        <DoubleAnimation Storyboard.TargetName="contentGrid"
-                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                        <DoubleAnimation Storyboard.TargetName="scaleTransform"
+                                         Storyboard.TargetProperty="ScaleY"
                                          To="1.1"
                                          Duration="0:0:0.3"/>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rotateTransform"
+                                                       Storyboard.TargetProperty="Angle"
+                                                       Duration="0:0:0.6"
+                                                       RepeatBehavior="1x">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.15" Value="-5"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="5"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="-3"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="0"/>
+                        </DoubleAnimationUsingKeyFrames>
                     </Storyboard>
                 </VisualState>
             </VisualStateGroup>
