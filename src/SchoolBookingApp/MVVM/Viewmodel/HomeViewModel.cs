@@ -35,7 +35,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public int ParentsCount => _parentsCount;
         public int BookingsCount => _bookings.Count;
         public int StudentsCount => _students.Count;
-        public double StudentsBookedPercentage => StudentsCount == 0 ? 40
+        public double StudentsBookedPercentage => StudentsCount == 0 ? 0
             : (double)BookingsCount / StudentsCount * 100;
         public double StudentsUnbookedPercentage => 100 - StudentsBookedPercentage;
         public Booking? NextMeeting => _bookings
@@ -64,6 +64,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _students = _readOperationService.GetStudentList().GetAwaiter().GetResult();
             _parentsCount = _readOperationService.GetParentList().GetAwaiter().GetResult().Count;
+
+            _bookings.Add(new Booking(3, "John", "Smith", new DateTime(2025, 9, 17), new TimeSpan(14, 0, 0)));
         }
 
         private void OnSubmit(Booking booking)

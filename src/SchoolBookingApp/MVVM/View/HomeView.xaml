@@ -67,8 +67,10 @@
             </Viewbox>
             <StackPanel Grid.Column="1">
                 <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
-                          SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"/>
-                <Button Content="{Binding SelectBookingButtonText}"/>
+                          SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"
+                          Style="{DynamicResource BookingsListViewStyle}"/>
+                <Button Content="{Binding SelectBookingButtonText}"
+                        Style="{DynamicResource HomeViewSelectBookingButtonStyle}"/>
             </StackPanel>
         </Grid>
     </DockPanel>
