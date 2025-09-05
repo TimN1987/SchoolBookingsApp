@@ -194,6 +194,8 @@
     </Style>
     
     <!-- HomeView Bookings ListView -->
+    
+
     <SolidColorBrush x:Key="ListBox.Static.Background" Color="#202020"/>
     <SolidColorBrush x:Key="ListBox.Static.Border" Color="#000000"/>
     <SolidColorBrush x:Key="ListBox.Static.Foreground" Color="#CCCCCC"/>
@@ -204,6 +206,9 @@
         <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ListBox.Static.Border}"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="Margin" Value="30,10"/>
+        <Setter Property="MinHeight" Value="100"/>
         <Setter Property="Foreground" Value="{StaticResource ListBox.Static.Foreground}"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
@@ -221,9 +226,20 @@
                             CornerRadius="10"
                             Padding="1"
                             SnapsToDevicePixels="true">
-                        <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
-                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                        </ScrollViewer>
+                        <DockPanel>
+                            <GridViewHeaderRowPresenter x:Name="PART_HeaderHost"
+                                AllowsColumnReorder="True"
+                                ColumnHeaderContainerStyle="{TemplateBinding GridView.ColumnHeaderContainerStyle}"
+                                ColumnHeaderTemplate="{TemplateBinding GridView.ColumnHeaderTemplate}"
+                                ColumnHeaderTemplateSelector="{TemplateBinding GridView.ColumnHeaderTemplateSelector}"
+                                ColumnHeaderStringFormat="{TemplateBinding GridView.ColumnHeaderStringFormat}"
+                                DockPanel.Dock="Top"/>
+                            <ScrollViewer Focusable="false"
+                                          Padding="{TemplateBinding Padding}"
+                                          DockPanel.Dock="Bottom">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </DockPanel>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="false">

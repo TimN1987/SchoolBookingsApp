@@ -66,9 +66,28 @@
                                        UnbookedColor="Blue"/>
             </Viewbox>
             <StackPanel Grid.Column="1">
-                <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
-                          SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"
-                          Style="{DynamicResource BookingsListViewStyle}"/>
+                <Viewbox Stretch="Uniform">
+                    <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
+                              SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"
+                              Style="{DynamicResource BookingsListViewStyle}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderDateText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding BookingDate, StringFormat={}{0:dd-MM-yyyy}}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderTimeText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding TimeSlot, StringFormat={}{0:hh\\:mm}}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderFirstNameText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding FirstName}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderLastNameText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding LastName}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Viewbox>
                 <Button Content="{Binding SelectBookingButtonText}"
                         Style="{DynamicResource HomeViewSelectBookingButtonStyle}"/>
             </StackPanel>

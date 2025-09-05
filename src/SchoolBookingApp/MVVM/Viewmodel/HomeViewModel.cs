@@ -48,6 +48,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string TotalBookingsText => "Total bookings";
         public string TotalParentsText => "Total parents";
         public string SelectBookingButtonText => "View booking";
+        public string ListViewColumnHeaderDateText => "Date";
+        public string ListViewColumnHeaderTimeText => "Time";
+        public string ListViewColumnHeaderFirstNameText => "First Name";
+        public string ListViewColumnHeaderLastNameText => "Last Name";
 
         public HomeViewModel(
             IEventAggregator eventAggregator, 
