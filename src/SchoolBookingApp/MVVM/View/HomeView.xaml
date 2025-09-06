@@ -65,11 +65,17 @@
                                        UnbookedPercentage="{Binding StudentsUnbookedPercentage, Mode=OneWay}"
                                        UnbookedColor="Blue"/>
             </Viewbox>
-            <StackPanel Grid.Column="1">
-                <Viewbox Stretch="Uniform">
+            <Grid Grid.Column="1"
+                  Margin="0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Viewbox Stretch="Uniform"
+                         Grid.Row="0">
                     <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
                               SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"
-                              Style="{DynamicResource BookingsListViewStyle}">
+                              Style="{DynamicResource ListViewStyle}">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="{Binding ListViewColumnHeaderDateText}"
@@ -79,18 +85,19 @@
                                                 Width="100"
                                                 DisplayMemberBinding="{Binding TimeSlot, StringFormat={}{0:hh\\:mm}}"/>
                                 <GridViewColumn Header="{Binding ListViewColumnHeaderFirstNameText}"
-                                                Width="100"
+                                                Width="150"
                                                 DisplayMemberBinding="{Binding FirstName}"/>
                                 <GridViewColumn Header="{Binding ListViewColumnHeaderLastNameText}"
-                                                Width="100"
+                                                Width="150"
                                                 DisplayMemberBinding="{Binding LastName}"/>
                             </GridView>
                         </ListView.View>
                     </ListView>
                 </Viewbox>
-                <Button Content="{Binding SelectBookingButtonText}"
+                <Button Grid.Row="1"
+                        Content="{Binding SelectBookingButtonText}"
                         Style="{DynamicResource HomeViewSelectBookingButtonStyle}"/>
-            </StackPanel>
+            </Grid>
         </Grid>
     </DockPanel>
 </UserControl>
