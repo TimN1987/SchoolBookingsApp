@@ -18,10 +18,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IBookingManager _bookingManager;
         private readonly IReadOperationService _readOperationService;
         
-        private List<Booking> _bookings;
+        private readonly List<Booking> _bookings;
         private Booking? _selectedBooking;
-        private List<SearchResult> _students;
-        private int _parentsCount;
+        private readonly List<SearchResult> _students;
+        private readonly int _parentsCount;
 
         //private ChangePageCommand<BookingView> _changePageCommand; -> change to the booking view
 
@@ -35,19 +35,23 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public int ParentsCount => _parentsCount;
         public int BookingsCount => _bookings.Count;
         public int StudentsCount => _students.Count;
-        public int StudentsNotBookedCount => StudentsCount - BookingsCount;
         public double StudentsBookedPercentage => StudentsCount == 0 ? 0
             : (double)BookingsCount / StudentsCount * 100;
+        public double StudentsUnbookedPercentage => 100 - StudentsBookedPercentage;
         public Booking? NextMeeting => _bookings
             .OrderBy(booking => booking.BookingDate)
             .FirstOrDefault(booking => booking.BookingDate >= DateTime.Now);
 
         //Text for UI features
         public string DashboardTitleText => "Bookings Dashboard";
-        public string TotalStudentsText => "Total students:";
-        public string TotalBookingsText => "Total bookings:";
-        public string TotalParentsText => "Total parents:";
+        public string TotalStudentsText => "Total students";
+        public string TotalBookingsText => "Total bookings";
+        public string TotalParentsText => "Total parents";
         public string SelectBookingButtonText => "View booking";
+        public string ListViewColumnHeaderDateText => "Date";
+        public string ListViewColumnHeaderTimeText => "Time";
+        public string ListViewColumnHeaderFirstNameText => "First Name";
+        public string ListViewColumnHeaderLastNameText => "Last Name";
 
         public HomeViewModel(
             IEventAggregator eventAggregator, 
@@ -64,6 +68,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _students = _readOperationService.GetStudentList().GetAwaiter().GetResult();
             _parentsCount = _readOperationService.GetParentList().GetAwaiter().GetResult().Count;
+
+            _bookings.Add(new Booking(3, "John", "Smith", new DateTime(2025, 9, 17), new TimeSpan(14, 0, 0)));
         }
 
         private void OnSubmit(Booking booking)

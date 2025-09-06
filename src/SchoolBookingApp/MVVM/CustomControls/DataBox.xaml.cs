@@ -23,6 +23,11 @@ namespace SchoolBookingApp.MVVM.CustomControls
         public DataBox()
         {
             InitializeComponent();
+
+            this.MouseEnter += (s, e) =>
+                VisualStateManager.GoToState(this, "MouseOver", true);
+            this.MouseLeave += (s, e) => 
+                VisualStateManager.GoToState(this, "Normal", true);
         }
 
         public static readonly DependencyProperty TitleProperty =
@@ -41,6 +46,33 @@ namespace SchoolBookingApp.MVVM.CustomControls
         {
             get => (string)GetValue(NumberProperty);
             set => SetValue(NumberProperty, value);
+        }
+
+        public static readonly DependencyProperty StartColorProperty =
+            DependencyProperty.Register(nameof(StartColor), typeof(Color), typeof(DataBox), new PropertyMetadata(Colors.Transparent));
+
+        public Color StartColor
+        {
+            get => (Color)GetValue(StartColorProperty);
+            set => SetValue(StartColorProperty, value);
+        }
+
+        public static readonly DependencyProperty StopColorProperty =
+            DependencyProperty.Register(nameof(StopColor), typeof(Color), typeof(DataBox), new PropertyMetadata(Colors.Transparent));
+
+        public Color StopColor
+        {
+            get => (Color)GetValue(StopColorProperty);
+            set => SetValue(StopColorProperty, value);
+        }
+
+        public static readonly new DependencyProperty ForegroundProperty = 
+            DependencyProperty.Register(nameof(Foreground), typeof(Brush), typeof(DataBox), new PropertyMetadata(null));
+
+        public new Brush Foreground
+        {
+            get => (Brush)GetValue(ForegroundProperty);
+            set => SetValue(ForegroundProperty, value);
         }
     }
 }

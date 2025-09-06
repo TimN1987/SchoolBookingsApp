@@ -102,6 +102,8 @@ public static class ServiceCollectionExtensions
         //Views
         services.AddSingleton<MainWindow>();
         services.AddTransient<HomeView>();
+        services.AddTransient<AddStudentView>();
+        services.AddTransient<AddParentView>();
 
         //Viewmodels
         services.AddSingleton<MainViewModel>();
