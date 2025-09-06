@@ -194,8 +194,21 @@
     </Style>
     
     <!-- HomeView Bookings ListView -->
+    <SolidColorBrush x:Key="GridViewColumnHeader.Static.Background" Color="#202020"/>
+    <SolidColorBrush x:Key="GridViewColumnHeader.Static.Border" Color="#000000"/>
+    <SolidColorBrush x:Key="GridViewColumnHeader.Static.Foreground" Color="#CCCCCC"/>
+    <Style TargetType="{x:Type GridViewColumnHeader}" x:Key="BookingsGridViewColumnHeaderStyle">
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{StaticResource GridViewColumnHeader.Static.Background}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource GridViewColumnHeader.Static.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource GridViewColumnHeader.Static.Foreground}"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
     
-
     <SolidColorBrush x:Key="ListBox.Static.Background" Color="#202020"/>
     <SolidColorBrush x:Key="ListBox.Static.Border" Color="#000000"/>
     <SolidColorBrush x:Key="ListBox.Static.Foreground" Color="#CCCCCC"/>
@@ -228,12 +241,13 @@
                             SnapsToDevicePixels="true">
                         <DockPanel>
                             <GridViewHeaderRowPresenter x:Name="PART_HeaderHost"
-                                AllowsColumnReorder="True"
-                                ColumnHeaderContainerStyle="{TemplateBinding GridView.ColumnHeaderContainerStyle}"
-                                ColumnHeaderTemplate="{TemplateBinding GridView.ColumnHeaderTemplate}"
-                                ColumnHeaderTemplateSelector="{TemplateBinding GridView.ColumnHeaderTemplateSelector}"
-                                ColumnHeaderStringFormat="{TemplateBinding GridView.ColumnHeaderStringFormat}"
-                                DockPanel.Dock="Top"/>
+                                                        AllowsColumnReorder="True"
+                                                        ColumnHeaderTemplate="{TemplateBinding GridView.ColumnHeaderTemplate}"
+                                                        ColumnHeaderTemplateSelector="{TemplateBinding GridView.ColumnHeaderTemplateSelector}"
+                                                        ColumnHeaderStringFormat="{TemplateBinding GridView.ColumnHeaderStringFormat}"
+                                                        DockPanel.Dock="Top"
+                                                        ColumnHeaderContainerStyle="{StaticResource BookingsGridViewColumnHeaderStyle}"
+                                                        Columns="{Binding View.Columns, RelativeSource={RelativeSource TemplatedParent}}"/>
                             <ScrollViewer Focusable="false"
                                           Padding="{TemplateBinding Padding}"
                                           DockPanel.Dock="Bottom">
@@ -539,8 +553,8 @@
     <Style x:Key="ListViewItemStyle" TargetType="{x:Type ListViewItem}">
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Padding" Value="4,1"/>
-        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="1"/>
