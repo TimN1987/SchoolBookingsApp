@@ -34,6 +34,13 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //Convert tests.
+        /// <summary>
+        /// Verifies that a value of 0.0 is returned when the value, parameter or both are invalid types for the <see 
+        /// cref="PercentageToLabelPositionConverter.Convert"/> method. Ensures that a token value is returned when the 
+        /// inputs are not in the correct format.
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
         [Theory]
         [InlineData(3.6, 4.2)]
         [InlineData(70.0, 'c')]
@@ -52,6 +59,32 @@ namespace SchoolBookingAppTests.ConverterTests
             //Assert
             Assert.True(isDouble);
             Assert.Equal(0d, doubleValue);
+        }
+
+        [Theory]
+        [InlineData(0d, "XB", 100d)]
+        [InlineData(50d, "XB", 50d)]
+        [InlineData(100d, "XB", 100d)]
+        [InlineData(0d, "YB", 50d)]
+        [InlineData(50d, "YB", 100d)]
+        [InlineData(100d, "YB", 150d)]
+        [InlineData(0d, "XU", 100d)]
+        [InlineData(50d, "XU", 150d)]
+        [InlineData(100d, "XU", 100d)]
+        [InlineData(0d, "YU", 50d)]
+        [InlineData(50d, "YU", 100d)]
+        [InlineData(100d, "YU", 150d)]
+
+        public void Convert_CorrectTypeValueAndParameter_ExpectedValueReturned(
+            object value, object parameter, double expectedLabelPosition)
+        {
+            //Arrange & Act
+            var labelPosition = _converter.Convert(value, null!, parameter, null!);
+            var isDouble = double.TryParse(labelPosition!.ToString(), out var doubleValue);
+
+            //Act
+            Assert.True(isDouble);
+            Assert.Equal(expectedLabelPosition, doubleValue);
         }
 
         //ConvertBack test.
