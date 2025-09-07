@@ -61,6 +61,15 @@ namespace SchoolBookingAppTests.ConverterTests
             Assert.Equal(0d, doubleValue);
         }
 
+        /// <summary>
+        /// Verifies that the <paramref name="expectedLabelPosition"/> is returned when a given <paramref name="value"/> 
+        /// and <paramref name="parameter"/> are passed as arguments to the <see cref="PercentageToLabelPositionConverter
+        /// .Convert"/> method. Ensures that the labels are correctly positioned.
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
+        /// <param name="expectedLabelPosition">The expected x or y position for the label based on the given 
+        /// <paramref name="value"/> and <paramref name="parameter"/>.</param>
         [Theory]
         [InlineData(0d, "XB", 100d)]
         [InlineData(50d, "XB", 50d)]
