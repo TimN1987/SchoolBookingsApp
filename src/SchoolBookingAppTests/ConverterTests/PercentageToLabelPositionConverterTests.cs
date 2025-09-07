@@ -18,6 +18,10 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //Constructor test.
+        /// <summary>
+        /// Verifies that a non-null instance of the <see cref="PercentageToLabelPositionConverter"/> class is created 
+        /// when the parameterless constructor is called.
+        /// </summary>
         [Fact]
         public void Constructor_CreatesInstanceSuccessfully()
         {
@@ -30,8 +34,69 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //Convert tests.
+        /// <summary>
+        /// Verifies that a value of 0.0 is returned when the value, parameter or both are invalid types for the <see 
+        /// cref="PercentageToLabelPositionConverter.Convert"/> method. Ensures that a token value is returned when the 
+        /// inputs are not in the correct format.
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
+        [Theory]
+        [InlineData(3.6, 4.2)]
+        [InlineData(70.0, 'c')]
+        [InlineData(32.4, 5)]
+        [InlineData("convert", "XB")]
+        [InlineData('c', "YU")]
+        [InlineData(3, "YB")]
+        [InlineData("convert", 7.0)]
+        public void Convert_ValueAndParameterWrongType_ReturnsZero(
+            object value, object parameter)
+        {
+            //Arrange & Act
+            var labelPosition = _converter.Convert(value, null!, parameter, null!);
+            var isDouble = double.TryParse(labelPosition.ToString(), out var doubleValue);
+
+            //Assert
+            Assert.True(isDouble);
+            Assert.Equal(0d, doubleValue);
+        }
+
+        [Theory]
+        [InlineData(0d, "XB", 100d)]
+        [InlineData(50d, "XB", 50d)]
+        [InlineData(100d, "XB", 100d)]
+        [InlineData(0d, "YB", 50d)]
+        [InlineData(50d, "YB", 100d)]
+        [InlineData(100d, "YB", 150d)]
+        [InlineData(0d, "XU", 100d)]
+        [InlineData(50d, "XU", 150d)]
+        [InlineData(100d, "XU", 100d)]
+        [InlineData(0d, "YU", 50d)]
+        [InlineData(50d, "YU", 100d)]
+        [InlineData(100d, "YU", 150d)]
+
+        public void Convert_CorrectTypeValueAndParameter_ExpectedValueReturned(
+            object value, object parameter, double expectedLabelPosition)
+        {
+            //Arrange & Act
+            var labelPosition = _converter.Convert(value, null!, parameter, null!);
+            var isDouble = double.TryParse(labelPosition!.ToString(), out var doubleValue);
+
+            //Act
+            Assert.True(isDouble);
+            Assert.Equal(expectedLabelPosition, doubleValue);
+        }
 
         //ConvertBack test.
+        /// <summary>
+        /// Verifies that a <see cref="NotSupportedException"/> is thrown when the <see cref="PercentageToLabelPositionConverter
+        /// .ConvertBack"/> method is called. Uses different types and values for the parameters to test that this 
+        /// exception is always thrown avoiding any unexpected exceptions.
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="targetType">The expected type of value passed from the view to the viewmodel, if given.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
+        /// <param name="culture">The culture information used in any conversion.</param>
         [Theory]
         [MemberData(nameof(ConvertBackTestMemberData))]
         public void ConvertBack_AlwaysThrowsNotSupportedException(
@@ -42,6 +107,10 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //MemberData
+        /// <summary>
+        /// Provides member data for the convert back test. Uses different values for each parameter to ensure a variety 
+        /// of cases are tested where each case should thrown a <see cref="NotSupportedException"/>.
+        /// </summary>
         public static IEnumerable<object?[]> ConvertBackTestMemberData()
         {
             yield return new object?[] { null, null, null, null };

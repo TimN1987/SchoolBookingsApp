@@ -27,7 +27,7 @@ namespace SchoolBookingApp.MVVM.Converters
                 return 100 + 50 * Math.Sin(angleRad);
             }
 
-            return 0;
+            return 0d;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
