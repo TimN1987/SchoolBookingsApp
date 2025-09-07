@@ -298,7 +298,7 @@
                             Padding="1"
                             SnapsToDevicePixels="true">
                         <DockPanel>
-                            <GridViewHeaderRowPresenter x:Name="PART_HeaderHost"
+                            <GridViewHeaderRowPresenter x:Name="PART_Header"
                                                         AllowsColumnReorder="True"
                                                         ColumnHeaderTemplate="{TemplateBinding GridView.ColumnHeaderTemplate}"
                                                         ColumnHeaderTemplateSelector="{TemplateBinding GridView.ColumnHeaderTemplateSelector}"
