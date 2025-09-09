@@ -9,6 +9,10 @@ using System.Windows.Media;
 
 namespace SchoolBookingApp.MVVM.Converters
 {
+    /// <summary>
+    /// A value converter that converts a percentage value to a position for a pie chart label. Used to ensure correct 
+    /// positioning of labels for the booked and unbooked segments of the pie chart.
+    /// </summary>
     public class PercentageToLabelPositionConverter : IValueConverter
     {
         /// <summary>

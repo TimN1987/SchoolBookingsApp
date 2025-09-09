@@ -4,41 +4,43 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using SchoolBookingApp.MVVM.Converters;
 
 namespace SchoolBookingAppTests.ConverterTests
 {
-    public class PercentageToLabelPositionConverterTests
+    public class PercentageToPieChartPathConverterTests
     {
-        private PercentageToLabelPositionConverter _converter;
+        private PercentageToPieChartPathConverter _converter;
 
-        public PercentageToLabelPositionConverterTests()
+        public PercentageToPieChartPathConverterTests()
         {
-            _converter = new PercentageToLabelPositionConverter();
+            _converter = new PercentageToPieChartPathConverter();
         }
 
         //Constructor test.
+
         /// <summary>
-        /// Verifies that a non-null instance of the <see cref="PercentageToLabelPositionConverter"/> class is created 
-        /// when the parameterless constructor is called.
+        /// Verifies that a non-null instance of <see cref="PercentageToPieChartPathConverter"/> is created successfully. 
+        /// Ensures that the constructor functions as expected.
         /// </summary>
         [Fact]
-        public void Constructor_CreatesInstanceSuccessfully()
+        public void Constructor_InstanceCreatedSuccessfully()
         {
             //Arrange & Act
-            var converter = new PercentageToLabelPositionConverter();
+            var converter = new PercentageToPieChartPathConverter();
 
             //Assert
             Assert.NotNull(converter);
-            Assert.IsType<PercentageToLabelPositionConverter>(converter);
+            Assert.IsType<PercentageToPieChartPathConverter>(converter);
         }
 
         //Convert tests.
 
         /// <summary>
-        /// Verifies that a value of 0.0 is returned when the value, parameter or both are invalid types for the <see 
-        /// cref="PercentageToLabelPositionConverter.Convert"/> method. Ensures that a token value is returned when the 
-        /// inputs are not in the correct format.
+        /// Verifies that a empty geometry is returned when the value, parameter or both are invalid types for the <see 
+        /// cref="PercentageToPieChartPathConverter.Convert"/> method. Ensures that no segment is drawn when the input 
+        /// types are invalid
         /// </summary>
         /// <param name="value">The value passed from the view to the viewmodel.</param>
         /// <param name="parameter">The converter parameter given in the view.</param>
@@ -50,56 +52,42 @@ namespace SchoolBookingAppTests.ConverterTests
         [InlineData('c', "YU")]
         [InlineData(3, "YB")]
         [InlineData("convert", 7.0)]
-        public void Convert_ValueAndParameterWrongType_ReturnsZero(
+        public void Convert_ValueAndParameterWrongType_ReturnsEmptyGeometry(
             object value, object parameter)
         {
             //Arrange & Act
-            var labelPosition = _converter.Convert(value, null!, parameter, null!);
-            var isDouble = double.TryParse(labelPosition.ToString(), out var doubleValue);
+            var result = _converter.Convert(value, null!, parameter, null!);
 
             //Assert
-            Assert.True(isDouble);
-            Assert.Equal(0d, doubleValue);
+            Assert.IsAssignableFrom<Geometry>(result);
+            Assert.Equal(string.Empty, result.ToString());
         }
 
         /// <summary>
-        /// Verifies that the <paramref name="expectedLabelPosition"/> is returned when a given <paramref name="value"/> 
-        /// and <paramref name="parameter"/> are passed as arguments to the <see cref="PercentageToLabelPositionConverter
-        /// .Convert"/> method. Ensures that the labels are correctly positioned.
+        /// Verifies that the <paramref name="expectedPath"/> is returned when a given <paramref name="value"/> 
+        /// and <paramref name="parameter"/> are passed as arguments to the <see cref="PercentageToPieChartPathnConverter
+        /// .Convert"/> method. Ensures that the segment size is correct.
         /// </summary>
         /// <param name="value">The value passed from the view to the viewmodel.</param>
         /// <param name="parameter">The converter parameter given in the view.</param>
-        /// <param name="expectedLabelPosition">The expected x or y position for the label based on the given 
-        /// <paramref name="value"/> and <paramref name="parameter"/>.</param>
+        /// <param name="expectedPath">The expected path string used to draw the pie chart segment.</param>
         [Theory]
-        [InlineData(0d, "XB", 100d)]
-        [InlineData(50d, "XB", 50d)]
-        [InlineData(100d, "XB", 100d)]
-        [InlineData(0d, "YB", 50d)]
-        [InlineData(50d, "YB", 100d)]
-        [InlineData(100d, "YB", 150d)]
-        [InlineData(0d, "XU", 100d)]
-        [InlineData(50d, "XU", 150d)]
-        [InlineData(100d, "XU", 100d)]
-        [InlineData(0d, "YU", 50d)]
-        [InlineData(50d, "YU", 100d)]
-        [InlineData(100d, "YU", 150d)]
+        [MemberData(nameof(ConvertTestMemberData))]
 
-        public void Convert_CorrectTypeValueAndParameter_ExpectedValueReturned(
-            object value, object parameter, double expectedLabelPosition)
+        public void Convert_CorrectTypeValueAndParameter_ExpectedPathReturned(
+            object value, object parameter, string expectedPath)
         {
             //Arrange & Act
-            var labelPosition = _converter.Convert(value, null!, parameter, null!);
-            var isDouble = double.TryParse(labelPosition!.ToString(), out var doubleValue);
+            var result = _converter.Convert(value, null!, parameter, null!);
 
             //Act
-            Assert.True(isDouble);
-            Assert.Equal(expectedLabelPosition, doubleValue);
+            Assert.IsAssignableFrom<Geometry>(result);
+            Assert.Equal(expectedPath, result.ToString());
         }
 
         //ConvertBack test.
         /// <summary>
-        /// Verifies that a <see cref="NotSupportedException"/> is thrown when the <see cref="PercentageToLabelPositionConverter
+        /// Verifies that a <see cref="NotSupportedException"/> is thrown when the <see cref="PercentageToPieChartPathConverter
         /// .ConvertBack"/> method is called. Uses different types and values for the parameters to test that this 
         /// exception is always thrown avoiding any unexpected exceptions.
         /// </summary>
@@ -132,6 +120,18 @@ namespace SchoolBookingAppTests.ConverterTests
             yield return new object?[] { "convert", null, DateTime.Now, CultureInfo.CurrentUICulture };
             yield return new object?[] { 50.0, typeof(string), null, CultureInfo.CurrentUICulture };
             yield return new object?[] { DateTime.Now, typeof(long), 'e', null };
+        }
+
+        /// <summary>
+        /// Provides member data for the convert test. Each case includes a percentage value, a boolean parameter and the 
+        /// expected path string to be returned. Focuses on key edge cases to avoid issues with floating point precision.
+        /// </summary>
+        public static IEnumerable<object[]> ConvertTestMemberData()
+        {
+            yield return new object[] { 0d, true, "M100,100L100,10A90,90,0,0,0,100,10L100,100z" };
+            yield return new object[] { 0d, false, "M100,100L100,10A90,90,0,0,1,100,10L100,100z" };
+            yield return new object[] { 100d, true, "M100,100L100,10A90,90,0,1,0,100,190A90,90,0,1,0,100,10z" };
+            yield return new object[] { 100d, false, "M100,100L100,10A90,90,0,1,0,100,190A90,90,0,1,0,100,10z" };
         }
     }
 }
