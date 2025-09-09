@@ -20,16 +20,16 @@ namespace SchoolBookingApp.MVVM.View
     /// <summary>
     /// Interaction logic for ViewBookingView.xaml
     /// </summary>
-    public partial class ViewBookingView : UserControl
+    public partial class AddBookingView : UserControl
     {
-        private readonly ViewBookingViewModel _viewModel;
+        private readonly AddBookingViewModel _viewModel;
 
-        public ViewBookingView(ViewBookingViewModel viewModel)
+        public AddBookingView(AddBookingViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
-            Log.Information("ViewBookingView initialized");
+            Log.Information("AddBookingView initialized");
         }
     }
 }
