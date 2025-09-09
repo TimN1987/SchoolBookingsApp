@@ -14,6 +14,7 @@ namespace SchoolBookingAppTests.ViewModelTests
     {
         private readonly Mock<IEventAggregator> _eventAggregatorMock;
         private readonly Mock<IBookingManager> _bookingManagerMock;
+        private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<DisplayBookingEvent> _displayBookingEventMock;
         private readonly AddBookingViewModel _viewModel;
 
@@ -21,13 +22,15 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             _eventAggregatorMock = new Mock<IEventAggregator>();
             _bookingManagerMock = new Mock<IBookingManager>();
+            _readOperationServiceMock = new Mock<IReadOperationService>();
             _displayBookingEventMock = new Mock<DisplayBookingEvent>();
 
             _eventAggregatorMock
                 .Setup(x => x.GetEvent<DisplayBookingEvent>())
                 .Returns(_displayBookingEventMock.Object);
 
-            _viewModel = new AddBookingViewModel(_eventAggregatorMock.Object, _bookingManagerMock.Object);
+            _viewModel = new AddBookingViewModel(
+                _eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
         }
 
         //Constructor tests.
@@ -41,7 +44,8 @@ namespace SchoolBookingAppTests.ViewModelTests
         public void Constructor_NullEventAggregator_ThrowsArgumentNullException()
         {
             //Arrange, Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(null!, _bookingManagerMock.Object));
+            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
+                null!, _bookingManagerMock.Object, _readOperationServiceMock.Object));
         }
 
         /// <summary>
@@ -53,7 +57,21 @@ namespace SchoolBookingAppTests.ViewModelTests
         public void Constructor_NullBookingManager_ThrowsArgumentNullException()
         {
             //Arrange, Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(_eventAggregatorMock.Object, null!));
+            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
+                _eventAggregatorMock.Object, null!, _readOperationServiceMock.Object));
+        }
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the read operation service is null. Ensures 
+        /// that a valid read operation service instance is passed to the <see cref="AddBookingViewModel"/> to allow access 
+        /// to the student data.
+        /// </summary>
+        [Fact]
+        public void Constructor_NullReadOperationService_ThrowsArgumentNullException()
+        {
+            //Arrange, Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
+                _eventAggregatorMock.Object, _bookingManagerMock.Object, null!));
         }
 
         /// <summary>
@@ -65,7 +83,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         public void Constructor_ValidParameters_CreatesInstanceSuccessfully()
         {
             //Arrange & Act
-            var viewModel = new AddBookingViewModel(_eventAggregatorMock.Object, _bookingManagerMock.Object);
+            var viewModel = new AddBookingViewModel(_eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
 
             //Assert
             Assert.NotNull(viewModel);
@@ -74,13 +92,22 @@ namespace SchoolBookingAppTests.ViewModelTests
 
         //EventAggregator tests.
 
+        /// <summary>
+        /// Verifies that the expected <see cref="Booking"/> is set in the <see cref="AddBookingViewModel.Booking"/> 
+        /// property when a <see cref="DisplayBookingEvent"/> is published with that booking. Ensures that the view model 
+        /// responds correctly to the event and updates its state accordingly.
+        /// </summary>
+        /// <param name="booking">An instance of the <see cref="Booking"/> <see langword="struct"/> to be published by 
+        /// the <see cref="DisplayBookingEvent"/>. It should be set as the <see cref="AddBookingViewModel.Booking"/> 
+        /// property.</param>
         [Theory]
         [MemberData(nameof(BookingsMemberData))]
         public void AddBookingViewModel_DisplayBookingEventPublished_PublishedBookingSetInViewModel(Booking booking)
         {
             //Arrange
             var eventAggregator = new EventAggregator();
-            var viewModel = new AddBookingViewModel(eventAggregator, _bookingManagerMock.Object);
+            var viewModel = new AddBookingViewModel(
+                eventAggregator, _bookingManagerMock.Object, _readOperationServiceMock.Object);
 
             //Act
             eventAggregator.GetEvent<DisplayBookingEvent>().Publish(booking);
