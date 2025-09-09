@@ -34,6 +34,7 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //Convert tests.
+
         /// <summary>
         /// Verifies that a value of 0.0 is returned when the value, parameter or both are invalid types for the <see 
         /// cref="PercentageToLabelPositionConverter.Convert"/> method. Ensures that a token value is returned when the 

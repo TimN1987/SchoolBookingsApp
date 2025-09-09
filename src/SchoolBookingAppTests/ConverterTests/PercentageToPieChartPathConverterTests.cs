@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using SchoolBookingApp.MVVM.Converters;
 
 namespace SchoolBookingAppTests.ConverterTests
@@ -35,6 +36,54 @@ namespace SchoolBookingAppTests.ConverterTests
         }
 
         //Convert tests.
+
+        /// <summary>
+        /// Verifies that a empty geometry is returned when the value, parameter or both are invalid types for the <see 
+        /// cref="PercentageToPieChartPathConverter.Convert"/> method. Ensures that no segment is drawn when the input 
+        /// types are invalid
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
+        [Theory]
+        [InlineData(3.6, 4.2)]
+        [InlineData(70.0, 'c')]
+        [InlineData(32.4, 5)]
+        [InlineData("convert", "XB")]
+        [InlineData('c', "YU")]
+        [InlineData(3, "YB")]
+        [InlineData("convert", 7.0)]
+        public void Convert_ValueAndParameterWrongType_ReturnsEmptyGeometry(
+            object value, object parameter)
+        {
+            //Arrange & Act
+            var result = _converter.Convert(value, null!, parameter, null!);
+
+            //Assert
+            Assert.IsAssignableFrom<Geometry>(result);
+            Assert.Equal(string.Empty, result.ToString());
+        }
+
+        /// <summary>
+        /// Verifies that the <paramref name="expectedPath"/> is returned when a given <paramref name="value"/> 
+        /// and <paramref name="parameter"/> are passed as arguments to the <see cref="PercentageToPieChartPathnConverter
+        /// .Convert"/> method. Ensures that the segment size is correct.
+        /// </summary>
+        /// <param name="value">The value passed from the view to the viewmodel.</param>
+        /// <param name="parameter">The converter parameter given in the view.</param>
+        /// <param name="expectedPath">The expected path string used to draw the pie chart segment.</param>
+        [Theory]
+        [MemberData(nameof(ConvertTestMemberData))]
+
+        public void Convert_CorrectTypeValueAndParameter_ExpectedPathReturned(
+            object value, object parameter, string expectedPath)
+        {
+            //Arrange & Act
+            var result = _converter.Convert(value, null!, parameter, null!);
+
+            //Act
+            Assert.IsAssignableFrom<Geometry>(result);
+            Assert.Equal(expectedPath, result.ToString());
+        }
 
         //ConvertBack test.
         /// <summary>
@@ -71,6 +120,18 @@ namespace SchoolBookingAppTests.ConverterTests
             yield return new object?[] { "convert", null, DateTime.Now, CultureInfo.CurrentUICulture };
             yield return new object?[] { 50.0, typeof(string), null, CultureInfo.CurrentUICulture };
             yield return new object?[] { DateTime.Now, typeof(long), 'e', null };
+        }
+
+        /// <summary>
+        /// Provides member data for the convert test. Each case includes a percentage value, a boolean parameter and the 
+        /// expected path string to be returned. Focuses on key edge cases to avoid issues with floating point precision.
+        /// </summary>
+        public static IEnumerable<object[]> ConvertTestMemberData()
+        {
+            yield return new object[] { 0d, true, "M100,100L100,10A90,90,0,0,0,100,10L100,100z" };
+            yield return new object[] { 0d, false, "M100,100L100,10A90,90,0,0,1,100,10L100,100z" };
+            yield return new object[] { 100d, true, "M100,100L100,10A90,90,0,1,0,100,190A90,90,0,1,0,100,10z" };
+            yield return new object[] { 100d, false, "M100,100L100,10A90,90,0,1,0,100,190A90,90,0,1,0,100,10z" };
         }
     }
 }
