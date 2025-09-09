@@ -104,10 +104,14 @@ public static class ServiceCollectionExtensions
         services.AddTransient<HomeView>();
         services.AddTransient<AddStudentView>();
         services.AddTransient<AddParentView>();
+        services.AddTransient<ViewBookingView>();
 
         //Viewmodels
         services.AddSingleton<MainViewModel>();
         services.AddTransient<HomeViewModel>();
+        //services.AddTransient<AddStudentViewModel>();
+        //services.AddTransient<AddParentViewModel>();
+        services.AddTransient<ViewBookingViewModel>();
 
         //Services
         services.AddSingleton(connectionInformation);
