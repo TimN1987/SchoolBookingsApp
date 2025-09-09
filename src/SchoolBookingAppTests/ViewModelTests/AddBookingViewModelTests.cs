@@ -17,6 +17,9 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly Mock<IEventAggregator> _eventAggregatorMock;
         private readonly Mock<IBookingManager> _bookingManagerMock;
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
+        private readonly Mock<ICreateOperationService> _createOperationServiceMock;
+        private readonly Mock<IUpdateOperationService> _updateOperationServiceMock;
+        private readonly Mock<IDeleteOperationService> _deleteOperationServiceMock;
         private readonly Mock<DisplayBookingEvent> _displayBookingEventMock;
         private readonly AddBookingViewModel _viewModel;
         private readonly Student _testStudent;
@@ -27,6 +30,10 @@ namespace SchoolBookingAppTests.ViewModelTests
             _eventAggregatorMock = new Mock<IEventAggregator>();
             _bookingManagerMock = new Mock<IBookingManager>();
             _readOperationServiceMock = new Mock<IReadOperationService>();
+            _createOperationServiceMock = new Mock<ICreateOperationService>();
+            _updateOperationServiceMock = new Mock<IUpdateOperationService>();
+            _deleteOperationServiceMock = new Mock<IDeleteOperationService>();
+
             _displayBookingEventMock = new Mock<DisplayBookingEvent>();
             _testStudent = new Student(
                 1, "John", "Doe", 20191110, "5B", [], new StudentDataRecord(), new MeetingCommentsRecord());
@@ -40,50 +47,42 @@ namespace SchoolBookingAppTests.ViewModelTests
                 .Returns(Task.FromResult(_testStudent));
 
             _viewModel = new AddBookingViewModel(
-                _eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+                _eventAggregatorMock.Object, 
+                _bookingManagerMock.Object, 
+                _readOperationServiceMock.Object, 
+                _createOperationServiceMock.Object, 
+                _updateOperationServiceMock.Object, 
+                _deleteOperationServiceMock.Object);
             _testBooking = new Booking(1, "John", "Doe", "2025-12-25", "12:00");
         }
 
         //Constructor tests.
 
         /// <summary>
-        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the event aggregator is null. Ensures that 
-        /// a valid event aggregator instance is passed to the <see cref="AddBookingViewModel"/> to allow subscription 
-        /// to necessary events.
+        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the one or more of the required dependencies 
+        /// are <see langword="null"/> when instantiating the <see cref="AddBookingViewModel"/>. Ensures that the view model 
+        /// cannot be created without its necessary dependencies, which would lead to runtime errors.
         /// </summary>
-        [Fact]
-        public void Constructor_NullEventAggregator_ThrowsArgumentNullException()
+        [Theory]
+        [MemberData(nameof(ConstructorParametersMemberData))]
+        public void Constructor_NullEventAggregator_ThrowsArgumentNullException(
+            IEventAggregator eventAggregator,
+            IBookingManager bookingManager, 
+            IReadOperationService readOperationService,
+            ICreateOperationService createOperationService, 
+            IUpdateOperationService updateOperationService, 
+            IDeleteOperationService deleteOperationService)
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
-                null!, _bookingManagerMock.Object, _readOperationServiceMock.Object));
+                eventAggregator, 
+                bookingManager, 
+                readOperationService, 
+                createOperationService, 
+                updateOperationService, 
+                deleteOperationService));
         }
 
-        /// <summary>
-        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the booking manager is null. Ensures that 
-        /// a valid booking manager instance is passed to the <see cref="AddBookingViewModel"/> to allow access to the 
-        /// bookings data.
-        /// </summary>
-        [Fact]
-        public void Constructor_NullBookingManager_ThrowsArgumentNullException()
-        {
-            //Arrange, Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
-                _eventAggregatorMock.Object, null!, _readOperationServiceMock.Object));
-        }
-
-        /// <summary>
-        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the read operation service is null. Ensures 
-        /// that a valid read operation service instance is passed to the <see cref="AddBookingViewModel"/> to allow access 
-        /// to the student data.
-        /// </summary>
-        [Fact]
-        public void Constructor_NullReadOperationService_ThrowsArgumentNullException()
-        {
-            //Arrange, Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(
-                _eventAggregatorMock.Object, _bookingManagerMock.Object, null!));
-        }
 
         /// <summary>
         /// Verifies that a valid instance of <see cref="AddBookingViewModel"/> is created when a valid parameters are 
@@ -94,7 +93,13 @@ namespace SchoolBookingAppTests.ViewModelTests
         public void Constructor_ValidParameters_CreatesInstanceSuccessfully()
         {
             //Arrange & Act
-            var viewModel = new AddBookingViewModel(_eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+            var viewModel = new AddBookingViewModel(
+                _eventAggregatorMock.Object, 
+                _bookingManagerMock.Object, 
+                _readOperationServiceMock.Object, 
+                _createOperationServiceMock.Object, 
+                _updateOperationServiceMock.Object, 
+                _deleteOperationServiceMock.Object);
 
             //Assert
             Assert.NotNull(viewModel);
@@ -118,7 +123,12 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Arrange
             var eventAggregator = new EventAggregator();
             var viewModel = new AddBookingViewModel(
-                eventAggregator, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+                eventAggregator, 
+                _bookingManagerMock.Object, 
+                _readOperationServiceMock.Object, 
+                _createOperationServiceMock.Object, 
+                _updateOperationServiceMock.Object, 
+                _deleteOperationServiceMock.Object);
 
             //Act
             eventAggregator.GetEvent<DisplayBookingEvent>().Publish(booking);
@@ -139,7 +149,12 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange
             var viewModel = new AddBookingViewModel(
-                _eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+                _eventAggregatorMock.Object, 
+                _bookingManagerMock.Object, 
+                _readOperationServiceMock.Object, 
+                _createOperationServiceMock.Object, 
+                _updateOperationServiceMock.Object, 
+                _deleteOperationServiceMock.Object);
 
             //Act
             viewModel.Booking = _testBooking;
@@ -150,6 +165,56 @@ namespace SchoolBookingAppTests.ViewModelTests
         }
 
         //MemberData
+
+        /// <summary>
+        /// Provides member data for the <see cref="Constructor_NullEventAggregator_ThrowsArgumentNullException"/> test. Sets 
+        /// one of the parameters to <see langword="null"/> to ensure that an <see cref="ArgumentNullException"/> is thrown.
+        /// </summary>
+        public static IEnumerable<object[]> ConstructorParametersMemberData()
+        {
+            yield return new object[] {
+                null!,
+                new Mock<IBookingManager>().Object,
+                new Mock<IReadOperationService>().Object,
+                new Mock<ICreateOperationService>().Object,
+                new Mock<IUpdateOperationService>().Object, 
+                new Mock<IDeleteOperationService>().Object };
+            yield return new object[] {
+                new Mock<IEventAggregator>().Object,
+                null!,
+                new Mock<IReadOperationService>().Object,
+                new Mock<ICreateOperationService>().Object,
+                new Mock<IUpdateOperationService>().Object,
+                new Mock<IDeleteOperationService>().Object };
+            yield return new object[] {
+                new Mock<IEventAggregator>().Object,
+                new Mock<IBookingManager>().Object,
+                null!,
+                new Mock<ICreateOperationService>().Object,
+                new Mock<IUpdateOperationService>().Object,
+                new Mock<IDeleteOperationService>().Object };
+            yield return new object[] {
+                new Mock<IEventAggregator>().Object,
+                new Mock<IBookingManager>().Object,
+                new Mock<IReadOperationService>().Object,
+                null!,
+                new Mock<IUpdateOperationService>().Object,
+                new Mock<IDeleteOperationService>().Object };
+            yield return new object[] {
+                new Mock<IEventAggregator>().Object,
+                new Mock<IBookingManager>().Object,
+                new Mock<IReadOperationService>().Object,
+                new Mock<ICreateOperationService>().Object,
+                null!,
+                new Mock<IDeleteOperationService>().Object };
+            yield return new object[] {
+                new Mock<IEventAggregator>().Object,
+                new Mock<IBookingManager>().Object,
+                new Mock<IReadOperationService>().Object,
+                new Mock<ICreateOperationService>().Object,
+                new Mock<IUpdateOperationService>().Object,
+                null! };
+        }
 
         /// <summary>
         /// Provides member data returning instances of the <see cref="Booking"/> <see langword="struct"/> to use for 
