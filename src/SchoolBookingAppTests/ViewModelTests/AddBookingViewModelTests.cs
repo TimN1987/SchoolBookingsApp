@@ -14,6 +14,9 @@ namespace SchoolBookingAppTests.ViewModelTests
 {
     public class AddBookingViewModelTests
     {
+        //Constant error messages
+        private const string NoBookingDataMessage = "Complete all fields before adding booking.";
+
         private readonly Mock<IEventAggregator> _eventAggregatorMock;
         private readonly Mock<IBookingManager> _bookingManagerMock;
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
@@ -24,6 +27,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly AddBookingViewModel _viewModel;
         private readonly Student _testStudent;
         private readonly Booking _testBooking;
+        private readonly Booking _invalidBooking;
 
         public AddBookingViewModelTests()
         {
@@ -54,6 +58,7 @@ namespace SchoolBookingAppTests.ViewModelTests
                 _updateOperationServiceMock.Object, 
                 _deleteOperationServiceMock.Object);
             _testBooking = new Booking(1, "John", "Doe", "2025-12-25", "12:00");
+            _invalidBooking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
         }
 
         //Constructor tests.
@@ -162,6 +167,26 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.NotNull(viewModel.BookedStudent);
             Assert.Equal(_testStudent, viewModel.BookedStudent);
+        }
+
+        //AddBooking tests.
+
+        /// <summary>
+        /// Verifies that the expected error message is set when invalid booking data is entered and the <see 
+        /// cref="AddBookingViewModel.AddBooking"/> method is called. Ensures that incomplete records are not added to the 
+        /// database, and the user is informed of the problem.
+        /// </summary>
+        [Fact]
+        public async Task AddBooking_InvalidBooking_ErrorMessageUpdated()
+        {
+            //Arrange
+            _viewModel.Booking = _invalidBooking;
+
+            //Act
+            await _viewModel.AddBooking();
+
+            //Assert
+            Assert.Equal(NoBookingDataMessage, _viewModel.ErrorMessage);
         }
 
         //MemberData
