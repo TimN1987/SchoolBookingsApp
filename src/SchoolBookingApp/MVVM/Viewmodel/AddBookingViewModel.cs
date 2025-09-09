@@ -14,6 +14,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 {
     public class AddBookingViewModel : ViewModelBase
     {
+        //Constant error messages
+        private const string NoBookingDataMessage = "Complete all fields before adding booking.";
+
         //Fields
         private readonly IEventAggregator _eventAggregator;
         private readonly IBookingManager _bookingManager;
@@ -25,6 +28,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private bool _isNewBooking;
+        private string _errorMessage;
 
         private ICommand? _addBookingCommand;
         private ICommand? _updateBookingCommand;
@@ -39,10 +43,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set
             {
                 SetProperty(ref _booking, value);
-                BookedStudent = _readOperationService
+                BookedStudent = _booking.StudentId > 0 ? 
+                    _readOperationService
                     .GetStudentData(_booking.StudentId)
                     .GetAwaiter()
-                    .GetResult();
+                    .GetResult() 
+                    : null;
             }
         }
         public Student? BookedStudent
@@ -54,6 +60,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get => _allBookings;
             set => SetProperty(ref _allBookings, value);
+        }
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set => SetProperty(ref _errorMessage, value);
         }
 
         //Commands
@@ -83,6 +94,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookedStudent = null;
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _isNewBooking = true;
+            _errorMessage = string.Empty;
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
@@ -92,6 +104,48 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                     _isNewBooking = false;
                 }
             });
+        }
+
+        //Methods
+
+        public async Task AddBooking()
+        {
+            ErrorMessage = string.Empty;
+
+            if (!IsValidBooking())
+            {
+                ErrorMessage = NoBookingDataMessage;
+                return;
+            }
+        }
+
+        public async Task UpdateBooking()
+        {
+            ErrorMessage = string.Empty;
+        }
+
+        public async Task DeleteBooking()
+        {
+            ErrorMessage = string.Empty;
+
+
+        }
+
+        //Helper methods
+        private bool IsValidBooking()
+        {
+            return _booking.StudentId > 0 &&
+                   !string.IsNullOrWhiteSpace(_booking.FirstName) &&
+                   !string.IsNullOrWhiteSpace(_booking.LastName) &&
+                   !string.IsNullOrWhiteSpace(_booking.DateString) &&
+                   !string.IsNullOrWhiteSpace(_booking.TimeString);
+        }   
+
+        private void ResetBooking()
+        {
+            _booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            OnPropertyChanged(nameof(Booking));
+            _isNewBooking = true;
         }
     }
 }
