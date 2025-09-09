@@ -54,7 +54,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddBookingViewModel(_eventAggregatorMock.Object, null!));
-        }   
+        }
 
         /// <summary>
         /// Verifies that a valid instance of <see cref="AddBookingViewModel"/> is created when a valid parameters are 
@@ -70,6 +70,37 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.NotNull(viewModel);
             Assert.IsType<AddBookingViewModel>(viewModel);
+        }
+
+        //EventAggregator tests.
+
+        [Theory]
+        [MemberData(nameof(BookingsMemberData))]
+        public void AddBookingViewModel_DisplayBookingEventPublished_PublishedBookingSetInViewModel(Booking booking)
+        {
+            //Arrange
+            var eventAggregator = new EventAggregator();
+            var viewModel = new AddBookingViewModel(eventAggregator, _bookingManagerMock.Object);
+
+            //Act
+            eventAggregator.GetEvent<DisplayBookingEvent>().Publish(booking);
+
+            //Assert
+            Assert.Equal(booking, viewModel.Booking);
+        }
+
+        //MemberData
+
+        /// <summary>
+        /// Provides member data returning instances of the <see cref="Booking"/> <see langword="struct"/> to use for 
+        /// testing with different bookings.
+        /// </summary>
+        public static IEnumerable<object[]> BookingsMemberData()
+        {
+            yield return new object[] { new Booking(1, "John", "Smith", "2025-11-19", "14:00") };
+            yield return new object[] { new Booking(2, "Jane", "Doe", new DateTime(2025, 09, 14), new TimeSpan(11, 0, 0)) };
+            yield return new object[] { new Booking(3, "2025-10-13", "13:50") };
+            yield return new object[] { new Booking(4, new DateTime(2025, 11, 17, 20, 0, 0)) };
         }
     }
 }
