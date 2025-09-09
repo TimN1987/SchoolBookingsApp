@@ -7,6 +7,8 @@ using Moq;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Viewmodel;
 using SchoolBookingApp.MVVM.Services;
+using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Struct;
 
 namespace SchoolBookingAppTests.ViewModelTests
 {
@@ -17,6 +19,8 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<DisplayBookingEvent> _displayBookingEventMock;
         private readonly AddBookingViewModel _viewModel;
+        private readonly Student _testStudent;
+        private readonly Booking _testBooking;
 
         public AddBookingViewModelTests()
         {
@@ -24,13 +28,20 @@ namespace SchoolBookingAppTests.ViewModelTests
             _bookingManagerMock = new Mock<IBookingManager>();
             _readOperationServiceMock = new Mock<IReadOperationService>();
             _displayBookingEventMock = new Mock<DisplayBookingEvent>();
+            _testStudent = new Student(
+                1, "John", "Doe", 20191110, "5B", [], new StudentDataRecord(), new MeetingCommentsRecord());
 
             _eventAggregatorMock
                 .Setup(x => x.GetEvent<DisplayBookingEvent>())
                 .Returns(_displayBookingEventMock.Object);
+            _bookingManagerMock.Setup(x => x.ListBookings())
+                .Returns(Task.FromResult<List<Booking>>([]));
+            _readOperationServiceMock.Setup(x => x.GetStudentData(It.IsAny<int>()))
+                .Returns(Task.FromResult(_testStudent));
 
             _viewModel = new AddBookingViewModel(
                 _eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+            _testBooking = new Booking(1, "John", "Doe", "2025-12-25", "12:00");
         }
 
         //Constructor tests.
@@ -114,6 +125,28 @@ namespace SchoolBookingAppTests.ViewModelTests
 
             //Assert
             Assert.Equal(booking, viewModel.Booking);
+        }
+
+        //Booking property tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="AddBookingViewModel.BookedStudent"/> property is updated with the expected student 
+        /// information when the <see cref="AddBookingViewModel.Booking"/> property is set. Ensures that the view model has 
+        /// the correct student data associated with the selected booking.
+        /// </summary>
+        [Fact]
+        public void BookingProperty_ValueUpdated_UpdatesBookedStudentProperty()
+        {
+            //Arrange
+            var viewModel = new AddBookingViewModel(
+                _eventAggregatorMock.Object, _bookingManagerMock.Object, _readOperationServiceMock.Object);
+
+            //Act
+            viewModel.Booking = _testBooking;
+
+            //Assert
+            Assert.NotNull(viewModel.BookedStudent);
+            Assert.Equal(_testStudent, viewModel.BookedStudent);
         }
 
         //MemberData

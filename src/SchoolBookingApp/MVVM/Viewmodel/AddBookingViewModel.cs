@@ -25,7 +25,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public Booking Booking
         {
             get => _booking;
-            set => SetProperty(ref _booking, value);
+            set
+            {
+                SetProperty(ref _booking, value);
+                BookedStudent = _readOperationService
+                    .GetStudentData(_booking.StudentId)
+                    .GetAwaiter()
+                    .GetResult();
+            }
         }
         public Student? BookedStudent
         {
@@ -58,7 +65,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (param is Booking booking)
                 {
                     Booking = booking;
-                    BookedStudent = _readOperationService.GetStudentData(Booking.StudentId).GetAwaiter().GetResult();
                     _isNewBooking = false;
                 }
             });
