@@ -16,6 +16,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
     {
         //Constant error messages
         private const string NoBookingDataMessage = "Complete all fields before adding booking.";
+        private const string BookingAddedMessage = "Booking added successfully.";
+        private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
+
+        //UI labels
+        public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -28,7 +33,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private bool _isNewBooking;
-        private string _errorMessage;
+        private string _updateMessage;
 
         private ICommand? _addBookingCommand;
         private ICommand? _updateBookingCommand;
@@ -61,10 +66,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _allBookings;
             set => SetProperty(ref _allBookings, value);
         }
-        public string ErrorMessage
+        public string UpdateMessage
         {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
+            get => _updateMessage;
+            set => SetProperty(ref _updateMessage, value);
         }
 
         //Commands
@@ -94,7 +99,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookedStudent = null;
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _isNewBooking = true;
-            _errorMessage = string.Empty;
+            _updateMessage = string.Empty;
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
@@ -110,28 +115,48 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         public async Task AddBooking()
         {
-            ErrorMessage = string.Empty;
+            UpdateMessage = string.Empty;
 
             if (!IsValidBooking())
             {
-                ErrorMessage = NoBookingDataMessage;
+                UpdateMessage = NoBookingDataMessage;
                 return;
+            }
+
+            bool bookingAdded = await _bookingManager.CreateBooking(_booking);
+
+            if (bookingAdded)
+            {
+                UpdateMessage = BookingAddedMessage;
+                AllBookings = await _bookingManager.ListBookings();
+                ResetBooking();
+            }
+            else 
+            {                 
+                UpdateMessage = BookingFailedToAddMessage;
             }
         }
 
         public async Task UpdateBooking()
         {
-            ErrorMessage = string.Empty;
+            UpdateMessage = string.Empty;
         }
 
         public async Task DeleteBooking()
         {
-            ErrorMessage = string.Empty;
+            UpdateMessage = string.Empty;
 
 
         }
 
         //Helper methods
+
+        /// <summary>
+        /// Checks that all necessary fields in the <see cref="_booking"/> record contain valid data. Used to ensure that 
+        /// a booking can be added to the database.
+        /// </summary>
+        /// <returns><c>true</c> if all the necessary data has been set for the <see cref="Booking"/> instance. <c>false</c> 
+        /// if any data is missing or invalid.</returns>
         private bool IsValidBooking()
         {
             return _booking.StudentId > 0 &&
@@ -139,12 +164,22 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                    !string.IsNullOrWhiteSpace(_booking.LastName) &&
                    !string.IsNullOrWhiteSpace(_booking.DateString) &&
                    !string.IsNullOrWhiteSpace(_booking.TimeString);
-        }   
+        }
 
+        private bool IsSqlInjectionSafe()
+        {
+            return _booking.FirstName.All(c => char.IsLetter(c) || c == '-' || c == ' ') &&
+                   _booking.LastName.All(c => char.IsLetter(c) || c == '-' || c == ' ');
+        }
+
+        /// <summary>
+        /// Resets the <see cref="_booking"/> field to a new instance of the <see cref="Booking"/> record with default data 
+        /// ready to add a new booking or view an existing booking. Sets the <see cref="_isNewBooking"/> flag to <c>true</c> 
+        /// to indicate that the next data added will be for a new booking.
+        /// </summary>
         private void ResetBooking()
         {
-            _booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
-            OnPropertyChanged(nameof(Booking));
+            Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
             _isNewBooking = true;
         }
     }
