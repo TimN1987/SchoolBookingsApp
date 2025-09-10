@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Win32.SafeHandles;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Services;
@@ -23,10 +26,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
         private const string BookingUpdatedMessage = "Booking updated successfully.";
         private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
+        private const string BookingDeletedMessage = "Booking deleted successfully.";
+        private const string BookingFailedToDeleteMessage = "Failed to delete booking. Please try again.";
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
 
         //UI labels
         public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
+        public string DeleteBookingButtonLabel => "Delete Booking";
+        public string ClearFormButtonLabel => "Clear Form";
+        public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
+        public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -35,17 +44,21 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly ICreateOperationService _createOperationService;
         private readonly IUpdateOperationService _updateOperationService;
         private readonly IDeleteOperationService _deleteOperationService;
+
         private Booking _booking;
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private bool _isNewBooking;
         private string _updateMessage;
+        private bool _isBookingDataVisible;
+        private bool _isCommentsVisible;
 
         private ICommand? _addBookingCommand;
         private ICommand? _updateBookingCommand;
         private ICommand? _deleteBookingCommand;
-        private ICommand? _showDataCommand;
-        private ICommand? _showCommentsCommand;
+        private ICommand? _loadBookingCommand;
+        private ICommand? _toggleBookingDataVisibilityCommand;
+        private ICommand? _toggleCommentsVisibilityCommand;
 
         //Properties
         public Booking Booking
@@ -78,8 +91,39 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _updateMessage;
             set => SetProperty(ref _updateMessage, value);
         }
+        public bool IsBookingDataVisible
+        {
+            get => _isBookingDataVisible;
+            set
+            {
+                SetProperty(ref _isBookingDataVisible, value);
+                OnPropertyChanged(nameof(ShowHideDataButtonLabel));
+            }
+        }
+        public bool IsCommentsVisible
+        {
+            get => _isCommentsVisible;
+            set
+            {
+                SetProperty(ref _isCommentsVisible, value);
+                OnPropertyChanged(nameof(ShowHideCommentsButtonLabel));
+            }
+        }
 
         //Commands
+
+        public ICommand? AddBookingCommand => _addBookingCommand 
+            ?? new RelayCommand(async param => await AddBooking());
+        public ICommand? UpdateBookingCommand => _updateBookingCommand
+            ?? new RelayCommand(async param => await UpdateBooking());
+        public ICommand? DeleteBookingCommand => _deleteBookingCommand
+            ?? new RelayCommand(async param => await DeleteBooking());
+        public ICommand? LoadBookingCommand => _loadBookingCommand
+            ?? null;
+        public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
+            ?? new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
+        public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
+            ?? new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
 
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
@@ -107,6 +151,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _isNewBooking = true;
             _updateMessage = string.Empty;
+            _isBookingDataVisible = false;
+            _isCommentsVisible = false;
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
@@ -152,6 +198,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        /// <summary>
+        /// Updates an existing booking in the database using the data stored in the <see cref="_booking"/> field. 
+        /// Validates that all necessary data has been entered before attempting to update the booking. Updates the 
+        /// <see cref="AllBookings"/> property to include the updated booking data if the update is successful and reserts 
+        /// the form to a new instance of the <see cref="Booking"/> record with default data ready to add a new booking. 
+        /// The <see cref="UpdateMessage"/> property is updated with a success or failure message to inform the user of 
+        /// the outcome.
+        /// </summary>
         public async Task UpdateBooking()
         {
             UpdateMessage = string.Empty;
@@ -176,13 +230,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        /// <summary>
+        /// Deletes the selected booking from the database. Displays an <see cref="UpdateMessage"/> to inform the user of 
+        /// the outcome of the deletion.
+        /// </summary>
         public async Task DeleteBooking()
         {
-            UpdateMessage = string.Empty;
-
-
+            bool bookingDeleted = await _bookingManager.DeleteBooking(_booking.StudentId);
+            UpdateMessage = bookingDeleted ? BookingDeletedMessage : BookingFailedToDeleteMessage;
         }
 
+        /// <summary>
+        /// Clears all information from the form to start a new booking without affecting the current booking.
+        /// </summary>
         public void ClearForm()
         {
             UpdateMessage = string.Empty;

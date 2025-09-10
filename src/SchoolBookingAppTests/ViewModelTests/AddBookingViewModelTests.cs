@@ -19,6 +19,8 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string BookingAddedMessage = "Booking added successfully.";
         private const string BookingUpdatedMessage = "Booking updated successfully.";
         private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
+        private const string BookingDeletedMessage = "Booking deleted successfully.";
+        private const string BookingFailedToDeleteMessage = "Failed to delete booking. Please try again.";
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
 
         private readonly Mock<IEventAggregator> _eventAggregatorMock;
@@ -31,6 +33,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly AddBookingViewModel _viewModel;
         private readonly Student _testStudent;
         private readonly Booking _testBooking;
+        private readonly Booking _defaultBooking;
         private readonly Booking _invalidBooking;
 
         public AddBookingViewModelTests()
@@ -62,6 +65,7 @@ namespace SchoolBookingAppTests.ViewModelTests
                 _updateOperationServiceMock.Object, 
                 _deleteOperationServiceMock.Object);
             _testBooking = new Booking(1, "John", "Doe", "2025-12-25", "12:00");
+            _defaultBooking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
             _invalidBooking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
         }
 
@@ -270,6 +274,69 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             _bookingManagerMock.Verify(x => x.UpdateBooking(_testBooking), Times.Once);
             Assert.Equal(BookingFailedToUpdateMessage, _viewModel.UpdateMessage);
+        }
+
+        //DeleteBooking tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="IBookingManager.DeleteBooking"/> method is called once and that the expected 
+        /// success message is displayed. Ensures that the record is successfully deleted and the user is updated.
+        /// </summary>
+        [Fact]
+        public async Task DeleteBooking_DeletesSuccessfully_DeleteBookingCalledOnceSuccessMessageDisplayer()
+        {
+            //Arrange
+            _viewModel.Booking = _testBooking;
+            _bookingManagerMock.Setup(x => x.DeleteBooking(_testBooking.StudentId))
+                .Returns(Task.FromResult(true));
+
+            //Act
+            await _viewModel.DeleteBooking();
+
+            //Assert
+            _bookingManagerMock.Verify(x => x.DeleteBooking(_testBooking.StudentId), Times.Once);
+            Assert.Equal(BookingDeletedMessage, _viewModel.UpdateMessage);
+        }
+
+        /// <summary>
+        /// Verifies that the expected failure message is displayed when the booking is not deleted successfully from the 
+        /// database. Ensures that the user is notified of a deletion failure.
+        /// </summary>
+        [Fact]
+        public async Task DeleteBooking_BookingFailsToDelete_FailureMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.Booking = _testBooking;
+            _bookingManagerMock.Setup(x => x.DeleteBooking(_testBooking.StudentId))
+                .Returns(Task.FromResult(false));
+
+            //Act
+            await _viewModel.DeleteBooking();
+
+            //Assert
+            _bookingManagerMock.Verify(x => x.DeleteBooking(_testBooking.StudentId), Times.Once);
+            Assert.Equal(BookingFailedToDeleteMessage, _viewModel.UpdateMessage);
+        }
+
+        //ClearForm tests.
+
+        /// <summary>
+        /// Verifies that the <see cref="AddBookingViewModel.ClearForm"/> method clears the <see cref="AddBookingViewModel.
+        /// UpdateMessage"/> and resets the <see cref="AddBookingViewModel.Booking"/> to an empty <see cref="Booking"/> 
+        /// <see langword="struct"/>. Ensures that the user can clear the displayed booking without altering the database.
+        /// </summary>
+        [Fact]
+        public void ClearForm_BookingDataDisplayed_NoUpdateMessageDisplayedAndCurrentBookingEmpty()
+        {
+            //Arrange
+            _viewModel.Booking = _testBooking;
+
+            //Act
+            _viewModel.ClearForm();
+
+            //Assert
+            Assert.Equal(string.Empty, _viewModel.UpdateMessage);
+            Assert.Equal(_defaultBooking, _viewModel.Booking);
         }
 
         //MemberData
