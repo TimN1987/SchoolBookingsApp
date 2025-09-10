@@ -132,9 +132,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             if (bookingAdded)
             {
-                UpdateMessage = BookingAddedMessage;
                 AllBookings = await _bookingManager.ListBookings();
                 ResetBooking();
+                UpdateMessage = BookingAddedMessage;
             }
             else 
             {                 

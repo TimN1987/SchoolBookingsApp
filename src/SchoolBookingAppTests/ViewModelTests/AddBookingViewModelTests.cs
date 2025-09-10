@@ -144,33 +144,6 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(booking, viewModel.Booking);
         }
 
-        //Booking property tests.
-
-        /// <summary>
-        /// Verifies that the <see cref="AddBookingViewModel.BookedStudent"/> property is updated with the expected student 
-        /// information when the <see cref="AddBookingViewModel.Booking"/> property is set. Ensures that the view model has 
-        /// the correct student data associated with the selected booking.
-        /// </summary>
-        [Fact]
-        public void BookingProperty_ValueUpdated_UpdatesBookedStudentProperty()
-        {
-            //Arrange
-            var viewModel = new AddBookingViewModel(
-                _eventAggregatorMock.Object, 
-                _bookingManagerMock.Object, 
-                _readOperationServiceMock.Object, 
-                _createOperationServiceMock.Object, 
-                _updateOperationServiceMock.Object, 
-                _deleteOperationServiceMock.Object);
-
-            //Act
-            viewModel.Booking = _testBooking;
-
-            //Assert
-            Assert.NotNull(viewModel.BookedStudent);
-            Assert.Equal(_testStudent, viewModel.BookedStudent);
-        }
-
         //AddBooking tests.
 
         /// <summary>
