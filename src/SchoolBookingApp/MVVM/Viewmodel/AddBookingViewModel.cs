@@ -34,8 +34,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
         public string DeleteBookingButtonLabel => "Delete Booking";
         public string ClearFormButtonLabel => "Clear Form";
-        public string ShowHideDataButtonLabel => _isDataVisible ? "Hide Data" : "Show Data";
-        public string ShowHideCommentsButtonLabel => _isCommentsVisible ? "Hide Comments" : "Show Comments";
+        public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
+        public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -50,15 +50,15 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private List<Booking> _allBookings;
         private bool _isNewBooking;
         private string _updateMessage;
-        private bool _isDataVisible;
+        private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
 
         private ICommand? _addBookingCommand;
         private ICommand? _updateBookingCommand;
         private ICommand? _deleteBookingCommand;
         private ICommand? _loadBookingCommand;
-        private ICommand? _showDataCommand;
-        private ICommand? _showCommentsCommand;
+        private ICommand? _toggleBookingDataVisibilityCommand;
+        private ICommand? _toggleCommentsVisibilityCommand;
 
         //Properties
         public Booking Booking
@@ -91,6 +91,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _updateMessage;
             set => SetProperty(ref _updateMessage, value);
         }
+        public bool IsBookingDataVisible
+        {
+            get => _isBookingDataVisible;
+            set
+            {
+                SetProperty(ref _isBookingDataVisible, value);
+                OnPropertyChanged(nameof(ShowHideDataButtonLabel));
+            }
+        }
+        public bool IsCommentsVisible
+        {
+            get => _isCommentsVisible;
+            set
+            {
+                SetProperty(ref _isCommentsVisible, value);
+                OnPropertyChanged(nameof(ShowHideCommentsButtonLabel));
+            }
+        }
 
         //Commands
 
@@ -102,9 +120,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ?? new RelayCommand(async param => await DeleteBooking());
         public ICommand? LoadBookingCommand => _loadBookingCommand
             ?? null;
-        public ICommand? ShowDataCommand => _showDataCommand
-            ?? new RelayCommand(param => _isDataVisible = !_isDataVisible);
-        public ICommand? ShowCommentsCommand => _showCommentsCommand
+        public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
+            ?? new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
+        public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
             ?? new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
 
         public AddBookingViewModel(
@@ -133,7 +151,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _isNewBooking = true;
             _updateMessage = string.Empty;
-            _isDataVisible = false;
+            _isBookingDataVisible = false;
             _isCommentsVisible = false;
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
