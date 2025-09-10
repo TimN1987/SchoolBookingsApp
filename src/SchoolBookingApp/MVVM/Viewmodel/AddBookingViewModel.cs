@@ -21,6 +21,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string NoBookingDataMessage = "Complete all fields before adding booking.";
         private const string BookingAddedMessage = "Booking added successfully.";
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
+        private const string BookingUpdatedMessage = "Booking updated successfully.";
+        private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
 
         //UI labels
@@ -118,6 +120,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Methods
 
+        /// <summary>
+        /// Adds a new booking to the database using the data stored in the <see cref="_booking"/> field. Validates that 
+        /// all necessary data has been entered before attempting to add the booking. If the booking is added successfully, 
+        /// the <see cref="AllBookings"/> property is updated to include the new booking and the <see cref="_booking"/> 
+        /// field is reset to a new instance of the <see cref="Booking"/> record with default data ready to add another 
+        /// booking. A success or failure message is stored in the <see cref="UpdateMessage"/> property to inform the user 
+        /// of the outcome.
+        /// </summary>
         public async Task AddBooking()
         {
             UpdateMessage = string.Empty;
@@ -132,7 +142,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             if (bookingAdded)
             {
-                AllBookings = await _bookingManager.ListBookings();
+                AllBookings = await _bookingManager.ListBookings(); //Update bookings list with new booking.
                 ResetBooking();
                 UpdateMessage = BookingAddedMessage;
             }
@@ -145,6 +155,25 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public async Task UpdateBooking()
         {
             UpdateMessage = string.Empty;
+
+            if (!IsValidBooking())
+            {
+                UpdateMessage = NoBookingDataMessage;
+                return;
+            }
+
+            bool bookingUpdated = await _bookingManager.UpdateBooking(_booking);
+
+            if (bookingUpdated)
+            {
+                AllBookings = await _bookingManager.ListBookings(); //Update bookings list with updated booking data.
+                ResetBooking();
+                UpdateMessage = BookingUpdatedMessage;
+            }
+            else
+            {
+                UpdateMessage = BookingFailedToUpdateMessage;
+            }
         }
 
         public async Task DeleteBooking()
@@ -152,6 +181,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             UpdateMessage = string.Empty;
 
 
+        }
+
+        public void ClearForm()
+        {
+            UpdateMessage = string.Empty;
+            ResetBooking();
         }
 
         //Helper methods

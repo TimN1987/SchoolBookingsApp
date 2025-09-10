@@ -17,6 +17,8 @@ namespace SchoolBookingAppTests.ViewModelTests
         //Constant error messages
         private const string NoBookingDataMessage = "Complete all fields before adding booking.";
         private const string BookingAddedMessage = "Booking added successfully.";
+        private const string BookingUpdatedMessage = "Booking updated successfully.";
+        private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
 
         private readonly Mock<IEventAggregator> _eventAggregatorMock;
@@ -205,6 +207,69 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             _bookingManagerMock.Verify(x => x.CreateBooking(_testBooking), Times.Once);
             Assert.Equal(BookingFailedToAddMessage, _viewModel.UpdateMessage);
+        }
+
+        //UpdateBooking tests.
+
+        /// <summary>
+        /// Verifies that the expected update message is set when invalid booking data is entered and the <see 
+        /// cref="AddBookingViewModel.updateBooking"/> method is called. Ensures that database records are not updated with 
+        /// incomplete data, and the user is informed of the problem.
+        /// </summary>
+        [Fact]
+        public async Task UpdateBooking_InvalidBooking_ErrorMessageUpdated()
+        {
+            //Arrange
+            _viewModel.Booking = _invalidBooking;
+
+            //Act
+            await _viewModel.UpdateBooking();
+
+            //Assert
+            Assert.Equal(NoBookingDataMessage, _viewModel.UpdateMessage);
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="IBookingManager.UpdateBooking"/> method is called when valid booking data is 
+        /// entered and the <see cref="AddBookingViewModel.UpdateBooking"/> method is called. Ensures that valid bookings are 
+        /// entered into the database successfully using the <see cref="BookingManager"/>. Also verifies that the update 
+        /// message is set to a success message.
+        /// </summary>
+        [Fact]
+        public async Task UpdateBooking_ValidBooking_CallsCreateOperationService()
+        {
+            //Arrange
+            _viewModel.Booking = _testBooking;
+            _bookingManagerMock.Setup(x => x.UpdateBooking(_testBooking))
+                .Returns(Task.FromResult(true));
+
+            //Act
+            await _viewModel.UpdateBooking();
+
+            //Assert
+            _bookingManagerMock.Verify(x => x.UpdateBooking(_testBooking), Times.Once);
+            Assert.Equal(BookingUpdatedMessage, _viewModel.UpdateMessage);
+        }
+
+        /// <summary>
+        /// Verifies that the expected error message is set when the <see cref="IBookingManager.UpdateBooking"/> method 
+        /// fails to update a valid booking from the <see cref="AddBookingViewModel.UpdateBooking"/> method. Ensures that 
+        /// the user is informed if the booking could not be updated in the database for any reason.
+        /// </summary>
+        [Fact]
+        public async Task UpdateBooking_UpdateBookingFails_ErrorMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.Booking = _testBooking;
+            _bookingManagerMock.Setup(x => x.UpdateBooking(_testBooking))
+                .Returns(Task.FromResult(false));
+
+            //Act
+            await _viewModel.UpdateBooking();
+
+            //Assert
+            _bookingManagerMock.Verify(x => x.UpdateBooking(_testBooking), Times.Once);
+            Assert.Equal(BookingFailedToUpdateMessage, _viewModel.UpdateMessage);
         }
 
         //MemberData
