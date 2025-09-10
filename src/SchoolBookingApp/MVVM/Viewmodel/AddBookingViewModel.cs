@@ -23,6 +23,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
         private const string BookingUpdatedMessage = "Booking updated successfully.";
         private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
+        private const string BookingDeletedMessage = "Booking deleted successfully.";
+        private const string BookingFailedToDeleteMessage = "Failed to delete booking. Please try again.";
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
 
         //UI labels
@@ -152,6 +154,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        /// <summary>
+        /// Updates an existing booking in the database using the data stored in the <see cref="_booking"/> field. 
+        /// Validates that all necessary data has been entered before attempting to update the booking. Updates the 
+        /// <see cref="AllBookings"/> property to include the updated booking data if the update is successful and reserts 
+        /// the form to a new instance of the <see cref="Booking"/> record with default data ready to add a new booking. 
+        /// The <see cref="UpdateMessage"/> property is updated with a success or failure message to inform the user of 
+        /// the outcome.
+        /// </summary>
         public async Task UpdateBooking()
         {
             UpdateMessage = string.Empty;
@@ -176,13 +186,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        /// <summary>
+        /// Deletes the selected booking from the database. Displays an <see cref="UpdateMessage"/> to inform the user of 
+        /// the outcome of the deletion.
+        /// </summary>
         public async Task DeleteBooking()
         {
-            UpdateMessage = string.Empty;
-
-
+            bool bookingDeleted = await _bookingManager.DeleteBooking(_booking.StudentId);
+            UpdateMessage = bookingDeleted ? BookingDeletedMessage : BookingFailedToDeleteMessage;
         }
 
+        /// <summary>
+        /// Clears all information from the form to start a new booking without affecting the current booking.
+        /// </summary>
         public void ClearForm()
         {
             UpdateMessage = string.Empty;
