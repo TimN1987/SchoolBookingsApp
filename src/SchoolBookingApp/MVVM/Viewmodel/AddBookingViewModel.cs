@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Win32.SafeHandles;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Services;
@@ -29,6 +32,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //UI labels
         public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
+        public string DeleteBookingButtonLabel => "Delete Booking";
+        public string ClearFormButtonLabel => "Clear Form";
+        public string ShowHideDataButtonLabel => _isDataVisible ? "Hide Data" : "Show Data";
+        public string ShowHideCommentsButtonLabel => _isCommentsVisible ? "Hide Comments" : "Show Comments";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -37,15 +44,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly ICreateOperationService _createOperationService;
         private readonly IUpdateOperationService _updateOperationService;
         private readonly IDeleteOperationService _deleteOperationService;
+
         private Booking _booking;
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private bool _isNewBooking;
         private string _updateMessage;
+        private bool _isDataVisible;
+        private bool _isCommentsVisible;
 
         private ICommand? _addBookingCommand;
         private ICommand? _updateBookingCommand;
         private ICommand? _deleteBookingCommand;
+        private ICommand? _loadBookingCommand;
         private ICommand? _showDataCommand;
         private ICommand? _showCommentsCommand;
 
@@ -83,6 +94,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Commands
 
+        public ICommand? AddBookingCommand => _addBookingCommand 
+            ?? new RelayCommand(async param => await AddBooking());
+        public ICommand? UpdateBookingCommand => _updateBookingCommand
+            ?? new RelayCommand(async param => await UpdateBooking());
+        public ICommand? DeleteBookingCommand => _deleteBookingCommand
+            ?? new RelayCommand(async param => await DeleteBooking());
+        public ICommand? LoadBookingCommand => _loadBookingCommand
+            ?? null;
+        public ICommand? ShowDataCommand => _showDataCommand
+            ?? new RelayCommand(param => _isDataVisible = !_isDataVisible);
+        public ICommand? ShowCommentsCommand => _showCommentsCommand
+            ?? new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
+
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
             IBookingManager bookingManager,
@@ -109,6 +133,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _isNewBooking = true;
             _updateMessage = string.Empty;
+            _isDataVisible = false;
+            _isCommentsVisible = false;
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
