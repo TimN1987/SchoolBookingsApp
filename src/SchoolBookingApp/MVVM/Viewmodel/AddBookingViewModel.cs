@@ -31,7 +31,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
 
         //UI labels
-        public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
+        public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
+        public string FirstNameLabel => "First Name:";
+        public string LastNameLabel => "Last Name:";
+        public string DateLabel => "Booking Date:";
+        public string TimeLabel => "Booking Time:";
+        public string AddUpdateButtonLabel => IsNewBooking ? "Add Booking" : "Update Booking";
         public string DeleteBookingButtonLabel => "Delete Booking";
         public string ClearFormButtonLabel => "Clear Form";
         public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
@@ -90,6 +95,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get => _updateMessage;
             set => SetProperty(ref _updateMessage, value);
+        }
+        public bool IsNewBooking
+        {
+            get => _isNewBooking;
+            set
+            {
+                SetProperty(ref _isNewBooking, value);
+                OnPropertyChanged(nameof(PageTitle));
+                OnPropertyChanged(nameof(AddUpdateButtonLabel));
+            }
         }
         public bool IsBookingDataVisible
         {
@@ -159,7 +174,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (param is Booking booking)
                 {
                     Booking = booking;
-                    _isNewBooking = false;
+                    IsNewBooking = false;
                 }
             });
         }
@@ -333,7 +348,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private void ResetBooking()
         {
             Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
-            _isNewBooking = true;
+            IsNewBooking = true;
         }
     }
 }

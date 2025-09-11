@@ -20,11 +20,11 @@ namespace SchoolBookingApp.MVVM.Converters
         /// </summary>
         /// <param name="value">A boolean value to be inverted when passed from the viewmodel to the view.</param>
         /// <returns><c>true</c> if the input value is <c>false</c>. <c>false</c> if the input value is <c>true</c>.</returns>
-        public object Convert(object value, Type type, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool booleanValue)
                 return !booleanValue;
-            return false;
+            return false; //Default to false to avoid potential issues with enabling controls unintentionally.
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace SchoolBookingApp.MVVM.Converters
         /// </summary>
         /// <param name="value">A boolean value to be inverted when passed from the view to the viewmodel.</param>
         /// <returns><c>true</c> if the input value is <c>false</c>. <c>false</c> if the input value is <c>true</c>.</returns>
-        public object ConvertBack(object value, Type type, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool booleanValue)
                 return !booleanValue;

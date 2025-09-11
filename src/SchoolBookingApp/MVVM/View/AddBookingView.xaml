@@ -10,10 +10,48 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <DockPanel Grid.Column="0" Grid.ColumnSpan="2"
+                   Grid.Row="0">
+            <Viewbox DockPanel.Dock="Left"
+                     Margin="20,10">
+                <Button Content="{Binding ShowHideDataButtonLabel}"/>
+            </Viewbox>
+            <Viewbox HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Margin="20,10">
+                <TextBlock Text="{Binding PageTitle}"/>
+            </Viewbox>
+            <Viewbox DockPanel.Dock="Right"
+                     Margin="20,10">
+                <Button Content="{Binding ShowHideCommentsButtonLabel}"
+                    DockPanel.Dock="Right"/>
+            </Viewbox>
+        </DockPanel>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="1">
+            <TextBlock Text="{Binding FirstNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="1">
+            <TextBlock Text="{Binding LastNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="2">
+            <TextBox Text="{Binding Booking.FirstName, Mode=OneWay}"
+                     IsReadOnly="True"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="2">
+            <TextBox Text="{Binding Booking.LastName, Mode=OneWay}"
+                     IsReadOnly="True"/>
+        </Viewbox>
     </Grid>
 </UserControl>
