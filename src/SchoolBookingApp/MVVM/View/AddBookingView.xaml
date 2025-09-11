@@ -19,6 +19,8 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid Grid.Column="0" Grid.ColumnSpan="2"
               Grid.Row="0">
@@ -28,7 +30,8 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Viewbox Grid.Column="0">
-                <Button Content="{Binding ShowHideDataButtonLabel}"/>
+                <Button Content="{Binding ShowHideDataButtonLabel}"
+                        Command="{Binding ToggleBookingDataVisibilityCommand}"/>
             </Viewbox>
             <Viewbox Grid.Column="1">
                 <TextBlock Text="{Binding PageTitle}"
@@ -36,43 +39,67 @@
             </Viewbox>
             <Viewbox Grid.Column="2">
                 <Button Content="{Binding ShowHideCommentsButtonLabel}"
-                    DockPanel.Dock="Right"/>
+                        Command="{Binding ToggleCommentsVisibilityCommand}"/>
             </Viewbox>
         </Grid>
-        <Viewbox Grid.Column="0"
+        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                  Grid.Row="1">
-            <TextBlock Text="{Binding FirstNameLabel}"/>
-        </Viewbox>
-        <Viewbox Grid.Column="1"
-                 Grid.Row="1">
-            <TextBlock Text="{Binding LastNameLabel}"/>
+            <ComboBox ItemsSource="{Binding AllBookings}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="2">
+            <TextBlock Text="{Binding FirstNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="2">
+            <TextBlock Text="{Binding LastNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="3">
             <TextBox Text="{Binding Booking.FirstName, Mode=OneWay}"
                      IsReadOnly="True"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
-                 Grid.Row="2">
+                 Grid.Row="3">
             <TextBox Text="{Binding Booking.LastName, Mode=OneWay}"
                      IsReadOnly="True"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
-                 Grid.Row="3">
+                 Grid.Row="4">
             <TextBlock Text="{Binding DateTimeLabel}"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
-                 Grid.Row="3">
+                 Grid.Row="4">
             <TextBlock Text="{Binding ParentsLabel}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
-                 Grid.Row="4">
+                 Grid.Row="5">
             <DatePicker SelectedDate="{Binding Booking.BookingDate, Mode=TwoWay}"/>
             <!-- Replace with custom control for date and time -->
         </Viewbox>
         <Viewbox Grid.Column="1"
-                 Grid.Row="4">
+                 Grid.Row="5">
             <ListBox ItemsSource="{Binding BookedStudent.Parents, Mode=OneWay}"/>
         </Viewbox>
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0">
+                <Button Content="{Binding AddUpdateButtonLabel}"
+                        Command="{Binding AddUpdateBookingCommand}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="1">
+                <Button Content="{Binding DeleteBookingButtonLabel}"
+                        Command="{Binding DeleteBookingCommand}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="2">
+                <Button Content="{Binding ClearFormButtonLabel}"
+                        Command="{Binding ClearFormCommand}"/>
+            </Viewbox>
+        </Grid>
     </Grid>
 </UserControl>

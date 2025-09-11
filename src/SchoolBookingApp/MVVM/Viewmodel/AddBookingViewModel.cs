@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,13 +35,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //UI labels
         public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
-        public string FirstNameLabel => "First Name:";
-        public string LastNameLabel => "Last Name:";
-        public string DateTimeLabel => "Booking Date and Time:";
-        public string ParentsLabel => "Responsible adults:";
+        public static string FirstNameLabel => "First Name:";
+        public static string LastNameLabel => "Last Name:";
+        public static string DateTimeLabel => "Booking Date and Time:";
+        public static string ParentsLabel => "Responsible adults:";
         public string AddUpdateButtonLabel => IsNewBooking ? "Add Booking" : "Update Booking";
-        public string DeleteBookingButtonLabel => "Delete Booking";
-        public string ClearFormButtonLabel => "Clear Form";
+        public static string DeleteBookingButtonLabel => "Delete Booking";
+        public static string ClearFormButtonLabel => "Clear Form";
         public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
         public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
 
@@ -58,9 +61,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
 
-        private ICommand? _addBookingCommand;
-        private ICommand? _updateBookingCommand;
+        private ICommand? _addUpdateBookingCommand;
         private ICommand? _deleteBookingCommand;
+        private ICommand? _clearFormCommand;
         private ICommand? _loadBookingCommand;
         private ICommand? _toggleBookingDataVisibilityCommand;
         private ICommand? _toggleCommentsVisibilityCommand;
@@ -127,18 +130,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Commands
 
-        public ICommand? AddBookingCommand => _addBookingCommand 
-            ?? new RelayCommand(async param => await AddBooking());
-        public ICommand? UpdateBookingCommand => _updateBookingCommand
-            ?? new RelayCommand(async param => await UpdateBooking());
+        public ICommand? AddUpdateBookingCommand => _addUpdateBookingCommand
+            ??= new RelayCommand(async param =>
+            {
+                if (IsNewBooking)
+                    await AddBooking();
+                else
+                    await UpdateBooking();
+            });
         public ICommand? DeleteBookingCommand => _deleteBookingCommand
-            ?? new RelayCommand(async param => await DeleteBooking());
+            ??= new RelayCommand(async param => await DeleteBooking());
+        public ICommand? ClearFormCommand => _clearFormCommand
+            ??= new RelayCommand(param => ClearForm());
         public ICommand? LoadBookingCommand => _loadBookingCommand
-            ?? null;
+            ??= null;
         public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
-            ?? new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
+            ??= new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
         public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
-            ?? new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
+            ??= new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
 
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
@@ -303,7 +312,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// <param name="booking">The <see cref="Booking"/> record to be checked for invalid characters.</param>
         /// <returns><see langword="true"/> if all the characters stored in the name properties of the <see cref="Booking"/> 
         /// are on the whitelist. <see langword="false"/> if any invalid characters are entered.</returns>
-        private bool IsSqlInjectionSafe(Booking booking)
+        private static bool IsSqlInjectionSafe(Booking booking)
         {
             return booking.FirstName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'') &&
                    booking.LastName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'');
