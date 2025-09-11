@@ -320,15 +320,32 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ResetBooking();
         }
 
+        /// <summary>
+        /// Updates the data record for the <see cref="BookedStudent"/>. If there is not any data added, creates a new 
+        /// record in the database. Called by the <see cref="UpdateStudentDataCommand"/> to allows the user to ensure that 
+        /// the student data is saved.
+        /// </summary>
         public async Task UpdateStudentData()
         {
-            if (BookedStudent == null || BookedStudent.Data.StudentId <= 0)
+            //Check if a valid student has been added.
+            if (BookedStudent == null || BookedStudent.Id <= 0)
             {
                 UpdateMessage = InvalidStudentDataFailedMessage;
                 return;
             }
 
-            bool dataAdded = await _updateOperationService.UpdateData(BookedStudent.Data);
+            bool dataAdded;
+
+            //Check if valid data has already been added/loaded.
+            if (BookedStudent.Data.StudentId > 0)
+            {
+                dataAdded = await _updateOperationService.UpdateData(BookedStudent.Data);
+            }
+            else
+            {
+                BookedStudent.Data.StudentId = BookedStudent.Id;
+                dataAdded = await _createOperationService.AddData(BookedStudent.Data);
+            }
 
             if (dataAdded)
                 UpdateMessage = DataAddedMessage;
@@ -336,15 +353,36 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 UpdateMessage = DataFailedToAddMessage;
         }
 
+        /// <summary>
+        /// Updates the comments record for the <see cref="BookedStudent"/>. If there are not any comments added, creates 
+        /// a new record in the database. Called by the <see cref="UpdateStudentCommentsCommand"/> to allow the user to 
+        /// ensure that the meeting comments are saved.
+        /// </summary>
         public async Task UpdateStudentComments()
         {
-            if (BookedStudent == null || BookedStudent.Comments.StudentId <= 0)
+            //Checks that a student has been selected.
+            if (BookedStudent == null || BookedStudent.Id <= 0)
             {
                 UpdateMessage = InvalidStudentCommentsFailedMessage;
                 return;
             }
 
-            bool commentsAdded = await _updateOperationService.UpdateComments(BookedStudent.Comments);
+            bool commentsAdded;
+            BookedStudent.Comments.DateAdded = (int)DateTime.Now
+                .ToString("yyyyMMdd")
+                .ToCharArray().Select(c => c - '0')
+                .Aggregate(0, (a, b) => a * 10 + b); //Stored as an int value in the database.
+
+            //Checks if comments have already been added before attempting to update.
+            if (BookedStudent.Comments.StudentId > 0)
+            {
+                commentsAdded = await _updateOperationService.UpdateComments(BookedStudent.Comments);
+            }
+            else
+            {
+                BookedStudent.Comments.StudentId = BookedStudent.Id;
+                commentsAdded = await _createOperationService.AddComments(BookedStudent.Comments);
+            }
 
             if (commentsAdded)
                 UpdateMessage = CommentsAddedMessage;
