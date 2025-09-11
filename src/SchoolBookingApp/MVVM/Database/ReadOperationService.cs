@@ -711,11 +711,11 @@ namespace SchoolBookingApp.MVVM.Database
                 while (reader.Read())
                 {
                     var student = new Student(
-                        Id : GetSafeInt(reader, "Id"),
-                        FirstName: GetSafeString(reader, "FirstName"),
-                        LastName: GetSafeString(reader, "LastName"),
-                        DateOfBirth: GetSafeInt(reader, "DateOfBirth"),
-                        Class: GetSafeString(reader, "Class"),
+                        GetSafeInt(reader, "Id"),
+                        GetSafeString(reader, "FirstName"),
+                        GetSafeString(reader, "LastName"),
+                        GetSafeInt(reader, "DateOfBirth"),
+                        GetSafeString(reader, "Class"),
                         ParseParentDetails(GetSafeString(reader, "ParentNames"), GetSafeInt(reader, "Id")),
                         new StudentDataRecord()
                         {
