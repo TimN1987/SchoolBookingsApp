@@ -45,6 +45,29 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
         public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
 
+        //Data information UI labels
+        public static string MathLabel => "Math:";
+        public static string MathCommentsLabel => "Math Comments:";
+        public static string ReadingLabel => "Reading:";
+        public static string ReadingCommentsLabel => "Reading Comments:";
+        public static string WritingLabel => "Writing:";
+        public static string WritingCommentsLabel => "Writing Comments:";
+        public static string ScienceLabel => "Science:";
+        public static string HistoryLabel => "History:";
+        public static string GeographyLabel => "Geography:";
+        public static string MFLLabel => "MFL:";
+        public static string PELabel => "PE:";
+        public static string ArtLabel => "Art:";
+        public static string MusicLabel => "Music:";
+        public static string RELabel => "RE:";
+        public static string DesignTechnologyLabel => "Design Technology:";
+        public static string ComputingLabel => "Computing:";
+
+        //Comments UI labels
+        public static string GeneralCommentsLabel => "General Comments:";
+        public static string PupilCommentsLabel => "Pupil Comments:";
+        public static string ParentCommentLabel => "Parent Comments:";
+
         //Fields
         private readonly IEventAggregator _eventAggregator;
         private readonly IBookingManager _bookingManager;
@@ -147,7 +170,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
             ??= new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
         public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
-            ??= new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
+            ??= new RelayCommand(param => IsCommentsVisible = !IsCommentsVisible);
 
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
