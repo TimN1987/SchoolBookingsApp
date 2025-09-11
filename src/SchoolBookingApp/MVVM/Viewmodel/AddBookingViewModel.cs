@@ -8,10 +8,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Win32.SafeHandles;
+using Prism.Common;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
@@ -32,6 +35,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string BookingDeletedMessage = "Booking deleted successfully.";
         private const string BookingFailedToDeleteMessage = "Failed to delete booking. Please try again.";
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
+        private const string InvalidStudentDataFailedMessage = "Data can only be added if a student is selected.";
+        private const string InvalidStudentCommentsFailedMessage = "Comments can only be added if a student is selected.";
+        private const string DataFailedToAddMessage = "Failed to add data. Please try again.";
+        private const string CommentsFailedToAddMessage = "Failed to add comments. Please try again.";
+        private const string DataAddedMessage = "Data added successfully.";
+        private const string CommentsAddedMessage = "Comments added successfully.";
 
         //UI labels
         public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
@@ -62,11 +71,20 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string RELabel => "RE:";
         public static string DesignTechnologyLabel => "Design Technology:";
         public static string ComputingLabel => "Computing:";
+        public static string UpdateDataButtonLabel => "Update Data";
 
         //Comments UI labels
         public static string GeneralCommentsLabel => "General Comments:";
         public static string PupilCommentsLabel => "Pupil Comments:";
         public static string ParentCommentLabel => "Parent Comments:";
+        public static string BehaviorNotesLabel => "Behavior Notes:";
+        public static string AttendanceNotesLabel => "Attendance Notes:";
+        public static string HomeworkNotesLabel => "Homework Notes:";
+        public static string ExtraCurricularNotesLabel => "Extra-Curricular Notes:";
+        public static string SpecialEducationalNeedsNotesLabel => "Special Educational Needs Notes:";
+        public static string SafeguardingNotesLabel => "Safeguarding Notes:";
+        public static string OtherNotesLabel => "Other Notes:";
+        public static string UpdateCommentsButtonLabel => "Update Comments";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -88,6 +106,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ICommand? _deleteBookingCommand;
         private ICommand? _clearFormCommand;
         private ICommand? _loadBookingCommand;
+        private ICommand? _updateStudentDataCommand;
+        private ICommand? _updateStudentCommentsCommand;
         private ICommand? _toggleBookingDataVisibilityCommand;
         private ICommand? _toggleCommentsVisibilityCommand;
 
@@ -167,6 +187,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ??= new RelayCommand(param => ClearForm());
         public ICommand? LoadBookingCommand => _loadBookingCommand
             ??= null;
+        public ICommand? UpdateStudentDataCommand => _updateStudentDataCommand 
+            ??= new RelayCommand(async param => await UpdateStudentData());
+        public ICommand? UpdateStudentCommentsCommand => _updateStudentCommentsCommand
+            ??= new RelayCommand(async param => await UpdateStudentComments());
         public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
             ??= new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
         public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
@@ -294,6 +318,38 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             UpdateMessage = string.Empty;
             ResetBooking();
+        }
+
+        public async Task UpdateStudentData()
+        {
+            if (BookedStudent == null || BookedStudent.Data.StudentId <= 0)
+            {
+                UpdateMessage = InvalidStudentDataFailedMessage;
+                return;
+            }
+
+            bool dataAdded = await _updateOperationService.UpdateData(BookedStudent.Data);
+
+            if (dataAdded)
+                UpdateMessage = DataAddedMessage;
+            else
+                UpdateMessage = DataFailedToAddMessage;
+        }
+
+        public async Task UpdateStudentComments()
+        {
+            if (BookedStudent == null || BookedStudent.Comments.StudentId <= 0)
+            {
+                UpdateMessage = InvalidStudentCommentsFailedMessage;
+                return;
+            }
+
+            bool commentsAdded = await _updateOperationService.UpdateComments(BookedStudent.Comments);
+
+            if (commentsAdded)
+                UpdateMessage = CommentsAddedMessage;
+            else
+                UpdateMessage = CommentsFailedToAddMessage;
         }
 
         //Helper methods
