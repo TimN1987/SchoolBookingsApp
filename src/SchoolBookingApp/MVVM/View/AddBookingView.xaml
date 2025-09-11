@@ -8,7 +8,7 @@
              d:DataContext="{d:DesignInstance viewmodel:AddBookingViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="#101010">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -17,24 +17,28 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <DockPanel Grid.Column="0" Grid.ColumnSpan="2"
-                   Grid.Row="0">
-            <Viewbox DockPanel.Dock="Left"
-                     Margin="20,10">
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0">
                 <Button Content="{Binding ShowHideDataButtonLabel}"/>
             </Viewbox>
-            <Viewbox HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     Margin="20,10">
-                <TextBlock Text="{Binding PageTitle}"/>
+            <Viewbox Grid.Column="1">
+                <TextBlock Text="{Binding PageTitle}"
+                           Style="{DynamicResource TitleText}"/>
             </Viewbox>
-            <Viewbox DockPanel.Dock="Right"
-                     Margin="20,10">
+            <Viewbox Grid.Column="2">
                 <Button Content="{Binding ShowHideCommentsButtonLabel}"
                     DockPanel.Dock="Right"/>
             </Viewbox>
-        </DockPanel>
+        </Grid>
         <Viewbox Grid.Column="0"
                  Grid.Row="1">
             <TextBlock Text="{Binding FirstNameLabel}"/>
@@ -52,6 +56,23 @@
                  Grid.Row="2">
             <TextBox Text="{Binding Booking.LastName, Mode=OneWay}"
                      IsReadOnly="True"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="3">
+            <TextBlock Text="{Binding DateTimeLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="3">
+            <TextBlock Text="{Binding ParentsLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="4">
+            <DatePicker SelectedDate="{Binding Booking.BookingDate, Mode=TwoWay}"/>
+            <!-- Replace with custom control for date and time -->
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="4">
+            <ListBox ItemsSource="{Binding BookedStudent.Parents, Mode=OneWay}"/>
         </Viewbox>
     </Grid>
 </UserControl>

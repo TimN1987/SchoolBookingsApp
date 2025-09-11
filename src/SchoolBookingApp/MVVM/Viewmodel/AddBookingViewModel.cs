@@ -34,8 +34,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
         public string FirstNameLabel => "First Name:";
         public string LastNameLabel => "Last Name:";
-        public string DateLabel => "Booking Date:";
-        public string TimeLabel => "Booking Time:";
+        public string DateTimeLabel => "Booking Date and Time:";
+        public string ParentsLabel => "Responsible adults:";
         public string AddUpdateButtonLabel => IsNewBooking ? "Add Booking" : "Update Booking";
         public string DeleteBookingButtonLabel => "Delete Booking";
         public string ClearFormButtonLabel => "Clear Form";
