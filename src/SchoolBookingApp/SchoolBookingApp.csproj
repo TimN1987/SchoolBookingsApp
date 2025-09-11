@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Images\MainWindow\addbooking.png" />
     <None Remove="Resources\Images\MainWindow\addparent.png" />
     <None Remove="Resources\Images\MainWindow\addstudent.png" />
     <None Remove="Resources\Images\MainWindow\home.png" />
@@ -23,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Images\MainWindow\addbooking.png" />
     <Resource Include="Resources\Images\MainWindow\addparent.png" />
     <Resource Include="Resources\Images\MainWindow\addstudent.png" />
     <Resource Include="Resources\Images\MainWindow\home.png" />

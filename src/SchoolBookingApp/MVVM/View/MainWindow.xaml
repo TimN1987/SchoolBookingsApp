@@ -37,6 +37,13 @@
                     IsEnabled="{Binding CurrentView, 
                                 Converter={StaticResource ViewToEnabledConverter}, 
                                 ConverterParameter={x:Type view:AddParentView}}"/>
+            <Button Content="{Binding AddBookingButtonImage}"
+                    Tag="{Binding AddBookingButtonText}"
+                    Command="{Binding AddBookingViewCommand}"
+                    Style="{DynamicResource MainWindowNavigationButton}"
+                    IsEnabled="{Binding CurrentView, 
+                                Converter={StaticResource ViewToEnabledConverter}, 
+                                ConverterParameter={x:Type view:AddBookingView}}"/>
         </StackPanel>
         <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
                         Style="{DynamicResource MainWindow}"/>
