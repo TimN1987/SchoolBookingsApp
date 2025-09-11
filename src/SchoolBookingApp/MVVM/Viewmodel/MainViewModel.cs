@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -31,6 +32,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ChangePageCommand<HomeView>? _homeViewCommand;
         private ChangePageCommand<AddStudentView>? _addStudentViewCommand;
         private ChangePageCommand<AddParentView>? _addParentViewCommand;
+        private ChangePageCommand<AddBookingView>? _addBookingViewCommand;
 
         /// <summary>
         /// The current <see cref="UserControl"/> that is displayed in the <see cref="MainWindow"/>'s <see 
@@ -47,9 +49,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get
             {
-                if (_homeViewCommand == null)
-                    _homeViewCommand = new ChangePageCommand<HomeView>(_eventAggregator);
-                return _homeViewCommand;
+                return _homeViewCommand 
+                    ?? new ChangePageCommand<HomeView>(_eventAggregator);
             }
         }
 
@@ -57,9 +58,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get
             {
-                if (_addStudentViewCommand == null)
-                    _addStudentViewCommand = new ChangePageCommand<AddStudentView>(_eventAggregator);
-                return _addStudentViewCommand;
+                return _addStudentViewCommand 
+                    ?? new ChangePageCommand<AddStudentView>(_eventAggregator);
             }
         }
 
@@ -67,9 +67,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get
             {
-                if (_addParentViewCommand == null)
-                    _addParentViewCommand = new ChangePageCommand<AddParentView>(_eventAggregator);
-                return _addParentViewCommand;
+                return _addParentViewCommand 
+                    ?? new ChangePageCommand<AddParentView>(_eventAggregator);
+            }
+        }
+
+        public ChangePageCommand<AddBookingView>? AddBookingViewCommand
+        {
+            get
+            {
+                return _addBookingViewCommand 
+                    ?? new ChangePageCommand<AddBookingView>(_eventAggregator);
             }
         }
 
@@ -77,12 +85,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string HomeButtonText => "Home";
         public static string AddStudentButtonText => "Add Student";
         public static string AddParentButtonText => "Add Parent";
+        public static string AddBookingButtonText => "Add Booking";
 
 
         //Image properties for binding to Button content in the MainWindow.
         public static ImageSource HomeButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/home.png", UriKind.Absolute));
         public static ImageSource AddStudentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addstudent.png", UriKind.Absolute));
         public static ImageSource AddParentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addparent.png", UriKind.Absolute));
+        public static ImageSource AddBookingButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addbooking.png", UriKind.Absolute));
 
         public MainViewModel(IEventAggregator eventAggregator, IViewFactory viewFactory)
         {

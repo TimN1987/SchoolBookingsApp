@@ -5,15 +5,288 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
              xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
+             xmlns:converters="clr-namespace:SchoolBookingApp.MVVM.Converters"
              d:DataContext="{d:DesignInstance viewmodel:AddBookingViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <UserControl.Resources>
+        <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Grid Background="#101010">
         <Grid.ColumnDefinitions>
-            
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0">
+                <Button Content="{Binding ShowHideDataButtonLabel}"
+                        Command="{Binding ToggleBookingDataVisibilityCommand}"
+                        IsEnabled="{Binding IsCommentsVisible,
+                                    Converter={StaticResource BooleanInverterConverter}}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="1">
+                <TextBlock Text="{Binding PageTitle}"
+                           Style="{DynamicResource TitleText}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="2">
+                <Button Content="{Binding ShowHideCommentsButtonLabel}"
+                        Command="{Binding ToggleCommentsVisibilityCommand}"
+                        IsEnabled="{Binding IsBookingDataVisible, 
+                                    Converter={StaticResource BooleanInverterConverter}}"/>
+            </Viewbox>
+        </Grid>
+        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                 Grid.Row="1">
+            <ComboBox ItemsSource="{Binding AllBookings}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="2">
+            <TextBlock Text="{Binding FirstNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="2">
+            <TextBlock Text="{Binding LastNameLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="3">
+            <TextBox Text="{Binding Booking.FirstName, Mode=OneWay}"
+                     IsReadOnly="True"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="3">
+            <TextBox Text="{Binding Booking.LastName, Mode=OneWay}"
+                     IsReadOnly="True"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="4">
+            <TextBlock Text="{Binding DateTimeLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="4">
+            <TextBlock Text="{Binding ParentsLabel}"/>
+        </Viewbox>
+        <Viewbox Grid.Column="0"
+                 Grid.Row="5">
+            <DatePicker SelectedDate="{Binding Booking.BookingDate, Mode=TwoWay}"/>
+            <!-- Replace with custom control for date and time -->
+        </Viewbox>
+        <Viewbox Grid.Column="1"
+                 Grid.Row="5">
+            <ListBox ItemsSource="{Binding BookedStudent.Parents, Mode=OneWay}"/>
+        </Viewbox>
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0">
+                <Button Content="{Binding AddUpdateButtonLabel}"
+                        Command="{Binding AddUpdateBookingCommand}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="1">
+                <Button Content="{Binding DeleteBookingButtonLabel}"
+                        Command="{Binding DeleteBookingCommand}"/>
+            </Viewbox>
+            <Viewbox Grid.Column="2">
+                <Button Content="{Binding ClearFormButtonLabel}"
+                        Command="{Binding ClearFormCommand}"/>
+            </Viewbox>
+        </Grid>
+        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                 Grid.Row="1" Grid.RowSpan="5"
+                 Margin="20,0"
+                 Visibility="{Binding IsBookingDataVisible, 
+                                Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="#202020"
+                    BorderBrush="#CCCCCC"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="0">
+                        <TextBlock Text="{Binding MathLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="0">
+                        <Slider Value="{Binding BookedStudent.Data.Math, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="1">
+                        <TextBlock Text="{Binding MathCommentsLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                             Grid.Row="2">
+                        <TextBox Text="{Binding BookedStudent.Data.MathComments, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="3">
+                        <TextBlock Text="{Binding ReadingLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="3">
+                        <Slider Value="{Binding BookedStudent.Data.Reading, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="4">
+                        <TextBlock Text="{Binding ReadingCommentsLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                             Grid.Row="5">
+                        <TextBox Text="{Binding BookedStudent.Data.ReadingComments, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="6">
+                        <TextBlock Text="{Binding WritingLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="6">
+                        <Slider Value="{Binding BookedStudent.Data.Writing, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="7">
+                        <TextBlock Text="{Binding WritingCommentsLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                             Grid.Row="8">
+                        <TextBox Text="{Binding BookedStudent.Data.WritingComments, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="9">
+                        <TextBlock Text="{Binding ScienceLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="9">
+                        <Slider Value="{Binding BookedStudent.Data.Science, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="10">
+                        <TextBlock Text="{Binding HistoryLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="10">
+                        <Slider Value="{Binding BookedStudent.Data.History, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="11">
+                        <TextBlock Text="{Binding GeographyLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="11">
+                        <Slider Value="{Binding BookedStudent.Data.Geography, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="12">
+                        <TextBlock Text="{Binding MFLLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="12">
+                        <Slider Value="{Binding BookedStudent.Data.MFL, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="13">
+                        <TextBlock Text="{Binding PELabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="13">
+                        <Slider Value="{Binding BookedStudent.Data.PE, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="14">
+                        <TextBlock Text="{Binding ArtLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="14">
+                        <Slider Value="{Binding BookedStudent.Data.Art, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="15">
+                        <TextBlock Text="{Binding MusicLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="15">
+                        <Slider Value="{Binding BookedStudent.Data.Music, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="16">
+                        <TextBlock Text="{Binding RELabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="16">
+                        <Slider Value="{Binding BookedStudent.Data.RE, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="17">
+                        <TextBlock Text="{Binding DesignTechnologyLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="17">
+                        <Slider Value="{Binding BookedStudent.Data.DesignTechnology, Mode=TwoWay}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="0"
+                             Grid.Row="18">
+                        <TextBlock Text="{Binding ComputingLabel}"/>
+                    </Viewbox>
+                    <Viewbox Grid.Column="1"
+                             Grid.Row="18">
+                        <Slider Value="{Binding BookedStudent.Data.Computing, Mode=TwoWay}"/>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </Viewbox>
+        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                 Grid.Row="1" Grid.RowSpan="5"
+                 Margin="20,0"
+                 Visibility="{Binding IsCommentsVisible, 
+                                Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="#202020"
+                    BorderBrush="#CCCCCC"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                <Grid></Grid>
+            </Border>
+        </Viewbox>
     </Grid>
 </UserControl>

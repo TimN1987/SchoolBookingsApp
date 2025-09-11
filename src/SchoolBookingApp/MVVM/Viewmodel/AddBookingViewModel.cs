@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Win32.SafeHandles;
+using Prism.Common;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
@@ -29,13 +35,56 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string BookingDeletedMessage = "Booking deleted successfully.";
         private const string BookingFailedToDeleteMessage = "Failed to delete booking. Please try again.";
         private const string SqlInjectionMessage = "Invalid characters in name fields.";
+        private const string InvalidStudentDataFailedMessage = "Data can only be added if a student is selected.";
+        private const string InvalidStudentCommentsFailedMessage = "Comments can only be added if a student is selected.";
+        private const string DataFailedToAddMessage = "Failed to add data. Please try again.";
+        private const string CommentsFailedToAddMessage = "Failed to add comments. Please try again.";
+        private const string DataAddedMessage = "Data added successfully.";
+        private const string CommentsAddedMessage = "Comments added successfully.";
 
         //UI labels
-        public string AddUpdateButtonLabel => _isNewBooking ? "Add Booking" : "Update Booking";
-        public string DeleteBookingButtonLabel => "Delete Booking";
-        public string ClearFormButtonLabel => "Clear Form";
+        public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
+        public static string FirstNameLabel => "First Name:";
+        public static string LastNameLabel => "Last Name:";
+        public static string DateTimeLabel => "Booking Date and Time:";
+        public static string ParentsLabel => "Responsible adults:";
+        public string AddUpdateButtonLabel => IsNewBooking ? "Add Booking" : "Update Booking";
+        public static string DeleteBookingButtonLabel => "Delete Booking";
+        public static string ClearFormButtonLabel => "Clear Form";
         public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
         public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
+
+        //Data information UI labels
+        public static string MathLabel => "Math:";
+        public static string MathCommentsLabel => "Math Comments:";
+        public static string ReadingLabel => "Reading:";
+        public static string ReadingCommentsLabel => "Reading Comments:";
+        public static string WritingLabel => "Writing:";
+        public static string WritingCommentsLabel => "Writing Comments:";
+        public static string ScienceLabel => "Science:";
+        public static string HistoryLabel => "History:";
+        public static string GeographyLabel => "Geography:";
+        public static string MFLLabel => "MFL:";
+        public static string PELabel => "PE:";
+        public static string ArtLabel => "Art:";
+        public static string MusicLabel => "Music:";
+        public static string RELabel => "RE:";
+        public static string DesignTechnologyLabel => "Design Technology:";
+        public static string ComputingLabel => "Computing:";
+        public static string UpdateDataButtonLabel => "Update Data";
+
+        //Comments UI labels
+        public static string GeneralCommentsLabel => "General Comments:";
+        public static string PupilCommentsLabel => "Pupil Comments:";
+        public static string ParentCommentLabel => "Parent Comments:";
+        public static string BehaviorNotesLabel => "Behavior Notes:";
+        public static string AttendanceNotesLabel => "Attendance Notes:";
+        public static string HomeworkNotesLabel => "Homework Notes:";
+        public static string ExtraCurricularNotesLabel => "Extra-Curricular Notes:";
+        public static string SpecialEducationalNeedsNotesLabel => "Special Educational Needs Notes:";
+        public static string SafeguardingNotesLabel => "Safeguarding Notes:";
+        public static string OtherNotesLabel => "Other Notes:";
+        public static string UpdateCommentsButtonLabel => "Update Comments";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -53,10 +102,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
 
-        private ICommand? _addBookingCommand;
-        private ICommand? _updateBookingCommand;
+        private ICommand? _addUpdateBookingCommand;
         private ICommand? _deleteBookingCommand;
+        private ICommand? _clearFormCommand;
         private ICommand? _loadBookingCommand;
+        private ICommand? _updateStudentDataCommand;
+        private ICommand? _updateStudentCommentsCommand;
         private ICommand? _toggleBookingDataVisibilityCommand;
         private ICommand? _toggleCommentsVisibilityCommand;
 
@@ -91,6 +142,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _updateMessage;
             set => SetProperty(ref _updateMessage, value);
         }
+        public bool IsNewBooking
+        {
+            get => _isNewBooking;
+            set
+            {
+                SetProperty(ref _isNewBooking, value);
+                OnPropertyChanged(nameof(PageTitle));
+                OnPropertyChanged(nameof(AddUpdateButtonLabel));
+            }
+        }
         public bool IsBookingDataVisible
         {
             get => _isBookingDataVisible;
@@ -112,18 +173,28 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Commands
 
-        public ICommand? AddBookingCommand => _addBookingCommand 
-            ?? new RelayCommand(async param => await AddBooking());
-        public ICommand? UpdateBookingCommand => _updateBookingCommand
-            ?? new RelayCommand(async param => await UpdateBooking());
+        public ICommand? AddUpdateBookingCommand => _addUpdateBookingCommand
+            ??= new RelayCommand(async param =>
+            {
+                if (IsNewBooking)
+                    await AddBooking();
+                else
+                    await UpdateBooking();
+            });
         public ICommand? DeleteBookingCommand => _deleteBookingCommand
-            ?? new RelayCommand(async param => await DeleteBooking());
+            ??= new RelayCommand(async param => await DeleteBooking());
+        public ICommand? ClearFormCommand => _clearFormCommand
+            ??= new RelayCommand(param => ClearForm());
         public ICommand? LoadBookingCommand => _loadBookingCommand
-            ?? null;
+            ??= null;
+        public ICommand? UpdateStudentDataCommand => _updateStudentDataCommand 
+            ??= new RelayCommand(async param => await UpdateStudentData());
+        public ICommand? UpdateStudentCommentsCommand => _updateStudentCommentsCommand
+            ??= new RelayCommand(async param => await UpdateStudentComments());
         public ICommand? ToggleBookingDataVisibilityCommand => _toggleBookingDataVisibilityCommand
-            ?? new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
+            ??= new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
         public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
-            ?? new RelayCommand(param => _isCommentsVisible = !_isCommentsVisible);
+            ??= new RelayCommand(param => IsCommentsVisible = !IsCommentsVisible);
 
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
@@ -159,7 +230,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (param is Booking booking)
                 {
                     Booking = booking;
-                    _isNewBooking = false;
+                    IsNewBooking = false;
                 }
             });
         }
@@ -249,6 +320,38 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ResetBooking();
         }
 
+        public async Task UpdateStudentData()
+        {
+            if (BookedStudent == null || BookedStudent.Data.StudentId <= 0)
+            {
+                UpdateMessage = InvalidStudentDataFailedMessage;
+                return;
+            }
+
+            bool dataAdded = await _updateOperationService.UpdateData(BookedStudent.Data);
+
+            if (dataAdded)
+                UpdateMessage = DataAddedMessage;
+            else
+                UpdateMessage = DataFailedToAddMessage;
+        }
+
+        public async Task UpdateStudentComments()
+        {
+            if (BookedStudent == null || BookedStudent.Comments.StudentId <= 0)
+            {
+                UpdateMessage = InvalidStudentCommentsFailedMessage;
+                return;
+            }
+
+            bool commentsAdded = await _updateOperationService.UpdateComments(BookedStudent.Comments);
+
+            if (commentsAdded)
+                UpdateMessage = CommentsAddedMessage;
+            else
+                UpdateMessage = CommentsFailedToAddMessage;
+        }
+
         //Helper methods
 
         /// <summary>
@@ -288,7 +391,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// <param name="booking">The <see cref="Booking"/> record to be checked for invalid characters.</param>
         /// <returns><see langword="true"/> if all the characters stored in the name properties of the <see cref="Booking"/> 
         /// are on the whitelist. <see langword="false"/> if any invalid characters are entered.</returns>
-        private bool IsSqlInjectionSafe(Booking booking)
+        private static bool IsSqlInjectionSafe(Booking booking)
         {
             return booking.FirstName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'') &&
                    booking.LastName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'');
@@ -333,7 +436,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private void ResetBooking()
         {
             Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
-            _isNewBooking = true;
+            IsNewBooking = true;
         }
     }
 }
