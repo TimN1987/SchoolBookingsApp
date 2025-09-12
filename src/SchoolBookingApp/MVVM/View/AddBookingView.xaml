@@ -59,7 +59,7 @@
         <Viewbox Grid.Column="1"
                  Grid.Row="1">
             <ComboBox ItemsSource="{Binding AllStudents}"
-                      SelectedItem="{Binding BookedStudent}"/>
+                      SelectedItem="{Binding SelectedStudent}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="2">

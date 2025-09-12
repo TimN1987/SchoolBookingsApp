@@ -95,8 +95,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IDeleteOperationService _deleteOperationService;
 
         private Booking _booking;
+        private SearchResult _selectedStudent;
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
+        private List<SearchResult> _allStudents;
         private bool _isNewBooking;
         private string _updateMessage;
         private bool _isBookingDataVisible;
@@ -176,10 +178,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 SetProperty(ref _bookedStudent, value);
             }
         }
+        public SearchResult SelectedStudent
+        {
+            get => _selectedStudent;
+            set
+            {
+                SetProperty(ref _selectedStudent, value);
+                Task.Run(async () => await OnStudentSelected());
+            }
+        }
         public List<Booking> AllBookings
         {
             get => _allBookings;
             set => SetProperty(ref _allBookings, value);
+        }
+        public List<SearchResult> AllStudents
+        {
+            get => _allStudents;
+            set => SetProperty(ref _allStudents, value);
         }
         public string UpdateMessage
         {
@@ -434,6 +450,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
             _bookedStudent = null;
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
+            _allStudents = _readOperationService.GetStudentList().GetAwaiter().GetResult();
             _isNewBooking = true;
             _updateMessage = string.Empty;
             _isBookingDataVisible = false;
@@ -682,6 +699,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             BookedStudent = _booking.StudentId > 0
                 ? await _readOperationService.GetStudentData(_booking.StudentId)
                 : null;
+        }
+
+        private async Task OnStudentSelected()
+        {
+            if (SelectedStudent.Id <= 0)
+                return;
+
+            BookedStudent = await _readOperationService.GetStudentData(SelectedStudent.Id);
         }
 
         /// <summary>
