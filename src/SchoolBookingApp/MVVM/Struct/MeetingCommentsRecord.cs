@@ -9,7 +9,7 @@ namespace SchoolBookingApp.MVVM.Struct
     /// <summary>  
     /// Represents a record of comments from parents' meetings.  
     /// </summary>  
-    public class MeetingCommentsRecord
+    public struct MeetingCommentsRecord
     {
         public int StudentId { get; set; }
         public string GeneralComments { get; set; }

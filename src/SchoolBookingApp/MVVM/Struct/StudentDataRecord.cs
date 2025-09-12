@@ -9,7 +9,7 @@ namespace SchoolBookingApp.MVVM.Struct
     /// <summary>
     /// Represents a record of student data in the school booking application.
     /// </summary>
-    public class StudentDataRecord
+    public struct StudentDataRecord
     {
         public int StudentId { get; set; }
         public int Math { get; set; }
