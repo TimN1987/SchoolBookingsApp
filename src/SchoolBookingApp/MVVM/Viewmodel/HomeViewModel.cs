@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
@@ -23,7 +24,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly List<SearchResult> _students;
         private readonly int _parentsCount;
 
-        //private ChangePageCommand<BookingView> _changePageCommand; -> change to the booking view
+        private ICommand? _viewBookingCommand;
 
         public List<Booking> Bookings => _bookings;
         public Booking? SelectedBooking
@@ -41,6 +42,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public Booking? NextMeeting => _bookings
             .OrderBy(booking => booking.BookingDate)
             .FirstOrDefault(booking => booking.BookingDate >= DateTime.Now);
+
+        public ICommand? ViewBookingCommand => _viewBookingCommand 
+            ??= new RelayCommand(param => OnSubmit());
 
         //Text for UI features
         public string DashboardTitleText => "Bookings Dashboard";
@@ -72,10 +76,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookings.Add(new Booking(3, "John", "Smith", new DateTime(2025, 9, 17), new TimeSpan(14, 0, 0)));
         }
 
-        private void OnSubmit(Booking booking)
+        private void OnSubmit()
         {
-            _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(HomeView));
-            //need to pass booking information (student id?) to next view? StudentView? BookingView?
+            _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddBookingView));
+
+            if (SelectedBooking != null)
+                _eventAggregator.GetEvent<DisplayBookingEvent>().Publish((Booking)SelectedBooking);
         }
     }
 }

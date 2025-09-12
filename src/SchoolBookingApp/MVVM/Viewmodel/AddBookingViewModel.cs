@@ -102,6 +102,45 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
 
+        //Booking fields
+        private int _studentId;
+        private string _firstName;
+        private string _lastName;
+        private DateTime _dateTime;
+        private List<(Parent, string)> _parents;
+
+        //Data fields
+        private int _math;
+        private string _mathComments;
+        private int _reading;
+        private string _readingComments;
+        private int _writing;
+        private string _writingComments;
+        private int _science;
+        private int _history;
+        private int _geography;
+        private int _mfl;
+        private int _pe;
+        private int _art;
+        private int _music;
+        private int _re;
+        private int _designTechnology;
+        private int _computing;
+
+        //Comments fields
+        private string _generalComments;
+        private string _pupilComments;
+        private string _parentComments;
+        private string _behaviorNotes;
+        private string _attendanceNotes;
+        private string _homeworkNotes;
+        private string _extraCurricularNotes;
+        private string _specialEducationalNeedsNotes;
+        private string _safeguardingNotes;
+        private string _otherNotes;
+        private int _dateAdded;
+
+        //Cmmmand backing fields
         private ICommand? _addUpdateBookingCommand;
         private ICommand? _deleteBookingCommand;
         private ICommand? _clearFormCommand;
@@ -125,12 +164,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 
                 UpdateMessage = string.Empty;
                 SetProperty(ref _booking, value);
+
+                SetBookingProperties();
             }
         }
         public Student? BookedStudent
         {
             get => _bookedStudent;
-            set => SetProperty(ref _bookedStudent, value);
+            set
+            {
+                SetProperty(ref _bookedStudent, value);
+            }
         }
         public List<Booking> AllBookings
         {
@@ -170,6 +214,176 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 OnPropertyChanged(nameof(ShowHideCommentsButtonLabel));
             }
         }
+
+        //Booking properties
+        public int StudentId
+        {
+            get => _studentId;
+            set => SetProperty(ref _studentId, value);
+        }
+        public string FirstName
+        {
+            get => _firstName;
+            set => SetProperty(ref _firstName, value);
+        }
+        public string LastName
+        {
+            get => _lastName;
+            set => SetProperty(ref _lastName, value);
+        }
+        public DateTime DateTime
+        {
+            get => _dateTime;
+            set => SetProperty(ref _dateTime, value);
+        }
+        public List<(Parent, string)> Parents
+        {
+            get => _parents;
+            set => SetProperty(ref _parents, value);
+        }
+
+        //Data properties
+        public int Math
+        {
+            get => _math;
+            set => SetProperty(ref _math, value);
+        }
+        public string MathComments
+        {
+            get => _mathComments;
+            set => SetProperty(ref _mathComments, value);
+        }
+        public int Reading
+        {
+            get => _reading;
+            set => SetProperty(ref _reading, value);
+        }
+        public string ReadingComments
+        {
+            get => _readingComments;
+            set => SetProperty(ref _readingComments, value);
+        }
+        public int Writing
+        {
+            get => _writing;
+            set => SetProperty(ref _writing, value);
+        }
+        public string WritingComments
+        {
+            get => _writingComments;
+            set => SetProperty(ref _writingComments, value);
+        }
+        public int Science
+        {
+            get => _science;
+            set => SetProperty(ref _science, value);
+        }
+        public int History
+        {
+            get => _history;
+            set => SetProperty(ref _history, value);
+        }
+        public int Geography
+        {
+            get => _geography;
+            set => SetProperty(ref _geography, value);
+        }
+        public int MFL
+        {
+            get => _mfl;
+            set => SetProperty(ref _mfl, value);
+        }
+        public int PE
+        {
+            get => _pe;
+            set => SetProperty(ref _pe, value);
+        }
+        public int Art
+        {
+            get => _art;
+            set => SetProperty(ref _art, value);
+        }
+        public int Music
+        {
+            get => _music;
+            set => SetProperty(ref _music, value);
+        }
+        public int RE
+        {
+            get => _re;
+            set => SetProperty(ref _re, value);
+        }
+        public int DesignTechnology
+        {
+            get => _designTechnology;
+            set => SetProperty(ref _designTechnology, value);
+        }
+        public int Computing
+        {
+            get => _computing;
+            set => SetProperty(ref _computing, value);
+        }
+
+        //Comments properties
+        public string GeneralComments
+        {
+            get => _generalComments;
+            set => SetProperty(ref _generalComments, value);
+        }
+        public string PupilComments
+        {
+            get => _pupilComments;
+            set => SetProperty(ref _pupilComments, value);
+        }
+        public string ParentComments
+        {
+            get => _parentComments;
+            set => SetProperty(ref _parentComments, value);
+        }
+        public string BehaviorNotes
+        {
+            get => _behaviorNotes;
+            set => SetProperty(ref _behaviorNotes, value);
+        }
+        public string AttendanceNotes
+        {
+            get => _attendanceNotes;
+            set => SetProperty(ref _attendanceNotes, value);
+        }
+        public string HomeworkNotes
+        {
+            get => _homeworkNotes;
+            set => SetProperty(ref _homeworkNotes, value);
+        }
+        public string ExtraCurricularNotes
+        {
+            get => _extraCurricularNotes;
+            set => SetProperty(ref _extraCurricularNotes, value);
+        }
+        public string SpecialEducationalNeedsNotes
+        {
+            get => _specialEducationalNeedsNotes;
+            set => SetProperty(ref _specialEducationalNeedsNotes, value);
+        }
+        public string SafeguardingNotes
+        {
+            get => _safeguardingNotes;
+            set => SetProperty(ref _safeguardingNotes, value);
+        }
+        public string OtherNotes
+        {
+            get => _otherNotes;
+            set => SetProperty(ref _otherNotes, value);
+        }
+        public int DateAdded
+        {
+            get => _dateAdded;
+            set => SetProperty(ref _dateAdded, value);
+        }
+        public int CurrentDateAdded => (int)DateTime.Now
+                .ToString("yyyyMMdd")
+                .ToCharArray().Select(c => c - '0')
+                .Aggregate(0, (a, b) => a * 10 + b); //Stored as an int value in the database.
 
         //Commands
 
@@ -236,6 +450,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         //Methods
+
+        public async Task LoadBooking()
+        {
+            //logic to load a booking from the combo box selection
+
+            await OnBookingLoaded(); //Update the booked student data.
+        }
 
         /// <summary>
         /// Adds a new booking to the database using the data stored in the <see cref="_booking"/> field. Validates that 
@@ -343,7 +564,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
             else
             {
-                BookedStudent.Data.StudentId = BookedStudent.Id;
+                StudentId = BookedStudent.Id;
                 dataAdded = await _createOperationService.AddData(BookedStudent.Data);
             }
 
@@ -368,10 +589,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
 
             bool commentsAdded;
-            BookedStudent.Comments.DateAdded = (int)DateTime.Now
-                .ToString("yyyyMMdd")
-                .ToCharArray().Select(c => c - '0')
-                .Aggregate(0, (a, b) => a * 10 + b); //Stored as an int value in the database.
 
             //Checks if comments have already been added before attempting to update.
             if (BookedStudent.Comments.StudentId > 0)
@@ -380,7 +597,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
             else
             {
-                BookedStudent.Comments.StudentId = BookedStudent.Id;
+                StudentId = BookedStudent.Id;
                 commentsAdded = await _createOperationService.AddComments(BookedStudent.Comments);
             }
 
@@ -392,15 +609,79 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Helper methods
 
+        private void SetBookingProperties()
+        {
+            StudentId = _booking.StudentId;
+            FirstName = _booking.FirstName;
+            LastName = _booking.LastName;
+            DateTime = _booking.BookingDate.HasValue && _booking.TimeSlot.HasValue
+                ? _booking.BookingDate.Value.Date + _booking.TimeSlot.Value
+                : DateTime.Now;
+        }
+
+        private void SetStudentProperties()
+        {
+            if (_bookedStudent == null)
+                return;
+
+            FirstName = _bookedStudent.FirstName ?? string.Empty;
+            LastName = _bookedStudent.LastName ?? string.Empty;
+            Parents = _bookedStudent.Parents ?? [];
+
+            SetDataProperties();
+            SetCommentsProperties();
+        }
+
+        private void SetDataProperties()
+        {
+            if (_bookedStudent == null)
+                return;
+
+            Math = _bookedStudent.Data.Math;
+            MathComments = _bookedStudent.Data.MathComments;
+            Reading = _bookedStudent.Data.Reading;
+            ReadingComments = _bookedStudent.Data.ReadingComments;
+            Writing = _bookedStudent.Data.Writing;
+            WritingComments = _bookedStudent.Data.WritingComments;
+            Science = _bookedStudent.Data.Science;
+            History = _bookedStudent.Data.History;
+            Geography = _bookedStudent.Data.Geography;
+            MFL = _bookedStudent.Data.MFL;
+            PE = _bookedStudent.Data.PE;
+            Art = _bookedStudent.Data.Art;
+            Music = _bookedStudent.Data.Music;
+            RE = _bookedStudent.Data.RE;
+            DesignTechnology = _bookedStudent.Data.DesignTechnology;
+            Computing = _bookedStudent.Data.Computing;
+        }
+
+        private void SetCommentsProperties()
+        {
+            if (_bookedStudent == null)
+                return;
+            
+            GeneralComments = _bookedStudent.Comments.GeneralComments;
+            PupilComments = _bookedStudent.Comments.PupilComments;
+            ParentComments = _bookedStudent.Comments.ParentComments;
+            BehaviorNotes = _bookedStudent.Comments.BehaviorNotes;
+            AttendanceNotes = _bookedStudent.Comments.AttendanceNotes;
+            HomeworkNotes = _bookedStudent.Comments.HomeworkNotes;
+            ExtraCurricularNotes = _bookedStudent.Comments.ExtraCurricularNotes;
+            SpecialEducationalNeedsNotes = _bookedStudent.Comments.SpecialEducationalNeedsNotes;
+            SafeguardingNotes = _bookedStudent.Comments.SafeguardingNotes;
+            OtherNotes = _bookedStudent.Comments.OtherNotes;
+            DateAdded = _bookedStudent.Comments.DateAdded;
+        }
+
         /// <summary>
         /// Updates the <see cref="BookedStudent"/> property when a <see cref="Booking"/> property is loaded to ensure 
         /// that the correct student data is available for display in the view.
         /// </summary>
         private async Task OnBookingLoaded()
         {
-            BookedStudent = _booking.StudentId > 0 ?
-                await _readOperationService.GetStudentData(_booking.StudentId) : 
-                null;
+            BookedStudent = _booking.StudentId > 0
+                ? await _readOperationService.GetStudentData(_booking.StudentId)
+                : null;
         }
 
         /// <summary>
