@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
              xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
              xmlns:converters="clr-namespace:SchoolBookingApp.MVVM.Converters"
+             xmlns:controls="clr-namespace:SchoolBookingApp.MVVM.CustomControls"
              d:DataContext="{d:DesignInstance viewmodel:AddBookingViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -63,34 +64,39 @@
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="2">
-            <TextBlock Text="{Binding FirstNameLabel}"/>
+            <TextBlock Text="{Binding FirstNameLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
                  Grid.Row="2">
-            <TextBlock Text="{Binding LastNameLabel}"/>
+            <TextBlock Text="{Binding LastNameLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="3">
             <TextBox Text="{Binding FirstName, Mode=OneWay}"
-                     IsReadOnly="True"/>
+                     IsReadOnly="True"
+                     Style="{DynamicResource DataFieldTextBoxStyle}"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
                  Grid.Row="3">
             <TextBox Text="{Binding LastName, Mode=OneWay}"
-                     IsReadOnly="True"/>
+                     IsReadOnly="True"
+                     Style="{DynamicResource DataFieldTextBoxStyle}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="4">
-            <TextBlock Text="{Binding DateTimeLabel}"/>
+            <TextBlock Text="{Binding DateTimeLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
                  Grid.Row="4">
-            <TextBlock Text="{Binding ParentsLabel}"/>
+            <TextBlock Text="{Binding ParentsLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
         </Viewbox>
         <Viewbox Grid.Column="0"
                  Grid.Row="5">
-            <DatePicker SelectedDate="{Binding DateTime, Mode=TwoWay}"/>
-            <!-- Replace with custom control for date and time -->
+            <controls:DateTimePicker BookingDateTime="{Binding DateTime}"/>
         </Viewbox>
         <Viewbox Grid.Column="1"
                  Grid.Row="5">
@@ -153,7 +159,8 @@
                     </Grid.RowDefinitions>
                     <Viewbox Grid.Column="0"
                              Grid.Row="0">
-                        <TextBlock Text="{Binding MathLabel}"/>
+                        <TextBlock Text="{Binding MathLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="0">
@@ -161,15 +168,18 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="1">
-                        <TextBlock Text="{Binding MathCommentsLabel}"/>
+                        <TextBlock Text="{Binding MathCommentsLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="2">
-                        <TextBox Text="{Binding MathComments, Mode=TwoWay}"/>
+                        <TextBox Text="{Binding MathComments, Mode=TwoWay}"
+                                 Style="{DynamicResource DataFieldTextBoxStyle}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="3">
-                        <TextBlock Text="{Binding ReadingLabel}"/>
+                        <TextBlock Text="{Binding ReadingLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="3">
@@ -177,15 +187,18 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="4">
-                        <TextBlock Text="{Binding ReadingCommentsLabel}"/>
+                        <TextBlock Text="{Binding ReadingCommentsLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="5">
-                        <TextBox Text="{Binding ReadingComments, Mode=TwoWay}"/>
+                        <TextBox Text="{Binding ReadingComments, Mode=TwoWay}"
+                                 Style="{DynamicResource DataFieldTextBoxStyle}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="6">
-                        <TextBlock Text="{Binding WritingLabel}"/>
+                        <TextBlock Text="{Binding WritingLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="6">
@@ -193,15 +206,18 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="7">
-                        <TextBlock Text="{Binding WritingCommentsLabel}"/>
+                        <TextBlock Text="{Binding WritingCommentsLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="8">
-                        <TextBox Text="{Binding WritingComments, Mode=TwoWay}"/>
+                        <TextBox Text="{Binding WritingComments, Mode=TwoWay}"
+                                 Style="{DynamicResource DataFieldTextBoxStyle}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="9">
-                        <TextBlock Text="{Binding ScienceLabel}"/>
+                        <TextBlock Text="{Binding ScienceLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="9">
@@ -209,7 +225,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="10">
-                        <TextBlock Text="{Binding HistoryLabel}"/>
+                        <TextBlock Text="{Binding HistoryLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="10">
@@ -217,7 +234,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="11">
-                        <TextBlock Text="{Binding GeographyLabel}"/>
+                        <TextBlock Text="{Binding GeographyLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="11">
@@ -225,7 +243,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="12">
-                        <TextBlock Text="{Binding MFLLabel}"/>
+                        <TextBlock Text="{Binding MFLLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="12">
@@ -233,7 +252,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="13">
-                        <TextBlock Text="{Binding PELabel}"/>
+                        <TextBlock Text="{Binding PELabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="13">
@@ -241,7 +261,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="14">
-                        <TextBlock Text="{Binding ArtLabel}"/>
+                        <TextBlock Text="{Binding ArtLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="14">
@@ -249,7 +270,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="15">
-                        <TextBlock Text="{Binding MusicLabel}"/>
+                        <TextBlock Text="{Binding MusicLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="15">
@@ -257,7 +279,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="16">
-                        <TextBlock Text="{Binding RELabel}"/>
+                        <TextBlock Text="{Binding RELabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="16">
@@ -265,7 +288,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="17">
-                        <TextBlock Text="{Binding DesignTechnologyLabel}"/>
+                        <TextBlock Text="{Binding DesignTechnologyLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="17">
@@ -273,7 +297,8 @@
                     </Viewbox>
                     <Viewbox Grid.Column="0"
                              Grid.Row="18">
-                        <TextBlock Text="{Binding ComputingLabel}"/>
+                        <TextBlock Text="{Binding ComputingLabel}"
+                                   Style="{DynamicResource SubtitleText}"/>
                     </Viewbox>
                     <Viewbox Grid.Column="1"
                              Grid.Row="18">

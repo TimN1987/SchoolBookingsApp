@@ -5,11 +5,65 @@
     <Style TargetType="{x:Type TextBlock}" x:Key="TitleText">
         <Setter Property="FontSize" Value="40"/>
         <Setter Property="FontWeight" Value="ExtraBold"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="#CCCCCC"/>
         <Setter Property="HorizontalAlignment" Value="Center"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     
+    <!-- Subtitle TextBlock style -->
+    <Style TargetType="{x:Type TextBlock}" x:Key="SubtitleText">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="#CCCCCC"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Data field TextBox style -->
+    <Style TargetType="{x:Type TextBox}" x:Key="DataFieldTextBoxStyle">
+        <Setter Property="MinWidth" Value="200"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Background" Value="#404040"/>
+        <Setter Property="BorderBrush" Value="#000000"/>
+        <Setter Property="Foreground" Value="#CCCCCC"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="AllowDrop" Value="False"/>
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Border x:Name="border" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="false" 
+                                      HorizontalScrollBarVisibility="Hidden" 
+                                      VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Opacity" TargetName="border" Value="0.56"/>
+                            <Setter Property="Background" TargetName="border" Value="#303030"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="BorderBrush" TargetName="border" Value="#303030"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="true">
+                            <Setter Property="BorderBrush" TargetName="border" Value="#303030"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- MainWindow -->
     <!-- MainWindow stackpanel style -->
     <Style TargetType="{x:Type StackPanel}" x:Key="MainWindowButtonStackPanel">
@@ -667,6 +721,34 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+    
+    <!-- DateTimePick Styles -->
+    <!-- Border style -->
+    <Style TargetType="{x:Type Border}" x:Key="DateTimePickerBorder">
+        <Setter Property="Background" Value="#202020"/>
+        <Setter Property="BorderBrush" Value="#000000"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="5"/>
+    </Style>
+    
+    <!-- DatePicker style -->
+    <Style TargetType="{x:Type DatePicker}" x:Key="DateTimePickerDatePickerStyle">
+        <Setter Property="Background" Value="#202020"/>
+    </Style>
+    
+    <!-- ComboBox style -->
+    <Style TargetType="{x:Type ComboBox}" x:Key="DateTimePickerComboBoxStyle">
+        <Setter Property="Background" Value="#202020"/>
+        <Setter Property="Foreground" Value="#CCCCCC"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontWeight" Value="Normal"/>
     </Style>
 
 </ResourceDictionary>
