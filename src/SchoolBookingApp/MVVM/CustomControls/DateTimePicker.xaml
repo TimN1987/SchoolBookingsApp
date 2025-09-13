@@ -5,8 +5,61 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.CustomControls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Width="400"
-          Height="400">
-    </Grid>
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="root">
+    <Border Style="{DynamicResource DateTimePickerBorder}">
+        <StackPanel Width="190"
+                    Height="50"
+                    Orientation="Vertical"
+                    Background="Transparent">
+            <DatePicker Width="190"
+                        Height="25"
+                        SelectedDate="{Binding Date, ElementName=root}"
+                        Style="{DynamicResource DateTimePickerDatePickerStyle}"/>
+            <StackPanel Width="190"
+                        Height="25"
+                        Orientation="Horizontal"
+                        Background="Transparent">
+                <ComboBox Width="95"
+                          Height="25"
+                          SelectedValue="{Binding Hours, ElementName=root}"
+                          SelectedValuePath="Content"
+                          Style="{DynamicResource DateTimePickerComboBoxStyle}">
+                    <ComboBoxItem Content="07"/>
+                    <ComboBoxItem Content="08"/>
+                    <ComboBoxItem Content="09"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="11"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="13"/>
+                    <ComboBoxItem Content="14"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="16"/>
+                    <ComboBoxItem Content="17"/>
+                    <ComboBoxItem Content="18"/>
+                    <ComboBoxItem Content="19"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="21"/>
+                </ComboBox>
+                <ComboBox Width="95"
+                          Height="25"
+                          SelectedValue="{Binding Minutes, ElementName=root}"
+                          SelectedValuePath="Content"
+                          Style="{DynamicResource DateTimePickerComboBoxStyle}">
+                    <ComboBoxItem Content="00"/>
+                    <ComboBoxItem Content="05"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="25"/>
+                    <ComboBoxItem Content="30"/>
+                    <ComboBoxItem Content="35"/>
+                    <ComboBoxItem Content="40"/>
+                    <ComboBoxItem Content="45"/>
+                    <ComboBoxItem Content="50"/>
+                    <ComboBoxItem Content="55"/>
+                </ComboBox>
+            </StackPanel>
+        </StackPanel>
+    </Border>
 </UserControl>

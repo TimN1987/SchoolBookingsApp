@@ -447,7 +447,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _deleteOperationService = deleteOperationService 
                 ?? throw new ArgumentNullException(nameof(deleteOperationService));
 
-            _booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            _booking = new();
+            _dateTime = DateTime.Now;
             _bookedStudent = null;
             _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _allStudents = _readOperationService.GetStudentList().GetAwaiter().GetResult();
