@@ -17,6 +17,7 @@
         <Setter Property="Foreground" Value="#CCCCCC"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="20,10"/>
     </Style>
 
     <!-- Data field TextBox style -->
