@@ -458,6 +458,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _updateMessage = string.Empty;
             _isBookingDataVisible = false;
             _isCommentsVisible = false;
+            _allBookings.Add(new Booking(3, "John", "Smith", new DateTime(2025, 9, 17), new TimeSpan(14, 0, 0))); //TODO: Remove test booking.
+            _allStudents.Add(new SearchResult()
+            {
+                Id = 0,
+                FirstName = "John",
+                LastName = "Smith",
+                Category = "Student"
+            }); //TODO: Remove test student.
 
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
