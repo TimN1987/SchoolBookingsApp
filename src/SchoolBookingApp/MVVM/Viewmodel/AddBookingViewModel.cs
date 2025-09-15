@@ -44,6 +44,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //UI labels
         public string PageTitle => IsNewBooking ? "Add New Booking" : "Update Booking";
+        public static string SelectBookingLabel => "Select Booking:";
+        public static string SelectStudentLabel => "Select Student:";
         public static string FirstNameLabel => "First Name:";
         public static string LastNameLabel => "Last Name:";
         public static string DateTimeLabel => "Booking Date and Time:";
