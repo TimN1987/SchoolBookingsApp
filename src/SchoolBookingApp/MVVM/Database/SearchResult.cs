@@ -12,9 +12,9 @@ namespace SchoolBookingApp.MVVM.Database
     /// </summary>
     public struct SearchResult
     {
-        public int Id;
-        public string FirstName;
-        public string LastName;
-        public string Category;
+        public int Id {  get; init; }
+        public string FirstName { get; init; }
+        public string LastName { get; init; }
+        public string Category { get; init; }
     }
 }

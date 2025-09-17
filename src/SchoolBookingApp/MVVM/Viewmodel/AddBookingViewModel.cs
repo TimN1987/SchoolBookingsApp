@@ -459,6 +459,41 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _isBookingDataVisible = false;
             _isCommentsVisible = false;
 
+            _studentId = 0;
+            _firstName = string.Empty;
+            _lastName = string.Empty;
+            _parents = [];
+            _dateTime = DateTime.Now;
+
+            _math = 0;
+            _mathComments = string.Empty;
+            _reading = 0;
+            _readingComments = string.Empty;
+            _writing = 0;
+            _writingComments = string.Empty;
+            _science = 0;
+            _history = 0;
+            _geography = 0;
+            _mfl = 0;
+            _pe = 0;
+            _art = 0;
+            _music = 0;
+            _re = 0;
+            _designTechnology = 0;
+            _computing = 0;
+
+            _generalComments = string.Empty;
+            _pupilComments = string.Empty;
+            _parentComments = string.Empty;
+            _behaviorNotes = string.Empty;
+            _attendanceNotes = string.Empty;
+            _homeworkNotes = string.Empty;
+            _extraCurricularNotes = string.Empty;
+            _specialEducationalNeedsNotes = string.Empty;
+            _safeguardingNotes = string.Empty;
+            _otherNotes = string.Empty;
+            _dateAdded = 0;
+
             _eventAggregator.GetEvent<DisplayBookingEvent>().Subscribe(param =>
             {
                 if (param is Booking booking)

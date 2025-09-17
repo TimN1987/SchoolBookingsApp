@@ -40,7 +40,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="time">The start time of the meeting as a string in the format "HH:mm".</param>
         public Booking(int studentId, string date, string time)
             : this(studentId, string.Empty, string.Empty,
-                  DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
+                  System.DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
                   TimeSpan.TryParse(time, out var timeSlot) ? timeSlot : null) { }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace SchoolBookingApp.MVVM.Database
         /// <param name="time">The start time of the meeting as a string in the format "HH:mm".</param>
         public Booking(int studentId, string firstName, string lastName, string date, string time)
             : this(studentId, firstName, lastName,
-                  DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
+                  System.DateTime.TryParse(date, out var bookingDate) ? bookingDate.Date : null,
                   TimeSpan.TryParse(time, out var timeSlot) ? timeSlot : null)
         { }
 
@@ -71,5 +71,14 @@ namespace SchoolBookingApp.MVVM.Database
         /// as TEXT.
         /// </summary>
         public string? TimeString => TimeSlot?.ToString(@"hh\:mm");
+
+        /// <summary>
+        /// Retrieves the booking date and time as a single <see cref="DateTime"/> value.
+        /// </summary>
+        public DateTime? DateTime =>
+            (BookingDate.HasValue && TimeSlot.HasValue)
+            ? BookingDate.Value + TimeSlot.Value
+            : null;
+
     }
 }

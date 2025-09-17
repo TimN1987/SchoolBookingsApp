@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Images\AddBookingView\calendarbutton.png" />
     <None Remove="Resources\Images\MainWindow\addbooking.png" />
     <None Remove="Resources\Images\MainWindow\addparent.png" />
     <None Remove="Resources\Images\MainWindow\addstudent.png" />
@@ -24,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Images\AddBookingView\calendarbutton.png" />
     <Resource Include="Resources\Images\MainWindow\addbooking.png" />
     <Resource Include="Resources\Images\MainWindow\addparent.png" />
     <Resource Include="Resources\Images\MainWindow\addstudent.png" />

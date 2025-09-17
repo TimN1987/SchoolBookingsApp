@@ -64,13 +64,43 @@
                        Text="{Binding SelectStudentLabel}"
                        Style="{DynamicResource SubtitleText}"/>
             <ComboBox Grid.Column="0"
-                          Grid.Row="2"
-                          ItemsSource="{Binding AllBookings}"
-                      SelectedItem="{Binding Booking}"/>
+                      Grid.Row="2"
+                      Style="{DynamicResource SelectPersonComboBoxStyle}"
+                      ItemsSource="{Binding AllBookings}"
+                      SelectedItem="{Binding Booking}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0:dd/MM/yyyy HH:mm} - {1} {2}">
+                                    <Binding Path="DateTime"/>
+                                    <Binding Path="FirstName"/>
+                                    <Binding Path="LastName"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <ComboBox Grid.Column="1"
-                          Grid.Row="2"
-                          ItemsSource="{Binding AllStudents}"
-                      SelectedItem="{Binding SelectedStudent}"/>
+                      Grid.Row="2"
+                      Style="{DynamicResource SelectPersonComboBoxStyle}"
+                      ItemsSource="{Binding AllStudents}"
+                      SelectedValue="{Binding SelectedStudent.Id}"
+                      SelectedValuePath="Id">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} {1}">
+                                    <Binding Path="FirstName"/>
+                                    <Binding Path="LastName"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <TextBlock Grid.Column="0"
                            Grid.Row="3"
                            Text="{Binding FirstNameLabel}"
