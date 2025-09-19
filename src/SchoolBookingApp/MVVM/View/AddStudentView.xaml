@@ -41,7 +41,20 @@
                       Grid.Row="1"
                       SelectedItem="{Binding SelectedStudent, Mode=TwoWay}"
                       ItemsSource="{Binding AllStudents}"
-                      Style="{DynamicResource SelectPersonComboBoxStyle}"/>
+                      Style="{DynamicResource SelectPersonComboBoxStyle}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1}">
+                                        <Binding Path="FirstName"/>
+                                        <Binding Path="LastName"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <TextBlock Grid.Column="0"
                        Grid.Row="2"
                        Text="{Binding FirstNameLabel}"
