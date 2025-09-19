@@ -72,8 +72,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _bookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
             _students = _readOperationService.GetStudentList().GetAwaiter().GetResult();
             _parentsCount = _readOperationService.GetParentList().GetAwaiter().GetResult().Count;
-
-            _bookings.Add(new Booking(3, "John", "Smith", new DateTime(2025, 9, 17), new TimeSpan(14, 0, 0)));
         }
 
         private void OnSubmit()
