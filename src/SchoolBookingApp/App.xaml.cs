@@ -75,7 +75,6 @@ public partial class App : Application
         _serviceProvider = _serviceCollection.BuildServiceProvider();
         _databaseInitializer = _serviceProvider.GetRequiredService<IDatabaseInitializer>();
         _databaseInitializer.InitializeDatabaseAsync().GetAwaiter().GetResult();
-        Debug.WriteLine("database initialized");
         _mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
     }
 
@@ -113,7 +112,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<MainViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<AddStudentViewModel>();
-        //services.AddTransient<AddParentViewModel>();
+        services.AddTransient<AddParentViewModel>();
         services.AddTransient<AddBookingViewModel>();
 
         //Services

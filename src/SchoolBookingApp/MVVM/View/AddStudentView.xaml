@@ -14,7 +14,7 @@
     <Grid Background="#101010">
         <Viewbox Stretch="Uniform">
             <Grid Width="800"
-              Height="450">
+              Height="auto">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -27,6 +27,7 @@
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="50"/>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="75"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
@@ -84,15 +85,38 @@
                        Text="{Binding DateOfBirthLabel}"
                        Style="{DynamicResource SubtitleText}"/>
                 <DatePicker Grid.Column="1"
-                        Grid.Row="5"
-                        SelectedDate="{Binding DateOfBirth, Mode=TwoWay}"
-                        Style="{DynamicResource DateTimePickerDatePickerStyle}"/>
-                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                            Grid.Row="5"
+                            VerticalAlignment="Top"
+                            SelectedDate="{Binding DateOfBirth, Mode=TwoWay}"
+                            Style="{DynamicResource DateTimePickerDatePickerStyle}"/>
+                <TextBlock Grid.Column="0"
                            Grid.Row="6"
+                           Text="{Binding ParentsLabel}"
+                           Style="{DynamicResource SubtitleText}"/>
+                <ListBox Grid.Column="1"
+                         Grid.Row="6"
+                         ItemsSource="{Binding Parents}"
+                         Style="{DynamicResource ParentsListBox}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1} - {2}">
+                                        <Binding Path="Item1.FirstName"/>
+                                        <Binding Path="Item1.LastName"/>
+                                        <Binding Path="Item2"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                           Grid.Row="7"
                            Text="{Binding StatusMessage}"
                            Style="{DynamicResource StatusMessageStyle}"/>
                 <Grid Grid.Column="0" Grid.ColumnSpan="2"
-                  Grid.Row="7">
+                  Grid.Row="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>

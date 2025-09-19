@@ -28,6 +28,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string FailedToAddMessage = "Failed to add student.";
         private const string FailedToUpdateMessage = "Failed to update student.";
         private const string FailedToDeleteMessage = "Failed to delete student.";
+        private const string MissingFieldsMessage = "Not all student information is set.";
+        private const string InvalidStudentSelectedMessage = "The selected student cannot be updated.";
         private const int MessageDisplayTime = 2000;
         private const string StudentTableName = "Students";
 
@@ -38,6 +40,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string LastNameLabel => "Last Name:";
         public static string ClassNameLabel => "Class Name:";
         public static string DateOfBirthLabel => "Date of Birth:";
+        public static string ParentsLabel => "Parents:";
         public string AddUpdateButtonLabel => IsNewStudent ? "Add Student" : "Update Student";
         public static string ClearFormsButtonLabel => "Clear Forms";
         public static string DeleteButtonLabel => "Delete Student";
@@ -231,19 +234,34 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public async Task AddUpdateStudent()
         {
-            if (string.IsNullOrWhiteSpace(FirstName) 
+            if (string.IsNullOrWhiteSpace(FirstName)
                 || string.IsNullOrWhiteSpace(LastName)
                 || string.IsNullOrWhiteSpace(ClassName))
+            {
+                StatusMessage = MissingFieldsMessage;
                 return;
-            if (!IsSqlInjectionSafe(FirstName) 
-                || !IsSqlInjectionSafe(LastName) 
+            }
+
+            if (!IsSqlInjectionSafe(FirstName)
+                || !IsSqlInjectionSafe(LastName)
                 || !IsSqlInjectionSafe(ClassName))
+            {
+                StatusMessage = MissingFieldsMessage;
                 return;
+            }
+
             if (DateOfBirth == DateTime.MinValue)
+            {
+                StatusMessage = MissingFieldsMessage;
                 return;
+            }
+
             if (!IsNewStudent && (_selectedStudent == null || _selectedStudent?.Id <= 0))
+            {
+                StatusMessage = InvalidStudentSelectedMessage;
                 return;
-            Debug.WriteLine("trying to add student");
+            }
+
             int id = _selectedStudent?.Id ?? 0;
             int dateOfBirthInt = DateTimeToInt(DateOfBirth);
 
@@ -287,8 +305,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             StatusMessage = operationSuccess ? RecordDeletedMessage : FailedToDeleteMessage;
 
             // Refresh the student list and clear the forms.
-            ClearForms();
             await SetStudentSelectionList();
+            ClearForms();
         }
 
         /// <summary>
@@ -300,7 +318,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             
             FirstName = string.Empty;
             LastName = string.Empty;
-            DateOfBirth = DateTime.MinValue;
+            DateOfBirth = DateTime.Now;
             ClassName = string.Empty;
             Parents = [];
         }
