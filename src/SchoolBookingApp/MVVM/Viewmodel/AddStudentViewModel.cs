@@ -14,6 +14,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 {
     public class AddStudentViewModel : ViewModelBase
     {
+        //Constant status messages
+        private const string InvalidFirstNameMessage = "First name contains invalid characters.";
+        private const string InvalidLastNameMessage = "Last name contains invalid characters.";
+        private const string InvalidClassNameMessage = "Class name contains invalid characters.";
+        private const int MessageDisplayTime = 2000;
+
+        //Fields
         private readonly IReadOperationService _readOperationService;
         private readonly ICreateOperationService _createOperationService;
         private readonly IUpdateOperationService _updateOperationService;
@@ -45,7 +52,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string StatusMessage
         {
             get => _statusMessage;
-            set => SetProperty(ref _statusMessage, value);
+            set
+            {
+                SetProperty(ref _statusMessage, value);
+                Task.Run(async () => await DelayMessageRemoval());
+            }
         }
 
         // Properties for student details.
@@ -70,12 +81,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string FirstName
         {
             get => _firstName;
-            set => SetProperty(ref _firstName, value);
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _firstName, value);
+                else
+                    StatusMessage = InvalidFirstNameMessage;
+            }
         }
         public string LastName
         {
             get => _lastName;
-            set => SetProperty(ref _lastName, value);
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _lastName, value);
+                else
+                    StatusMessage = InvalidLastNameMessage;
+            }
         }
         public DateTime DateOfBirth
         {
@@ -85,7 +108,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string ClassName
         {
             get => _className;
-            set => SetProperty(ref _className, value);
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _className, value);
+                else
+                    StatusMessage = InvalidClassNameMessage;
+            }
         }
         public List<(Parent, string)> Parents
         {
@@ -152,9 +181,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         public async Task AddUpdateStudent()
         {
-            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName))
+            if (string.IsNullOrWhiteSpace(FirstName) 
+                || string.IsNullOrWhiteSpace(LastName)
+                || string.IsNullOrWhiteSpace(ClassName))
                 return;
-            if (!(IsSqlInjectionSafe(FirstName) && IsSqlInjectionSafe(LastName)))
+            if (!IsSqlInjectionSafe(FirstName) 
+                || !IsSqlInjectionSafe(LastName) 
+                || !IsSqlInjectionSafe(ClassName))
                 return;
             if (DateOfBirth == DateTime.MinValue)
                 return;
@@ -208,6 +241,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             return await _readOperationService.GetStudentData(studentId);
         }
 
+        /// <summary>
+        /// Creates a delay before clearing the status message to allow the user time to read it without displaying the 
+        /// message indefinitely.
+        /// </summary>
+        private async Task DelayMessageRemoval()
+        {
+            await Task.Delay(MessageDisplayTime);
+            StatusMessage = string.Empty;
+        }
+
         // Private static helper methods
 
         /// <summary>
@@ -216,7 +259,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         /// <param name="dateOfBirth">The date of birth in <see cref="DateTime"/> form.</param>
         /// <returns>The date of birth in <see langword="int"/> form.</returns>
-        
+
         private static int DateTimeToInt(DateTime dateOfBirth)
         {
             return int.Parse(dateOfBirth.ToString("yyyyMMdd"));
