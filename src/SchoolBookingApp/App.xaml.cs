@@ -12,6 +12,7 @@ using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Factories;
 using Microsoft.Data.Sqlite;
+using System.Diagnostics;
 
 namespace SchoolBookingApp;
 
@@ -67,12 +68,14 @@ public partial class App : Application
         };
         _connectionFactory = new ConnectionFactory(_connectionInformation);
         _connection = _connectionFactory.GetConnection(_connectionInformation.ConnectionString).GetAwaiter().GetResult();
-
+        
         //Set up dependency injection.
         _serviceCollection = new ServiceCollection();
         _serviceCollection.ConfigureServices(_connectionInformation, _connection);
         _serviceProvider = _serviceCollection.BuildServiceProvider();
         _databaseInitializer = _serviceProvider.GetRequiredService<IDatabaseInitializer>();
+        _databaseInitializer.InitializeDatabaseAsync().GetAwaiter().GetResult();
+        Debug.WriteLine("database initialized");
         _mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
     }
 

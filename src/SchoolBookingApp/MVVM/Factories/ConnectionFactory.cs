@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -57,7 +58,7 @@ namespace SchoolBookingApp.MVVM.Factories
                 throw new ArgumentException("Connection string must start with 'Data Source='.", nameof(connectionString));
 
             EnsureDirectoryExists();
-
+    
             var connection = new SqliteConnection(connectionString);
             await connection.OpenAsync();
             return connection;
