@@ -141,6 +141,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             get => _deleteStudentCommand ??= new RelayCommand(async param => await DeleteStudent());
         }
+        public ICommand? ClearFormsCommand
+        {
+            get => _clearFormsCommand ??= new RelayCommand(param => ClearForms());
+        }
 
         //Constructor
         public AddStudentViewModel(
