@@ -9,7 +9,8 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Viewbox>
         <Grid Width="800"
-          Height="450">
+              Height="450"
+              Background="#101010">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
