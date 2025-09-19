@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
@@ -28,6 +29,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string FailedToDeleteMessage = "Failed to delete student.";
         private const int MessageDisplayTime = 2000;
         private const string StudentTableName = "Students";
+
+        //UI Label Properties
+        public string AddStudentTitle => IsNewStudent ? "Add Student" : "Update Student";
+        public static string SelectStudentLabel => "Select Student:";
+        public static string FirstNameLabel => "First Name:";
+        public static string LastNameLabel => "Last Name:";
+        public static string ClassNameLabel => "Class Name:";
+        public static string DateOfBirthLabel => "Date of Birth:";
+        public string AddUpdateButtonLabel => IsNewStudent ? "Add Student" : "Update Student";
+        public static string ClearFormsButtonLabel => "Clear Forms";
+        public static string DeleteButtonLabel => "Delete Student";
 
         //Fields
         private readonly IReadOperationService _readOperationService;
@@ -56,8 +68,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public bool IsNewStudent
         {
             get => _isNewStudent;
-            set => SetProperty(ref _isNewStudent, value);
-        }
+            set
+            {
+                SetProperty(ref _isNewStudent, value);
+                OnPropertyChanged(nameof(AddStudentTitle));
+                OnPropertyChanged(nameof(AddUpdateButtonLabel));
+            }
+        } 
         public string StatusMessage
         {
             get => _statusMessage;
