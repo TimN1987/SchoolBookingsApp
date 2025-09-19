@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -184,11 +185,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             _firstName = string.Empty;
             _lastName = string.Empty;
-            _dateOfBirth = DateTime.MinValue;
+            _dateOfBirth = DateTime.Now;
             _className = string.Empty;
             _parents = [];
+            _allStudents = [];
 
-            _allStudents = _readOperationService.GetStudentList().GetAwaiter().GetResult();
+            Task.Run(async () => await SetStudentSelectionList());
         }
 
         //Methods
@@ -232,7 +234,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
             if (!IsNewStudent && (_selectedStudent == null || _selectedStudent?.Id <= 0))
                 return;
-
+            Debug.WriteLine("trying to add student");
             int id = _selectedStudent?.Id ?? 0;
             int dateOfBirthInt = DateTimeToInt(DateOfBirth);
 
@@ -252,6 +254,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             StatusMessage = operationSuccess
                 ? (IsNewStudent ? RecordAddedMessage : RecordUpdatedMessage)
                 : (IsNewStudent ? FailedToAddMessage : FailedToUpdateMessage);
+            await SetStudentSelectionList(); //Ensure the student selection list is up to date after changes.
         }
 
         /// <summary>
@@ -276,7 +279,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             // Refresh the student list and clear the forms.
             ClearForms();
-            AllStudents = await _readOperationService.GetStudentList();
+            await SetStudentSelectionList();
         }
 
         /// <summary>
@@ -294,6 +297,15 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         //Private helper methods
+
+        /// <summary>
+        /// Loads the student list and sets the <see cref="AllStudents"/> property to this updated list of students. Used 
+        /// to ensure that the list is loaded lazily on startup and for refreshing the student list after changes are made.
+        /// </summary>
+        private async Task SetStudentSelectionList()
+        {
+            AllStudents = await _readOperationService.GetStudentList();
+        }
 
         /// <summary>
         /// Gets the student information for the selected student to ensure that the user interface is updated to reflect 

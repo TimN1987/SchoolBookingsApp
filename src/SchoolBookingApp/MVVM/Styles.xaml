@@ -19,6 +19,17 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Margin" Value="20,10"/>
     </Style>
+    
+    <!-- StatusMessage TextBlock style -->
+    <Style TargetType="{x:Type TextBlock}" x:Key="StatusMessageStyle">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Foreground" Value="#AA2020"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="20,10"/>
+    </Style>
 
     <!-- Data field TextBox style -->
     <Style TargetType="{x:Type TextBox}" x:Key="DataFieldTextBoxStyle">

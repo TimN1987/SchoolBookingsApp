@@ -21,13 +21,15 @@ namespace SchoolBookingApp.MVVM.View
     /// </summary>
     public partial class AddStudentView : UserControl
     {
-        private AddStudentViewModel _viewModel;
+        private readonly AddStudentViewModel _viewModel;
         public AddStudentView(AddStudentViewModel viewModel)
         {
             InitializeComponent();
 
             _viewModel = viewModel
                 ?? throw new ArgumentNullException(nameof(viewModel));
+
+            DataContext = _viewModel;
         }
     }
 }
