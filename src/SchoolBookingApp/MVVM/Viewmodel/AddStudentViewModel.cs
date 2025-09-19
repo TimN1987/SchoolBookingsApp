@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,11 +16,18 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 {
     public class AddStudentViewModel : ViewModelBase
     {
-        //Constant status messages
+        //Constants
         private const string InvalidFirstNameMessage = "First name contains invalid characters.";
         private const string InvalidLastNameMessage = "Last name contains invalid characters.";
         private const string InvalidClassNameMessage = "Class name contains invalid characters.";
+        private const string RecordAddedMessage = "Student added successfully.";
+        private const string RecordUpdatedMessage = "Student updated successfully.";
+        private const string RecordDeletedMessage = "Student deleted successfully.";
+        private const string FailedToAddMessage = "Failed to add student.";
+        private const string FailedToUpdateMessage = "Failed to update student.";
+        private const string FailedToDeleteMessage = "Failed to delete student.";
         private const int MessageDisplayTime = 2000;
+        private const string StudentTableName = "Students";
 
         //Fields
         private readonly IReadOperationService _readOperationService;
@@ -126,7 +135,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         public ICommand? AddUpdateStudentCommand
         {
-            get => _addUpdateStudentCommand ??= new RelayCommand(async param => await AddUpdateStudent(), null);
+            get => _addUpdateStudentCommand ??= new RelayCommand(async param => await AddUpdateStudent());
+        }
+        public ICommand? DeleteStudentCommand
+        {
+            get => _deleteStudentCommand ??= new RelayCommand(async param => await DeleteStudent());
         }
 
         //Constructor
@@ -179,6 +192,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             Parents = selectedStudent.Parents;
         }
 
+        /// <summary>
+        /// Adds or updates a student record in the database based on the current entries in the user interface. Validates 
+        /// that the entries are complete and safe from SQL injection before attempting to add or update the record. USed 
+        /// to easily handle the creation of new students and the updating of existing students through a single command.
+        /// </summary>
         public async Task AddUpdateStudent()
         {
             if (string.IsNullOrWhiteSpace(FirstName) 
@@ -197,14 +215,47 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             int id = _selectedStudent?.Id ?? 0;
             int dateOfBirthInt = DateTimeToInt(DateOfBirth);
 
+            bool operationSuccess;
+
             if (IsNewStudent)
             {
-                await _createOperationService.AddStudent(FirstName, LastName, dateOfBirthInt, ClassName);
+                operationSuccess = 
+                    await _createOperationService.AddStudent(FirstName, LastName, dateOfBirthInt, ClassName);
             }
             else
             {
-                await _updateOperationService.UpdateStudent(id, FirstName, LastName, dateOfBirthInt, ClassName);
+                operationSuccess = 
+                    await _updateOperationService.UpdateStudent(id, FirstName, LastName, dateOfBirthInt, ClassName);
             }
+
+            StatusMessage = operationSuccess
+                ? (IsNewStudent ? RecordAddedMessage : RecordUpdatedMessage)
+                : (IsNewStudent ? FailedToAddMessage : FailedToUpdateMessage);
+        }
+
+        /// <summary>
+        /// Deletes the currently selected student from the database. Validates that a student is selected and that it is 
+        /// not <see langword="null"/>, not a new student, and has a valid ID before attempting to delete the record. 
+        /// Refreshes the list of students and clears the forms after deletion to ensure that the user interface is up to 
+        /// date. Allows for easy removal of students from the database.
+        /// </summary>
+        public async Task DeleteStudent()
+        {
+            if (IsNewStudent || _selectedStudent == null || _selectedStudent?.Id <= 0)
+                return;
+
+            int studentId = _selectedStudent?.Id ?? 0;
+
+            if (studentId == 0)
+                return;
+
+            bool operationSuccess = await _deleteOperationService.DeleteRecord(StudentTableName, studentId);
+
+            StatusMessage = operationSuccess ? RecordDeletedMessage : FailedToDeleteMessage;
+
+            // Refresh the student list and clear the forms.
+            ClearForms();
+            AllStudents = await _readOperationService.GetStudentList();
         }
 
         /// <summary>

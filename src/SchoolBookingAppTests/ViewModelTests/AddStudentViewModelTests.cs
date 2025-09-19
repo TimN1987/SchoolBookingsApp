@@ -62,6 +62,9 @@ namespace SchoolBookingAppTests.ViewModelTests
             _updateOperationServiceMock
                 .Setup(x => x.UpdateStudent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
+            _deleteOperationServiceMock
+                .Setup(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()))
+                .Returns(Task.FromResult(true));
 
             _viewModel = new AddStudentViewModel(
                 _readOperationServiceMock.Object,
@@ -463,6 +466,96 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             _createOperationServiceMock.Verify(x => x.AddStudent(_testString, _testString, _testDateOfBirthInt, _testString), Times.Once);
             _updateOperationServiceMock.Verify(x => x.UpdateStudent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
+        }
+
+        //DeleteStudent tests
+
+        /// <summary>
+        /// Verifies that when the <see cref="AddStudentViewModel.DeleteStudent"/> method is called while the the <see 
+        /// cref="AddStudentViewModel.IsNewStudent"/> property is set to <see langword="true"/>, the 
+        /// <see cref="IDeleteOperationService.DeleteRecord"/> method is not called. Ensures that no delete operation is 
+        /// attempted on a new student who does not yet exist in the database.
+        /// </summary>
+        [Fact]
+        public async Task DeleteStudent_IsNewStudent_DeleteRecordNotCalled()
+        {
+            //Arrange
+            _viewModel.IsNewStudent = true;
+
+            //Act
+            await _viewModel.DeleteStudent();
+
+            //Assert
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that when the <see cref="AddStudentViewModel.DeleteStudent"/> method is called with a <see 
+        /// langword="null"/> <see cref="AddStudentViewModel.SelectedStudent"/> for an existing student (with the <see 
+        /// cref="AddStudentViewModel.IsNewStudent"/> property set to <see langword="false"/>), the <see 
+        /// cref="DeleteOperationService.DeleteRecord"/> method is not called. Ensures that no delete operation is 
+        /// attempted without a valid selected student.
+        /// </summary>
+        [Fact]
+        public async Task DeleteStudent_NullSelectedStudent_DeleteRecordNotCalled()
+        {
+            //Arrange
+            _viewModel.IsNewStudent = false;
+            _viewModel.SelectedStudent = null;
+
+            //Act
+            await _viewModel.DeleteStudent();
+
+            //Assert
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that when the <see cref="AddStudentViewModel.DeleteStudent"/> method is called with an invalid Id for
+        /// the <see cref="AddStudentViewModel.SelectedStudent"/> for an existing student (with the <see 
+        /// cref="AddStudentViewModel.IsNewStudent"/> property set to <see langword="false"/>), the <see 
+        /// cref="DeleteOperationService.DeleteRecord"/> method is not called. Ensures that no delete operation is 
+        /// attempted without a valid selected student.
+        /// </summary>
+        [Fact]
+        public async Task DeleteStudent_InvalidSelectedStudentId_DeleteRecordNotCalled()
+        {
+            //Arrange
+            _viewModel.IsNewStudent = false;
+            _viewModel.SelectedStudent = new SearchResult()
+            {
+                Id = -1,
+                FirstName = "Invalid",
+                LastName = "Student",
+                Category = "Student"
+            };
+
+            //Act
+            await _viewModel.DeleteStudent();
+
+            //Assert
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that when the <see cref="AddStudentViewModel.DeleteStudent"/> method is called with a valid Id for the 
+        /// <see cref="AddStudentViewModel.SelectedStudent"/>, then the <see cref="IDeleteOperationService.DeleteRecord"/> 
+        /// method is called exactly once with the correct parameters, and so the correct student is deleted from the 
+        /// database. Ensures that student deletion is handled correctly.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task DeleteStudent_ValidSelectedStudentId_CallsDeleteRecordOnce()
+        {
+            //Arrange
+            _viewModel.IsNewStudent = false;
+            _viewModel.SelectedStudent = _testSearchResult;
+
+            //Act
+            await _viewModel.DeleteStudent();
+
+            //Assert
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord("Students", _testSearchResult.Id), Times.Once);
         }
     }
 }
