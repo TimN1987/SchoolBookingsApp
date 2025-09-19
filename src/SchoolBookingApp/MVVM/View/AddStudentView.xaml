@@ -4,91 +4,101 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
+             xmlns:converters="clr-namespace:SchoolBookingApp.MVVM.Converters"
              d:DataContext="{d:DesignInstance Type=viewmodel:AddStudentViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Viewbox>
-        <Grid Width="800"
-              Height="450"
-              Background="#101010">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="100"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="100"/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+    <UserControl.Resources>
+        <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+    </UserControl.Resources>
+    <Grid Background="#101010">
+        <Viewbox Stretch="Uniform">
+            <Grid Width="800"
+              Height="450">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="100"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
                        Grid.Row="0"
                        Text="{Binding AddStudentTitle}"
                        Style="{DynamicResource TitleText}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="1"
                        Text="{Binding SelectStudentLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <ComboBox Grid.Column="1"
+                <ComboBox Grid.Column="1"
                       Grid.Row="1"
                       SelectedItem="{Binding SelectedStudent, Mode=TwoWay}"
                       ItemsSource="{Binding AllStudents}"
                       Style="{DynamicResource SelectPersonComboBoxStyle}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="2"
                        Text="{Binding FirstNameLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBox Grid.Column="1"
+                <TextBox Grid.Column="1"
                      Grid.Row="2"
                      Text="{Binding FirstName, Mode=TwoWay}"
                      Style="{DynamicResource DataFieldTextBoxStyle}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="3"
                        Text="{Binding LastNameLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBox Grid.Column="1"
+                <TextBox Grid.Column="1"
                      Grid.Row="3"
                      Text="{Binding LastName, Mode=TwoWay}"
                      Style="{DynamicResource DataFieldTextBoxStyle}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="4"
                        Text="{Binding ClassNameLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBox Grid.Column="1"
+                <TextBox Grid.Column="1"
                      Grid.Row="4"
                      Text="{Binding ClassName, Mode=TwoWay}"
                      Style="{DynamicResource DataFieldTextBoxStyle}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="5"
                        Text="{Binding DateOfBirthLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <DatePicker Grid.Column="1"
+                <DatePicker Grid.Column="1"
                         Grid.Row="5"
                         SelectedDate="{Binding DateOfBirth, Mode=TwoWay}"
                         Style="{DynamicResource DateTimePickerDatePickerStyle}"/>
-            <Grid Grid.Column="0" Grid.ColumnSpan="2"
-                  Grid.Row="6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                           Grid.Row="6"
+                           Text="{Binding StatusMessage}"
+                           Style="{DynamicResource StatusMessageStyle}"/>
+                <Grid Grid.Column="0" Grid.ColumnSpan="2"
+                  Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
                         Content="{Binding AddUpdateButtonLabel}"
                         Command="{Binding AddUpdateStudentCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
-                <Button Grid.Column="1"
+                    <Button Grid.Column="1"
                         Content="{Binding ClearFormsButtonLabel}"
                         Command="{Binding ClearFormsCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
-                <Button Grid.Column="2"
+                    <Button Grid.Column="2"
                         Content="{Binding DeleteButtonLabel}"
                         Command="{Binding DeleteStudentCommand}"
-                        Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                        Style="{DynamicResource StandardSelectionButtonStyle}"
+                            IsEnabled="{Binding IsNewStudent, Converter={StaticResource BooleanInverterConverter}}"/>
+                </Grid>
             </Grid>
-        </Grid>
-    </Viewbox>
+        </Viewbox>
+    </Grid>
 </UserControl>

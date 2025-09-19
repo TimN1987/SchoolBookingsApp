@@ -185,7 +185,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             _firstName = string.Empty;
             _lastName = string.Empty;
-            _dateOfBirth = DateTime.MinValue;
+            _dateOfBirth = DateTime.Now;
             _className = string.Empty;
             _parents = [];
             _allStudents = [];
@@ -234,7 +234,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
             if (!IsNewStudent && (_selectedStudent == null || _selectedStudent?.Id <= 0))
                 return;
-
+            Debug.WriteLine("trying to add student");
             int id = _selectedStudent?.Id ?? 0;
             int dateOfBirthInt = DateTimeToInt(DateOfBirth);
 

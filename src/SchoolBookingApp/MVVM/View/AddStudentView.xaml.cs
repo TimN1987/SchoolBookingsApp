@@ -28,6 +28,8 @@ namespace SchoolBookingApp.MVVM.View
 
             _viewModel = viewModel
                 ?? throw new ArgumentNullException(nameof(viewModel));
+
+            DataContext = _viewModel;
         }
     }
 }
