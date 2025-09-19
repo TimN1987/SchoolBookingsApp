@@ -6,7 +6,11 @@
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+    <Grid Width="800"
+          Height="450">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>    
     </Grid>
 </UserControl>
