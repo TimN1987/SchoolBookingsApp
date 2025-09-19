@@ -113,7 +113,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (IsSqlInjectionSafe(value))
                     SetProperty(ref _firstName, value);
                 else
+                {
                     StatusMessage = InvalidFirstNameMessage;
+                    OnPropertyChanged(nameof(FirstName));
+                }
             }
         }
         public string LastName
@@ -124,7 +127,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (IsSqlInjectionSafe(value))
                     SetProperty(ref _lastName, value);
                 else
+                {
                     StatusMessage = InvalidLastNameMessage;
+                    OnPropertyChanged(LastName);
+                }
             }
         }
         public DateTime DateOfBirth
@@ -140,7 +146,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 if (IsSqlInjectionSafe(value))
                     SetProperty(ref _className, value);
                 else
+                {
                     StatusMessage = InvalidClassNameMessage;
+                    OnPropertyChanged(nameof(ClassName));
+                }
             }
         }
         public List<(Parent, string)> Parents

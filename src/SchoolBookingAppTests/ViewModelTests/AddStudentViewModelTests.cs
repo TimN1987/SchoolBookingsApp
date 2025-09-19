@@ -265,7 +265,7 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.Equal(string.Empty, viewModel.FirstName);
             Assert.Equal(string.Empty, viewModel.LastName);
-            Assert.Equal(DateTime.MinValue, viewModel.DateOfBirth);
+            Assert.Equal(DateTime.Now.Date, viewModel.DateOfBirth.Date);
             Assert.Equal(string.Empty, viewModel.ClassName);
         }
 
