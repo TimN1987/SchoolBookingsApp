@@ -4,6 +4,8 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
@@ -18,22 +20,21 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IDeleteOperationService _deleteOperationService;
 
         private bool _isNewStudent;
-        private bool _isCurrentParent;
+        private string _statusMessage;
 
         // Fields for student details.
         private List<SearchResult> _allStudents;
-        private readonly List<SearchResult> _allParents;
-
         private SearchResult? _selectedStudent;
         private string _firstName;
         private string _lastName;
         private DateTime _dateOfBirth;
         private string _className;
         private List<(Parent, string)> _parents;
-        private string _parentName;
-        private string _relationship;
-        private SearchResult? _selectedNewParent;
-        private (Parent parentDetails, string relationship)? _selectedCurrentParent;
+
+        //Commands
+        private ICommand? _addUpdateStudentCommand;
+        private ICommand? _deleteStudentCommand;
+        private ICommand? _clearFormsCommand;
 
         //Properties
         public bool IsNewStudent
@@ -41,10 +42,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _isNewStudent;
             set => SetProperty(ref _isNewStudent, value);
         }
-        public bool IsCurrentParent
+        public string StatusMessage
         {
-            get => _isCurrentParent;
-            set => SetProperty(ref _isCurrentParent, value);
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
         }
 
         // Properties for student details.
@@ -53,7 +54,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _allStudents;
             set => SetProperty(ref _allStudents, value);
         }
-        public List<SearchResult> AllParents => _allParents;
         public SearchResult? SelectedStudent
         {
             get => _selectedStudent;
@@ -61,7 +61,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             {
                 if (value.Equals(_selectedStudent))
                     return;
-
+                
                 SetProperty(ref _selectedStudent, value);
                 IsNewStudent = false;
                 Task.Run(async () => await DisplayStudentDetails());
@@ -92,90 +92,40 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _parents;
             set => SetProperty(ref _parents, value);
         }
-        public string ParentName
+
+        //Commands
+
+        public ICommand? AddUpdateStudentCommand
         {
-            get => _parentName;
-            set => SetProperty(ref _parentName, value);
+            get => _addUpdateStudentCommand ??= new RelayCommand(async param => await AddUpdateStudent(), null);
         }
-        public string Relationship
-        {
-            get => _relationship;
-            set => SetProperty(ref _relationship, value);
-        }
-        public SearchResult? SelectedNewParent
-        {
-            get => _selectedNewParent;
-            set
-            {
-                if (value == null)
-                {
-                    SetProperty(ref _selectedNewParent, null);
-                    return;
-                }
-
-                if (value.Equals(_selectedNewParent))
-                    return;
-
-                SetProperty(ref _selectedNewParent, value);
-                IsCurrentParent = IsParentAssignedToCurrentStudent();
-
-                if (_isCurrentParent)
-                    SetSelectedCurrentParent();
-                else
-                    SelectedCurrentParent = null; //Ensures that only one parent is selected to avoid UI confusion.
-            }
-        }
-        public (Parent parentDetails, string relationship)? SelectedCurrentParent
-        {
-            get => _selectedCurrentParent;
-            set
-            {
-                if (value == null)
-                {
-                    SetProperty(ref _selectedCurrentParent, null);
-                    return;
-                }
-
-                if (value.Equals(_selectedCurrentParent))
-                    return;
-
-                SetProperty(ref _selectedCurrentParent, value);
-                IsCurrentParent = true;
-                DisplayCurrentParentDetails();
-                SelectedNewParent = null; //Ensures that only one parent is selected to avoid UI confusion.
-            }
-        }
-
 
         //Constructor
         public AddStudentViewModel(
-            IReadOperationService readOperationService, 
-            ICreateOperationService createOperationService, 
-            IUpdateOperationService updateOperationService, 
+            IReadOperationService readOperationService,
+            ICreateOperationService createOperationService,
+            IUpdateOperationService updateOperationService,
             IDeleteOperationService deleteOperationService)
         {
-            _readOperationService = readOperationService 
+            _readOperationService = readOperationService
                 ?? throw new ArgumentNullException(nameof(readOperationService));
-            _createOperationService = createOperationService 
+            _createOperationService = createOperationService
                 ?? throw new ArgumentNullException(nameof(createOperationService));
-            _updateOperationService = updateOperationService 
+            _updateOperationService = updateOperationService
                 ?? throw new ArgumentNullException(nameof(updateOperationService));
-            _deleteOperationService = deleteOperationService 
+            _deleteOperationService = deleteOperationService
                 ?? throw new ArgumentNullException(nameof(deleteOperationService));
 
             _isNewStudent = true;
-            _isCurrentParent = true;
+            _statusMessage = string.Empty;
 
             _firstName = string.Empty;
             _lastName = string.Empty;
             _dateOfBirth = DateTime.MinValue;
             _className = string.Empty;
-            _parentName = string.Empty;
-            _relationship = string.Empty;
             _parents = [];
 
             _allStudents = _readOperationService.GetStudentList().GetAwaiter().GetResult();
-            _allParents = _readOperationService.GetParentList().GetAwaiter().GetResult();
         }
 
         //Methods
@@ -195,52 +145,33 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             FirstName = selectedStudent.FirstName;
             LastName = selectedStudent.LastName;
+            DateOfBirth = IntToDateTime(selectedStudent.DateOfBirth);
+            ClassName = selectedStudent.ClassName;
             Parents = selectedStudent.Parents;
         }
 
-        /// <summary>
-        /// Updates the UI properties to display the name and relationship for a selected parent who is currently assigned 
-        /// to the selected student.
-        /// </summary>
-        public void DisplayCurrentParentDetails()
+        public async Task AddUpdateStudent()
         {
-            if (_selectedCurrentParent == null || _selectedCurrentParent?.parentDetails.Id <= 0)
+            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName))
+                return;
+            if (!(IsSqlInjectionSafe(FirstName) && IsSqlInjectionSafe(LastName)))
+                return;
+            if (DateOfBirth == DateTime.MinValue)
+                return;
+            if (!IsNewStudent && (_selectedStudent == null || _selectedStudent?.Id <= 0))
                 return;
 
-            ParentName = 
-                $"{_selectedCurrentParent?.parentDetails.FirstName ?? ""} {_selectedCurrentParent?.parentDetails.LastName ?? ""}";
-            Relationship = _selectedCurrentParent?.relationship ?? "";
-        }
+            int id = _selectedStudent?.Id ?? 0;
+            int dateOfBirthInt = DateTimeToInt(DateOfBirth);
 
-        /// <summary>
-        /// Checks if the list of parents already assigned to the currently selected student contains the new parent 
-        /// selected from the <see cref="AllParents"/> list. Used to avoid the option to add the same parent multiple times.
-        /// </summary>
-        /// <returns><c>true</c> if the parent has already been assigned to the selected student. <c>false</c> if the 
-        /// parent has not yet been assigned to the selected student.</returns>
-        public bool IsParentAssignedToCurrentStudent()
-        {
-            int selectedParentId = _selectedNewParent?.Id ?? 0;
-            List<int> assignedParentIds = _parents
-                .Select(parent => parent.Item1.Id)
-                .ToList();
-
-            return assignedParentIds.Contains(selectedParentId);
-        }
-
-        /// <summary>
-        /// Updates the <see cref="SelectedCurrentParent"/> property given the parent id for a newly selected parent who 
-        /// has already been assigned to the selected student. Used to ensure that a parent cannot be assigned to a 
-        /// student multiple times, and that the parent details are available for editing when selected.
-        /// </summary>
-        public void SetSelectedCurrentParent()
-        {
-            int selectedParentId = _selectedNewParent?.Id ?? 0;
-            (Parent, string) selectedParent = _parents
-                .Where(parent => parent.Item1.Id == selectedParentId)
-                .FirstOrDefault();
-
-            SelectedCurrentParent = selectedParent;
+            if (IsNewStudent)
+            {
+                await _createOperationService.AddStudent(FirstName, LastName, dateOfBirthInt, ClassName);
+            }
+            else
+            {
+                await _updateOperationService.UpdateStudent(id, FirstName, LastName, dateOfBirthInt, ClassName);
+            }
         }
 
         /// <summary>
@@ -254,8 +185,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             LastName = string.Empty;
             DateOfBirth = DateTime.MinValue;
             ClassName = string.Empty;
-            ParentName = string.Empty;
-            Relationship = string.Empty;
             Parents = [];
         }
 
@@ -279,8 +208,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             return await _readOperationService.GetStudentData(studentId);
         }
 
-
-
         // Private static helper methods
 
         /// <summary>
@@ -294,6 +221,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             return int.Parse(dateOfBirth.ToString("yyyyMMdd"));
         }
+
         /// <summary>
         /// Converts an <see langword="int"/> into a <see cref="DateTime"/> representation. Used to retrieve a date of birth 
         /// stored in the database in integer form for ease of use in the viewmodel.
@@ -304,6 +232,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             var stringDateForm = dateOfBirth.ToString();
             return DateTime.ParseExact(stringDateForm, "yyyyMMdd", null);
+        }
+
+        /// <summary>
+        /// Verifies that a given string input is safe from SQL injection attacks by checking that it only contains 
+        /// letters, digits, whitespace, hyphens, and underscores. Allows verification of user input before it is used to 
+        /// add or update database records.
+        /// </summary>
+        /// <param name="input">The <see langword="string"/> to be checked.</param>
+        /// <returns><c>true</c> if the <paramref name="input"/> is SQL injection safe. <c>false</c> if invalid characters 
+        /// that could allow SQL injection attacks.</returns>
+        private static bool IsSqlInjectionSafe(string input)
+        {
+            return input.All(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-' || c == '_');
         }
     }
 }
