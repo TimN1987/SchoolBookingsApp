@@ -17,6 +17,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidFirstNameMessage = "First name cannot contain invalid characters.";
         private const string InvalidLastNameMessage = "Last name cannot contain invalid characters.";
         private const string InvalidRelationshipMessage = "Relationship cannot contain invalid characters.";
+        private const string InvalidParentSelectionMessage = "Invalid parent selected. Cannot retrieve data.";
+        private const string MissingParentInformationMessage = "No information could be found for the selected parent.";
 
         //UI Label Properties
         public string AddParentTitle => IsNewParent ? "Add Parent" : "Update Parent";
@@ -24,7 +26,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string SelectStudentLabel => "Select Student:";
         public static string FirstNameLabel => "First Name:";
         public static string LastNameLabel => "Last Name:";
-        public static string AddChildHeading => "Add Child:";
+        public string AddChildHeading => IsAssignedStudentSelected ? "Update Child" : "Add Child:";
         public static string ChildNameLabel => "Child Name:";
         public static string RelationshipLabel => "Relationship:";
         public static string AssignedChildrenLabel => "Assigned Children:";
@@ -70,6 +72,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             {
                 SetProperty(ref _isNewParent, value);
                 OnPropertyChanged(nameof(AddParentTitle));
+                OnPropertyChanged(nameof(AddUpdateParentButtonLabel));
             }
         }
         public bool IsAssignedStudentSelected
@@ -78,6 +81,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set
             {
                 SetProperty(ref _isAssignedStudentSelected, value);
+                OnPropertyChanged(nameof(AddChildHeading));
                 OnPropertyChanged(nameof(AddChildButtonLabel));
             }
         }
@@ -103,7 +107,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public SearchResult? SelectedParent
         {
             get => _selectedParent;
-            set => SetProperty(ref _selectedParent, value);
+            set
+            {
+                if (value == null)
+                {
+                    SetProperty(ref _selectedParent, null);
+                    return;
+                }
+
+                SetProperty(ref _selectedParent, value);
+                Task.Run(async () => await DisplayParentDetails());
+            }
         }
         public List<SearchResult> AllStudents
         {
@@ -122,10 +136,20 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 }
                 
                 SetProperty(ref _selectedUnassignedStudent, value);
-                //CHECK - is this student already assigned ??? add new method
+
+                if (IsAssignedChild(_selectedUnassignedStudent?.Id ?? 0))
+                {
+                    SetAssignedChild(_selectedUnassignedStudent?.Id ?? 0);
+                    IsAssignedStudentSelected = true;
+                    SetProperty(ref _selectedUnassignedStudent, null);
+                }
+                else
+                {
+                    IsAssignedStudentSelected = false;
+                    SelectedAssignedChild = null;
+                }
+
                 DisplayStudentDetails();
-                IsAssignedStudentSelected = false;
-                SelectedAssignedChild = null;
             }
         }
         public string FirstName
@@ -195,7 +219,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
                 DisplayStudentDetails();
                 IsAssignedStudentSelected = true;
-                SelectedAssignedChild = null;
+                SelectedUnassignedStudent = null;
             }
         }
 
@@ -259,6 +283,81 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         /// <summary>
+        /// Displays the parent information for a selected <see cref="Parent"/>. Used to update the UI Properties when a 
+        /// new parent is selected to ensure correct information is displayed.
+        /// </summary>
+        private async Task DisplayParentDetails()
+        {
+            Parent? parentInformation = await GetParentInformation();
+
+            if (parentInformation == null)
+            {
+                StatusMessage = MissingParentInformationMessage;
+                SelectedParent = null;
+                IsNewParent = true;
+                return;
+            }
+
+            FirstName = parentInformation?.FirstName ?? string.Empty;
+            LastName = parentInformation?.LastName ?? string.Empty;
+
+            Children = await GetChildrenList(parentInformation);
+
+            SelectedAssignedChild = null;
+            SelectedUnassignedStudent = null;
+            IsNewParent = false;
+        }
+
+        /// <summary>
+        /// Retrieves the parent information stored in the database for the <see cref="SelectedParent"/>. Used to update 
+        /// the UI Properties with the correct information when the user selects a pre-existing parent to display.
+        /// </summary>
+        /// <returns>A nullable <see cref="Parent"/> instance containing the information for the <see cref="SelectedParent"/>. 
+        /// Returns <see langword="null"/> if the <see cref="SelectedParent"/> is <see langword="null"/> or has an 
+        /// invalid id number that cannot be retrieved from the database.</returns>
+        private async Task<Parent?> GetParentInformation()
+        {
+            int id = _selectedParent?.Id ?? 0;
+
+            if (_selectedParent == null || id <= 0)
+            {
+                StatusMessage = InvalidParentSelectionMessage;
+                return null;
+            }
+
+            return await _readOperationService.GetParentInformation(id);
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="Student"/> information for each child on the children list for a <see cref="Parent"/>. 
+        /// Used to retrieve necessary <see cref="Student"/> information to set the UI properties and display the correct 
+        /// data for each child.
+        /// </summary>
+        /// <param name="parentInformation">The <see cref="Parent"/> instance containing information about the given 
+        /// parent.</param>
+        /// <returns>A list of <see cref="Student"/> objects representing each child on the list, with a <see 
+        /// langword="string"/> representation of the relationship to the parent.</returns>
+        private async Task<List<(Student, string)>> GetChildrenList(Parent? parentInformation)
+        {
+            List<(Student, string)> children = [];
+
+            foreach ((int id, string relationship) in parentInformation?.Children ?? [])
+            {
+                if (id <= 0)
+                    continue;
+
+                Student student = await _readOperationService.GetStudentData(id);
+
+                if (student.FirstName == "No student found")
+                    continue;
+
+                children.Add((student, relationship));
+            }
+
+            return children;
+        }
+
+        /// <summary>
         /// Ensures that the UI properties displaying parent details are updated when a new student is selected.
         /// </summary>
         private void DisplayStudentDetails()
@@ -266,13 +365,53 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             if (_isAssignedStudentSelected && _selectedAssignedChild != null)
             {
                 ChildName = $"{_selectedAssignedChild.FirstName} {_selectedAssignedChild.LastName}";
-                //find relationship information ???
+
+                //Find the relationship for the selected child from the Children list.
+                string relationship = _children
+                    .Where(child => child.child.Id == _selectedAssignedChild.Id)
+                    .Select(child => child.relationship)
+                    .FirstOrDefault()
+                    ?? string.Empty;
+
+                Relationship = relationship;
             }
             else if (!_isAssignedStudentSelected && _selectedUnassignedStudent != null)
             {
                 ChildName = $"{_selectedUnassignedStudent?.FirstName} {_selectedUnassignedStudent?.LastName}";
                 Relationship = string.Empty; 
             }
+        }
+
+        /// <summary>
+        /// Checks if a given student id number is contained in the <see cref="Children"/> list for the currently selected 
+        /// <see cref="Parent"/>. Used to check if the <see cref="SelectedUnassignedStudent"/> has already been added to 
+        /// the <see cref="Children"/> list.
+        /// </summary>
+        /// <param name="id">The id number for the <see cref="SelectedUnassignedStudent"/>.</param>
+        /// <returns><see langword="true"/> if the <see cref="SelectedUnassignedStudent"/> has already been assigned to the 
+        /// selected <see cref="Parent"/>. <see langword="false"/> if the <see cref="SelectedUnassignedStudent"/> has not 
+        /// been assigned yet.</returns>
+        private bool IsAssignedChild(int id)
+        {
+            var assignedIdHashSet = _children
+                .Select(child => child.child.Id)
+                .ToHashSet();
+            return assignedIdHashSet.Contains(id);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="SelectedAssignedChild"/> to the <see cref="Student"/> with the given <paramref name="id"/>. 
+        /// Used to set the correct student as the <see cref="SelectedAssignedChild"/> when a <see 
+        /// cref="SelectedUnassignedStudent"/> is selected that already appears on the <see cref="Children"/> list.
+        /// </summary>
+        /// <param name="id">The id number of the selected student.</param>
+        private void SetAssignedChild(int id)
+        {
+            var assignedStudent = _children
+                .Where(child => child.child.Id == id)
+                .Select(child => child.child)
+                .FirstOrDefault();
+            SelectedAssignedChild = assignedStudent;
         }
 
         //Private static methods
