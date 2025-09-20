@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using SchoolBookingApp.MVVM.Database;
+using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel;
 
 namespace SchoolBookingAppTests.ViewModelTests
@@ -19,9 +20,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string RecordAddedMessage = "Parent added successfully.";
         private const string RecordUpdatedMessage = "Parent updated successfully.";
         private const string RecordDeletedMessage = "Parent deleted successfully.";
-        private const string FailedToAddMessage = "Failed to add parent.";
-        private const string FailedToUpdateMessage = "Failed to update parent.";
-        private const string FailedToDeleteMessage = "Failed to delete parent.";
+        private const string InvalidParentUpdateMessage = "Cannot update - the selected parent is invalid.";
 
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<ICreateOperationService> _createOperationServiceMock;
@@ -29,6 +28,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly Mock<IDeleteOperationService> _deleteOperationServiceMock;
 
         private readonly AddParentViewModel _viewModel;
+        private readonly SearchResult _testParent;
 
         public AddParentViewModelTests()
         {
@@ -42,6 +42,14 @@ namespace SchoolBookingAppTests.ViewModelTests
                 _createOperationServiceMock.Object, 
                 _updateOperationServiceMock.Object, 
                 _deleteOperationServiceMock.Object);
+
+            _testParent = new SearchResult()
+            {
+                Id = 1,
+                FirstName = TestName,
+                LastName = TestName,
+                Category = "Parent"
+            };
 
             _readOperationServiceMock
                 .Setup(x => x.GetParentList())
@@ -176,6 +184,83 @@ namespace SchoolBookingAppTests.ViewModelTests
                 x.AddParent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
             _updateOperationServiceMock.Verify(x =>
                 x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="CreateOperationService.AddParent"/> method is called exactly once when the 
+        /// <see cref="AddParentViewModel.IsNewParent"/> value is set to <see langword="true"/> and the <see 
+        /// cref="AddParentViewModel.AddUpdateParent"/> method is called. Ensures that the correct database operation is 
+        /// run to create a new record for the new parent.
+        /// </summary>
+        [Fact]
+        public async Task AddUpdateParent_IsNewParent_CreateOperationServiceAddParentCalledOnce()
+        {
+            //Arrange
+            _viewModel.IsNewParent = true;
+            _viewModel.FirstName = TestName;
+            _viewModel.LastName = TestName;
+
+            //Act
+            await _viewModel.AddUpdateParent();
+
+            //Assert
+            Assert.Equal(RecordAddedMessage, _viewModel.StatusMessage);
+            _createOperationServiceMock.Verify(x =>
+                x.AddParent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Once);
+            _updateOperationServiceMock.Verify(x =>
+                x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="AddParentViewModel.StatusMessage"/> is update to an error message when the <see 
+        /// cref="AddParentViewModel.AddUpdateParent"/> method is called with no parent selected and the <see 
+        /// cref="AddParentViewModel.IsNewParent"/> value set to <see langword="false"/>. Ensures that the correct error 
+        /// message is shown when the user attempts to update an invalid parent and that no database operations are 
+        /// attempted.
+        [Fact]
+        public async Task AddUpdateParent_NotIsNewParentNoSelectedParent_StatusMessageSetToInvalidParentMessage()
+        {
+            //Arrange
+            _viewModel.IsNewParent = false;
+            _viewModel.FirstName = TestName;
+            _viewModel.LastName = TestName;
+            _viewModel.SelectedParent = null;
+
+            //Act
+            await _viewModel.AddUpdateParent();
+
+            //Assert
+            Assert.Equal(InvalidParentUpdateMessage, _viewModel.StatusMessage);
+            _createOperationServiceMock.Verify(x =>
+                x.AddParent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
+            _updateOperationServiceMock.Verify(x =>
+                x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="UpdateOperationService.UpdateParent"/> method is called exactly once when the 
+        /// <see cref="AddParentViewModel.IsNewParent"/> value is set to <see langword="false"/> and the <see 
+        /// cref="AddParentViewModel.AddUpdateParent"/> method is called. Ensures that the correct database operation is 
+        /// run to update an existing record for the current parent.
+        /// </summary>
+        [Fact]
+        public async Task AddUpdateParent_NotIsNewParent_UpdateOperationServiceUpdateParentCalledOnce()
+        {
+            //Arrange
+            _viewModel.IsNewParent = false;
+            _viewModel.FirstName = TestName;
+            _viewModel.LastName = TestName;
+            _viewModel.SelectedParent = _testParent;
+
+            //Act
+            await _viewModel.AddUpdateParent();
+
+            //Assert
+            Assert.Equal(RecordUpdatedMessage, _viewModel.StatusMessage);
+            _createOperationServiceMock.Verify(x =>
+                x.AddParent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
+            _updateOperationServiceMock.Verify(x =>
+                x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Once);
         }
     }
 }
