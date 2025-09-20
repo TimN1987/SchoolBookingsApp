@@ -283,16 +283,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public async Task AddUpdateParent()
         {
             if (string.IsNullOrWhiteSpace(_firstName)
-                || string.IsNullOrWhiteSpace(_lastName)
-                || string.IsNullOrWhiteSpace(_relationship))
+                || string.IsNullOrWhiteSpace(_lastName))
             {
                 StatusMessage = EmptyFieldsMessage;
                 return;
             }
 
             if (!IsSqlInjectionSafe(_firstName)
-                || !IsSqlInjectionSafe(_lastName)
-                || IsSqlInjectionSafe(_relationship))
+                || !IsSqlInjectionSafe(_lastName))
             {
                 StatusMessage = InvalidCharactersMessage;
                 return;
