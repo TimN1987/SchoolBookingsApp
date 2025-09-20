@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
@@ -17,8 +19,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidFirstNameMessage = "First name cannot contain invalid characters.";
         private const string InvalidLastNameMessage = "Last name cannot contain invalid characters.";
         private const string InvalidRelationshipMessage = "Relationship cannot contain invalid characters.";
+        private const string InvalidCharactersMessage = "Cannot add or update parent. Invalid characters found in information.";
         private const string InvalidParentSelectionMessage = "Invalid parent selected. Cannot retrieve data.";
         private const string MissingParentInformationMessage = "No information could be found for the selected parent.";
+        private const string EmptyFieldsMessage = "Complete all information before adding or updating a parent.";
+        private const string InvalidParentUpdateMessage = "Cannot update - the selected parent is invalid.";
+        private const string RecordAddedMessage = "Parent added successfully.";
+        private const string RecordUpdatedMessage = "Parent updated successfully.";
+        private const string RecordDeletedMessage = "Parent deleted successfully.";
+        private const string FailedToAddMessage = "Failed to add parent.";
+        private const string FailedToUpdateMessage = "Failed to update parent.";
+        private const string FailedToDeleteMessage = "Failed to delete parent.";
 
         //UI Label Properties
         public string AddParentTitle => IsNewParent ? "Add Parent" : "Update Parent";
@@ -223,6 +234,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        //Commands
+        public ICommand? AddUpdateParentCommand => _addUpdateParentCommand
+            ??= new RelayCommand(async param => await AddUpdateParent());
+
         //Constructor
 
         public AddParentViewModel(
@@ -259,7 +274,101 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Methods
 
+        /// <summary>
+        /// Adds or updates the current parent with the given information. Called from the <see cref="AddUpdateParentCommand"/> 
+        /// to allow easy saving of parent information.
+        /// </summary>
+        /// <remarks>Contains validation to ensure that inputs are SQL injection safe and are not null, empty or 
+        /// whitespace.</remarks>
+        public async Task AddUpdateParent()
+        {
+            if (string.IsNullOrWhiteSpace(_firstName)
+                || string.IsNullOrWhiteSpace(_lastName)
+                || string.IsNullOrWhiteSpace(_relationship))
+            {
+                StatusMessage = EmptyFieldsMessage;
+                return;
+            }
+
+            if (!IsSqlInjectionSafe(_firstName)
+                || !IsSqlInjectionSafe(_lastName)
+                || IsSqlInjectionSafe(_relationship))
+            {
+                StatusMessage = InvalidCharactersMessage;
+                return;
+            }
+
+            if (IsNewParent)
+                await AddNewParent();
+            else
+                await UpdateCurrentParent();
+        }
+
         //Private helper methods
+
+        /// <summary>
+        /// Creates a new record in the database with the current informaiton. Allows the user to add a new parent with a 
+        /// button click.
+        /// </summary>
+        private async Task AddNewParent()
+        {
+            List<(int id, string relationship)> children = PrepareChildrenListForDatabase();
+
+            bool updatedSuccessfully = await _createOperationService.AddParent(
+                _firstName, _lastName, children);
+
+            StatusMessage = updatedSuccessfully ? RecordAddedMessage : FailedToAddMessage;
+            ResetChildrenSelection();
+        }
+
+        /// <summary>
+        /// Updates the database record for the selected parent with the current information. Allows the user to update a 
+        /// database record for a parent with corrected or updated information.
+        /// </summary>
+        private async Task UpdateCurrentParent()
+        {
+            int id = _selectedParent?.Id ?? 0;
+            
+            if (_selectedParent == null || id <= 0)
+            {
+                StatusMessage = InvalidParentUpdateMessage;
+                return;
+            }
+
+            List<(int id, string relationship)> children = PrepareChildrenListForDatabase();
+
+            bool updatedSuccessfully = await _updateOperationService.UpdateParent(
+                id, _firstName, _lastName, children);
+
+            StatusMessage = updatedSuccessfully ? RecordUpdatedMessage : FailedToUpdateMessage;
+            ResetChildrenSelection();
+        }
+
+        /// <summary>
+        /// Extracts the key data from the children list for storing in the database. Returns a list in the form that is 
+        /// needed for the update method parameter.
+        /// </summary>
+        /// <returns>A list of Tuples containing the id number for each child with the relationship.</returns>
+        private List<(int, string)> PrepareChildrenListForDatabase()
+        {
+            List<(int id, string relationship)> children = _children
+                .Select(child => (child.child.Id, child.relationship))
+                .ToList();
+
+            return children;
+        }
+
+        /// <summary>
+        /// Ensures that no child is selected or displayed after a child is added or updated, or a parent is updated. 
+        /// Avoids the focus remaining on child selection and addition.
+        /// </summary>
+        private void ResetChildrenSelection()
+        {
+            SelectedAssignedChild = null;
+            SelectedUnassignedStudent = null;
+            ChildName = string.Empty;
+            Relationship = string.Empty;
+        }
 
         /// <summary>
         /// Clears the <see cref="StatusMessage"/> after a preset delay. Ensures that messages do not remain visible 
@@ -385,7 +494,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// <summary>
         /// Checks if a given student id number is contained in the <see cref="Children"/> list for the currently selected 
         /// <see cref="Parent"/>. Used to check if the <see cref="SelectedUnassignedStudent"/> has already been added to 
-        /// the <see cref="Children"/> list.
+        /// the <see cref="Children"/> list. Ensures that a child is treated as assigned if it already has been, avoiding 
+        /// the risk of adding the same child to the <see cref="Children"/> list multiple times.
         /// </summary>
         /// <param name="id">The id number for the <see cref="SelectedUnassignedStudent"/>.</param>
         /// <returns><see langword="true"/> if the <see cref="SelectedUnassignedStudent"/> has already been assigned to the 
@@ -402,7 +512,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// <summary>
         /// Sets the <see cref="SelectedAssignedChild"/> to the <see cref="Student"/> with the given <paramref name="id"/>. 
         /// Used to set the correct student as the <see cref="SelectedAssignedChild"/> when a <see 
-        /// cref="SelectedUnassignedStudent"/> is selected that already appears on the <see cref="Children"/> list.
+        /// cref="SelectedUnassignedStudent"/> is selected that already appears on the <see cref="Children"/> list. Ensures 
+        /// that only one student can be selected at a time to avoid UI confusion.
         /// </summary>
         /// <param name="id">The id number of the selected student.</param>
         private void SetAssignedChild(int id)
