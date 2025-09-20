@@ -85,7 +85,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set
             {
                 SetProperty(ref _statusMessage, value);
-                Task.Run(async () => await DelayMessageRemoval());
+                
+                if (value != string.Empty)
+                    Task.Run(async () => await DelayMessageRemoval());
             }
         }
 
