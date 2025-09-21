@@ -25,6 +25,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidParentSelectionMessage = "Invalid parent selected. Cannot retrieve data.";
         private const string MissingParentInformationMessage = "No information could be found for the selected parent.";
         private const string EmptyFieldsMessage = "Complete all information before adding or updating a parent.";
+        private const string EmptyRelationshipMessage = "Ensure the relationship field is set before adding or updating a child.";
         private const string InvalidParentUpdateMessage = "Cannot update - the selected parent is invalid.";
         private const string InvalidParentDeleteMessage = "Cannot delete - the selected parent id invalid.";
         private const string RecordAddedMessage = "Parent added successfully.";
@@ -78,7 +79,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ICommand? _addUpdateParentCommand;
         private ICommand? _deleteParentCommand;
         private ICommand? _clearFormsCommand;
-        private ICommand? _addRelationshipCommand;
+        private ICommand? _addUpdateRelationshipCommand;
         private ICommand? _deleteRelationshipCommand;
 
         //Properties
@@ -247,6 +248,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ??= new RelayCommand(async param => await DeleteCurrentParent());
         public ICommand? ClearFormsCommand => _clearFormsCommand
             ??= new RelayCommand(param => ClearForms());
+        public ICommand? AddUpdateRelationshipCommand => _addUpdateRelationshipCommand
+            ??= new RelayCommand(param => AddUpdateRelationship());
+        public ICommand? DeleteRelationshipCommand => _deleteRelationshipCommand
+            ??= new RelayCommand(param => DeleteRelationship());
 
         //Constructor
 
@@ -346,6 +351,64 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             //Reset the display information.
             await RefreshParentStudentLists();
             ClearForms();
+        }
+
+        /// <summary>
+        /// Ensures that the currently selected child is added to the <see cref="Children"/> list with the current <see 
+        /// cref="Relationship"/>. Allows the user to add or update a selected child.
+        /// </summary>
+        public async Task AddUpdateRelationship()
+        {
+            if (string.IsNullOrEmpty(_relationship))
+            {
+                StatusMessage = EmptyRelationshipMessage;
+                return;
+            }
+
+            int id = IsAssignedStudentSelected 
+                ? _selectedAssignedChild?.Id ?? 0 
+                : _selectedUnassignedStudent?.Id ?? 0;
+
+            List<(Student, string)> updatedChildren = _children
+                    .Where(child => child.child.Id != id)
+                    .ToList();
+
+            if (IsAssignedStudentSelected && _selectedAssignedChild != null)
+                updatedChildren.Add((_selectedAssignedChild, _relationship));
+            else
+            {
+                Student student = await _readOperationService.GetStudentData(id);
+                updatedChildren.Add((student, _relationship));
+            }
+
+            Children = updatedChildren.ToList();
+        }
+
+        /// <summary>
+        /// Removes a selected student from the <see cref="Children"/> list. Allows the user to remove a parent-child 
+        /// relationship from the selected parent.
+        /// </summary>
+        /// <remarks>This does not affect saved information in the database unless the <see cref="UpdateCurrentParent"/> 
+        /// method is called.</remarks>
+        public void DeleteRelationship()
+        {
+            int id;
+
+            if (IsAssignedStudentSelected)
+                id = SelectedAssignedChild?.Id ?? 0;
+            else
+                id = SelectedUnassignedStudent?.Id ?? 0;
+
+            IEnumerable<(Student, string)> updatedChildren = _children
+                .Where(child => child.child.Id != id);
+
+            Children = updatedChildren.ToList();
+
+            //Resets the relevant UI properties.
+            SelectedAssignedChild = null;
+            SelectedUnassignedStudent = null;
+            ChildName = string.Empty;
+            Relationship = string.Empty;
         }
 
         /// <summary>
