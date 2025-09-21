@@ -262,5 +262,7 @@ namespace SchoolBookingAppTests.ViewModelTests
             _updateOperationServiceMock.Verify(x =>
                 x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Once);
         }
+
+        //DeleteCurrentParent tests.
     }
 }
