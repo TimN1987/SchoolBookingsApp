@@ -30,6 +30,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string RecordAddedMessage = "Parent added successfully.";
         private const string RecordUpdatedMessage = "Parent updated successfully.";
         private const string RecordDeletedMessage = "Parent deleted successfully.";
+        private const string DeleteNewParentMessage = "Cannot delete a new parent. They must be added first.";
         private const string NoParentToDeleteMessage = "Cannot delete - no parent selected.";
         private const string FailedToAddMessage = "Failed to add parent.";
         private const string FailedToUpdateMessage = "Failed to update parent.";
@@ -318,7 +319,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public async Task DeleteCurrentParent()
         {
-            if (IsNewParent || _selectedParent == null)
+            if (IsNewParent)
+            {
+                StatusMessage = DeleteNewParentMessage;
+                return;
+            }
+            
+            if (_selectedParent == null)
             {
                 StatusMessage = NoParentToDeleteMessage;
                 return;
