@@ -49,6 +49,8 @@ namespace SchoolBookingApp.MVVM.Database
                 @parentId,
                 @studentId,
                 @relationship);";
+        private readonly string _deleteExistingRelationshipCommand = @"
+            DELETE FROM ParentStudents WHERE ParentId = @id";
 
         //Methods
 
@@ -75,7 +77,7 @@ namespace SchoolBookingApp.MVVM.Database
 
                 if (!string.IsNullOrEmpty(firstName))
                 {
-                    var firstNameCommand = _connection.CreateCommand();
+                    using var firstNameCommand = _connection.CreateCommand();
                     firstNameCommand.CommandText = string.Format(_updateCommandTemplate, "Parents", "FirstName", "@firstName", "Id", "@parentId");
                     firstNameCommand.Transaction = transaction;
                     firstNameCommand.Parameters.AddWithValue("@firstName", firstName);
@@ -87,7 +89,7 @@ namespace SchoolBookingApp.MVVM.Database
 
                 if (!string.IsNullOrEmpty(lastName))
                 {
-                    var lastNameCommand = _connection.CreateCommand();
+                    using var lastNameCommand = _connection.CreateCommand();
                     lastNameCommand.CommandText = string.Format(_updateCommandTemplate, "Parents", "LastName", "@lastName", "Id", "@parentId");
                     lastNameCommand.Transaction = transaction;
                     lastNameCommand.Parameters.AddWithValue("@lastName", lastName);
@@ -97,6 +99,13 @@ namespace SchoolBookingApp.MVVM.Database
                     if (lastNameRowsChanged <= 0) return false;
                 }
 
+                //Remove previous relationships before ensuring correct list is stored in the database.
+                using var deleteRelationshipsCommand = _connection.CreateCommand();
+                deleteRelationshipsCommand.CommandText = _deleteExistingRelationshipCommand;
+                deleteRelationshipsCommand.Transaction = transaction;
+                deleteRelationshipsCommand.Parameters.AddWithValue("@id", parentId);
+                await deleteRelationshipsCommand.ExecuteNonQueryAsync();
+
                 if (studentRelationships != null && studentRelationships.Count > 0)
                 {
                     foreach (var (studentId, relationship) in studentRelationships)
@@ -104,7 +113,7 @@ namespace SchoolBookingApp.MVVM.Database
                         if (studentId <= 0 || string.IsNullOrEmpty(relationship))
                             throw new ArgumentException("Invalid student relationship data provided.");
 
-                        var relationshipCommand = _connection.CreateCommand();
+                        using var relationshipCommand = _connection.CreateCommand();
                         relationshipCommand.CommandText = _updateParentStudentsRelationship;
                         relationshipCommand.Transaction = transaction;
                         relationshipCommand.Parameters.AddWithValue("@parentId", parentId);
