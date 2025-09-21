@@ -21,6 +21,9 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string RecordUpdatedMessage = "Parent updated successfully.";
         private const string RecordDeletedMessage = "Parent deleted successfully.";
         private const string InvalidParentUpdateMessage = "Cannot update - the selected parent is invalid.";
+        private const string InvalidParentDeleteMessage = "Cannot delete - the selected parent id invalid.";
+        private const string DeleteNewParentMessage = "Cannot delete a new parent. They must be added first.";
+        private const string NoParentToDeleteMessage = "Cannot delete - no parent selected.";
 
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<ICreateOperationService> _createOperationServiceMock;
@@ -63,6 +66,9 @@ namespace SchoolBookingAppTests.ViewModelTests
             _updateOperationServiceMock
                 .Setup(x => x.UpdateParent(
                     It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()))
+                .Returns(Task.FromResult(true));
+            _deleteOperationServiceMock
+                .Setup(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(true));
         }
 
@@ -261,6 +267,100 @@ namespace SchoolBookingAppTests.ViewModelTests
                 x.AddParent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Never);
             _updateOperationServiceMock.Verify(x =>
                 x.UpdateParent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<(int, string)>>()), Times.Once);
+        }
+
+        //DeleteCurrentParent tests.
+
+        /// <summary>
+        /// Verifies that the expected status message is displayed if the <see cref="AddParentViewModel.DeleteCurrentParent"/> 
+        /// method is called with no parent selected. Ensures that the user cannot attempt to delete a record from the 
+        /// database before it has been saved.
+        /// </summary>
+        [Fact]
+        public async Task DeleteCurrentParent_IsNewParent_ErrorMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.IsNewParent = true;
+
+            //Act
+            await _viewModel.DeleteCurrentParent();
+
+            //Assert
+            Assert.Equal(DeleteNewParentMessage, _viewModel.StatusMessage);
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the expected status message is displayed if the <see cref="AddParentViewModel.DeleteCurrentParent"/> 
+        /// method is called with a <see langword="null"/> selected parent. Ensures that there is no attempt to delete a 
+        /// non-existant record from the database.
+        /// </summary>
+        [Fact]
+        public async Task DeleteCurrentParent_NullSelectedParent_ErrorMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.IsNewParent = false;
+            _viewModel.SelectedParent = null;
+
+            //Act
+            await _viewModel.DeleteCurrentParent();
+
+            //Assert
+            Assert.Equal(NoParentToDeleteMessage, _viewModel.StatusMessage);
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the expected status message is displayed if the <see cref="AddParentViewModel.DeleteCurrentParent"/> 
+        /// method is called with a  selected parent with an id <= 0. Ensures that there is no attempt to delete a 
+        /// ecord from the database with an invalid id.
+        /// </summary>
+        [Fact]
+        public async Task DeleteCurrentParent_SelectedParentInvalidId_ErrorMessageDisplayer()
+        {
+            //Arrange
+            _viewModel.IsNewParent = false;
+            _viewModel.SelectedParent = new SearchResult()
+            {
+                Id = 0,
+                FirstName = TestName,
+                LastName = TestName,
+                Category = TestRelationship
+            };
+
+            //Act
+            await _viewModel.DeleteCurrentParent();
+
+            //Assert
+            Assert.Equal(InvalidParentDeleteMessage, _viewModel.StatusMessage);
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that the <see cref="DeleteOperationService.DeleteRecord"/> method is called exactly once and the 
+        /// statuc message is updated to the expected success message if the <see cref="AddParentViewModel.
+        /// DeleteCurrentParent"/> method is called with a valid parent selected. Ensures that the correct deletion method 
+        /// is called as expected.
+        /// </summary>
+        [Fact]
+        public async Task DeleteCurrentParent_ValidCurrentParentSelected_DeleteRecordCalledExactlyOnce()
+        {
+            //Arrange
+            _viewModel.IsNewParent = false;
+            _viewModel.SelectedParent = new SearchResult()
+            {
+                Id = 1,
+                FirstName = TestName,
+                LastName = TestName,
+                Category = TestRelationship
+            };
+
+            //Act
+            await _viewModel.DeleteCurrentParent();
+
+            //Assert
+            Assert.Equal(RecordDeletedMessage, _viewModel.StatusMessage);
+            _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
         }
     }
 }

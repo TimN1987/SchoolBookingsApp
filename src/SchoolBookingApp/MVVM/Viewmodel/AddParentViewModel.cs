@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
     public class AddParentViewModel : ViewModelBase
     {
         //Constants
+        private const string ParentsTableName = "Parents";
         private const int StatusMessageDisplayTime = 2500;
         private const string InvalidFirstNameMessage = "First name cannot contain invalid characters.";
         private const string InvalidLastNameMessage = "Last name cannot contain invalid characters.";
@@ -24,9 +26,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string MissingParentInformationMessage = "No information could be found for the selected parent.";
         private const string EmptyFieldsMessage = "Complete all information before adding or updating a parent.";
         private const string InvalidParentUpdateMessage = "Cannot update - the selected parent is invalid.";
+        private const string InvalidParentDeleteMessage = "Cannot delete - the selected parent id invalid.";
         private const string RecordAddedMessage = "Parent added successfully.";
         private const string RecordUpdatedMessage = "Parent updated successfully.";
         private const string RecordDeletedMessage = "Parent deleted successfully.";
+        private const string DeleteNewParentMessage = "Cannot delete a new parent. They must be added first.";
+        private const string NoParentToDeleteMessage = "Cannot delete - no parent selected.";
         private const string FailedToAddMessage = "Failed to add parent.";
         private const string FailedToUpdateMessage = "Failed to update parent.";
         private const string FailedToDeleteMessage = "Failed to delete parent.";
@@ -74,6 +79,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ICommand? _deleteParentCommand;
         private ICommand? _clearFormsCommand;
         private ICommand? _addRelationshipCommand;
+        private ICommand? _deleteRelationshipCommand;
 
         //Properties
         public bool IsNewParent
@@ -237,6 +243,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         //Commands
         public ICommand? AddUpdateParentCommand => _addUpdateParentCommand
             ??= new RelayCommand(async param => await AddUpdateParent());
+        public ICommand? DeleteParentCommand => _deleteParentCommand
+            ??= new RelayCommand(async param => await DeleteCurrentParent());
+        public ICommand? ClearFormsCommand => _clearFormsCommand
+            ??= new RelayCommand(param => ClearForms());
 
         //Constructor
 
@@ -300,6 +310,61 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 await AddNewParent();
             else
                 await UpdateCurrentParent();
+        }
+
+        /// <summary>
+        /// Deletes the currently selected parent from the database. Validates the <see cref="SelectedParent"/>, ensuring 
+        /// that it is not <see langword="null"/> and has a valid id. Allows the user to delete parent records from the 
+        /// database.
+        /// </summary>
+        public async Task DeleteCurrentParent()
+        {
+            if (IsNewParent)
+            {
+                StatusMessage = DeleteNewParentMessage;
+                return;
+            }
+            
+            if (_selectedParent == null)
+            {
+                StatusMessage = NoParentToDeleteMessage;
+                return;
+            }
+
+            int id = _selectedParent?.Id ?? 0;
+            
+            if (id <= 0)
+            {
+                StatusMessage = InvalidParentDeleteMessage;
+                return;
+            }
+
+            bool operationSuccessful = await _deleteOperationService.DeleteRecord(ParentsTableName, id);
+
+            StatusMessage = operationSuccessful ? RecordDeletedMessage : FailedToDeleteMessage;
+
+            //Reset the display information.
+            await RefreshParentStudentLists();
+            ClearForms();
+        }
+
+        /// <summary>
+        /// Resets the UI properties to allow the user to clear the forms and start again with a new parent record.
+        /// </summary>
+        public void ClearForms()
+        {
+            SelectedParent = null;
+            SelectedAssignedChild = null;
+            SelectedUnassignedStudent = null;
+
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            ChildName = string.Empty;
+            Relationship = string.Empty;
+            Children = [];
+
+            IsNewParent = true;
+            IsAssignedStudentSelected = false;
         }
 
         //Private helper methods
