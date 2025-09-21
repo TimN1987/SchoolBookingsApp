@@ -249,7 +249,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public ICommand? ClearFormsCommand => _clearFormsCommand
             ??= new RelayCommand(param => ClearForms());
         public ICommand? AddUpdateRelationshipCommand => _addUpdateRelationshipCommand
-            ??= new RelayCommand(param => AddUpdateRelationship());
+            ??= new RelayCommand(async param => await AddUpdateRelationship());
         public ICommand? DeleteRelationshipCommand => _deleteRelationshipCommand
             ??= new RelayCommand(param => DeleteRelationship());
 
