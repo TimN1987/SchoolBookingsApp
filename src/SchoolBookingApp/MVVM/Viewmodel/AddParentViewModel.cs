@@ -48,6 +48,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string RelationshipLabel => "Relationship:";
         public static string AssignedChildrenLabel => "Assigned Children:";
         public string AddChildButtonLabel => IsAssignedStudentSelected ? "Update Child" : "Add Child";
+        public static string DeleteChildButtonLabel => "Delete Child";
         public string AddUpdateParentButtonLabel => IsNewParent ? "Add Parent" : "Update Parent";
         public static string ClearFormsButtonLabel => "Clear Forms";
         public static string DeleteParentButtonLabel => "Delete Parent";
@@ -285,6 +286,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _relationship = string.Empty;
             _children = [];
             _selectedAssignedChild = null;
+
+            Task.Run(async () => await RefreshParentStudentLists());
         }
 
         //Methods
