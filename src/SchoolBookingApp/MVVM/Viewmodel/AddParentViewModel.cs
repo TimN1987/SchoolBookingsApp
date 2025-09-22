@@ -318,6 +318,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 await AddNewParent();
             else
                 await UpdateCurrentParent();
+
+            await RefreshParentStudentLists();
         }
 
         /// <summary>
@@ -447,6 +449,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 _firstName, _lastName, children);
 
             StatusMessage = updatedSuccessfully ? RecordAddedMessage : FailedToAddMessage;
+            IsNewParent = false;
             ResetChildrenSelection();
         }
 

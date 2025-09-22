@@ -105,7 +105,7 @@
                                     <MultiBinding StringFormat="{}{0} {1} - {2}">
                                         <Binding Path="Person.FirstName"/>
                                         <Binding Path="Person.LastName"/>
-                                        <Binding Path="Relationship"/>
+                                        <Binding Path="RelationshipType"/>
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>

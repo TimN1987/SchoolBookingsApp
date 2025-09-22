@@ -129,7 +129,7 @@ namespace SchoolBookingApp.MVVM.Database
         {
             if (string.IsNullOrEmpty(firstName)
                 || string.IsNullOrEmpty(lastName)
-                || studentRelationships == null || studentRelationships.Count == 0)
+                || studentRelationships == null)
                 throw new ArgumentException("Parameters cannot be null, whitespace or empty.");
             
             try
