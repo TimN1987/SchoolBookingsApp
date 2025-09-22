@@ -143,7 +143,73 @@
             </Setter.Value>
         </Setter>
     </Style>
-    
+
+    <!-- SmallSelection button Style -->
+    <Style x:Key="SmallSelectionButtonFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="2" 
+                       StrokeDashArray="1 2" 
+                       Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" 
+                       SnapsToDevicePixels="true" StrokeThickness="1"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="SmallSelectionButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource SmallSelectionButtonFocusVisual}"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Width" Value="auto"/>
+        <Setter Property="Margin" Value="20,10"/>
+        <Setter Property="Background" Value="#303030"/>
+        <Setter Property="BorderBrush" Value="#000000"/>
+        <Setter Property="Foreground" Value="#CCCCCC"/>
+        <Setter Property="FontFamily" Value="Arial"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="border" 
+                    Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="10"
+                    UseLayoutRounding="true">
+                        <ContentPresenter x:Name="contentPresenter" 
+                                  Focusable="False" 
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                  Margin="{TemplateBinding Padding}" 
+                                  RecognizesAccessKey="True" 
+                                  UseLayoutRounding="{TemplateBinding SnapsToDevicePixels}" 
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" TargetName="border" Value="#707070"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="#CCCCCC"/>
+                            <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="#000000"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" TargetName="border" Value="#404040"/>
+                            <Setter Property="BorderBrush" TargetName="border" Value="#CCCCCC"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="BorderBrush" TargetName="border" Value="#505050"/>
+                            <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="#606060"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ListBox style for displaying Parents -->
     <Style x:Key="ParentsListBox" TargetType="{x:Type ListBox}">
         <Setter Property="Margin" Value="20,0"/>

@@ -5,9 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
              xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
+             xmlns:converters="clr-namespace:SchoolBookingApp.MVVM.Converters"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance viewmodel:AddParentViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <converters:ValueTupleToRelationshipConverter x:Key="ValueTupleToRelationshipConverter"/>
+    </UserControl.Resources>
     <Grid Background="#101010">
         <Viewbox Stretch="Uniform">
             <Grid Height="675"
@@ -117,16 +122,16 @@
                                Style="{DynamicResource SubtitleText}"/>
                     <ListBox Grid.Column="1"
                              Grid.Row="1" Grid.RowSpan="3"
-                             ItemsSource="{Binding Children}"
+                             ItemsSource="{Binding Children, Converter={StaticResource ValueTupleToRelationshipConverter}}"
                              Style="{DynamicResource ParentsListBox}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock>
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0} {1} - {2}">
-                                            <Binding Path="child.FirstName"/>
-                                            <Binding Path="child.LastName"/>
-                                            <Binding Path="relatiosnhip"/>
+                                            <Binding Path="Person.FirstName"/>
+                                            <Binding Path="Person.LastName"/>
+                                            <Binding Path="RelationshipType"/>
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
@@ -155,11 +160,12 @@
                         <Button Grid.Column="0"
                                 Content="{Binding AddChildButtonLabel}"
                                 Command="{Binding AddUpdateRelationshipCommand}"
-                                Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                                Style="{DynamicResource SmallSelectionButtonStyle}"/>
                         <Button Grid.Column="1"
                                 Content="{Binding DeleteChildButtonLabel}"
                                 Command="{Binding DeleteRelationshipCommand}"
-                                Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                                IsEnabled="{Binding IsAssignedStudentSelected}"
+                                Style="{DynamicResource SmallSelectionButtonStyle}"/>
                     </Grid>
                 </Grid>
                 <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
@@ -184,6 +190,7 @@
                     <Button Grid.Column="2"
                             Content="{Binding DeleteParentButtonLabel}"
                             Command="{Binding DeleteParentCommand}"
+                            IsEnabled="{Binding IsNewParent, Converter={StaticResource BooleanInverterConverter}}"
                             Style="{DynamicResource StandardSelectionButtonStyle}"/>
                 </Grid>
             </Grid>
