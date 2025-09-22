@@ -4,18 +4,189 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View"
+             xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance viewmodel:AddParentViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Viewbox Stretch="Uniform">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                
-            </Grid.RowDefinitions>
-        </Grid>
-            
-    </Viewbox>
+    <Grid Background="#101010">
+        <Viewbox Stretch="Uniform">
+            <Grid Height="675"
+                  Width="800">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400"/>
+                    <ColumnDefinition Width="400"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="250"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="75"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                       Grid.Row="0"
+                       Text="{Binding AddParentTitle}"
+                       Style="{DynamicResource TitleText}"/>
+                <TextBlock Grid.Column="0"
+                       Grid.Row="1"
+                       Text="{Binding SelectParentLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
+                <TextBlock Grid.Column="1"
+                       Grid.Row="1"
+                       Text="{Binding SelectStudentLabel}"
+                       Style="{DynamicResource SubtitleText}"/>
+                <ComboBox Grid.Column="0"
+                      Grid.Row="2"
+                      SelectedItem="{Binding SelectedParent}"
+                      ItemsSource="{Binding AllParents}"
+                      Style="{DynamicResource SelectPersonComboBoxStyle}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1}">
+                                        <Binding Path="FirstName"/>
+                                        <Binding Path="LastName"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox Grid.Column="1"
+                      Grid.Row="2"
+                      SelectedItem="{Binding SelectedUnassignedStudent}"
+                      ItemsSource="{Binding AllStudents}"
+                      Style="{DynamicResource SelectPersonComboBoxStyle}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1}">
+                                        <Binding Path="FirstName"/>
+                                        <Binding Path="LastName"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Grid.Column="0"
+                           Grid.Row="3"
+                           Text="{Binding FirstNameLabel}"
+                           Style="{DynamicResource SubtitleText}"/>
+                <TextBox Grid.Column="1"
+                         Grid.Row="3"
+                         Text="{Binding FirstName}"
+                         Style="{DynamicResource DataFieldTextBoxStyle}"/>
+                <TextBlock Grid.Column="0"
+                           Grid.Row="4"
+                           Text="{Binding LastNameLabel}"
+                           Style="{DynamicResource SubtitleText}"/>
+                <TextBox Grid.Column="1"
+                         Grid.Row="4"
+                         Text="{Binding LastName}"
+                         Style="{DynamicResource DataFieldTextBoxStyle}"/>
+                <Grid Grid.Column="0" Grid.ColumnSpan="2"
+                      Grid.Row="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="400"/>
+                        <ColumnDefinition Width="400"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="50"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="0"
+                               Text="{Binding AddChildHeading}"
+                               Style="{DynamicResource TitleText}"/>
+                    <TextBlock Grid.Column="1"
+                               Grid.Row="0"
+                               Text="{Binding AssignedChildrenLabel}"
+                               Style="{DynamicResource SubtitleText}"/>
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="1"
+                               Text="{Binding ChildNameLabel}"
+                               Style="{DynamicResource SubtitleText}"/>
+                    <ListBox Grid.Column="1"
+                             Grid.Row="1" Grid.RowSpan="3"
+                             ItemsSource="{Binding Children}"
+                             Style="{DynamicResource ParentsListBox}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}{0} {1} - {2}">
+                                            <Binding Path="child.FirstName"/>
+                                            <Binding Path="child.LastName"/>
+                                            <Binding Path="relatiosnhip"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBox Grid.Column="0"
+                             Grid.Row="2"
+                             Text="{Binding ChildName}"
+                             IsReadOnly="True"
+                             Style="{DynamicResource DataFieldTextBoxStyle}"/>
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="3"
+                               Text="{Binding RelationshipLabel}"
+                               Style="{DynamicResource SubtitleText}"/>
+                    <TextBox Grid.Column="0"
+                             Grid.Row="4"
+                             Text="{Binding Relationship}"
+                             Style="{DynamicResource DataFieldTextBoxStyle}"/>
+                    <Grid Grid.Column="1"
+                          Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                Content="{Binding AddChildButtonLabel}"
+                                Command="{Binding AddUpdateRelationshipCommand}"
+                                Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                        <Button Grid.Column="1"
+                                Content="{Binding DeleteChildButtonLabel}"
+                                Command="{Binding DeleteRelationshipCommand}"
+                                Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                    </Grid>
+                </Grid>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                           Grid.Row="6"
+                           Text="{Binding StatusMessage}"
+                           Style="{DynamicResource StatusMessageStyle}"/>
+                <Grid Grid.Column="0" Grid.ColumnSpan="2"
+                      Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
+                            Content="{Binding AddUpdateParentButtonLabel}"
+                            Command="{Binding AddUpdateParentCommand}"
+                            Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                    <Button Grid.Column="1"
+                            Content="{Binding ClearFormsButtonLabel}"
+                            Command="{Binding ClearFormsCommand}"
+                            Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                    <Button Grid.Column="2"
+                            Content="{Binding DeleteParentButtonLabel}"
+                            Command="{Binding DeleteParentCommand}"
+                            Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                </Grid>
+            </Grid>
+        </Viewbox>
+    </Grid>
 </UserControl>
