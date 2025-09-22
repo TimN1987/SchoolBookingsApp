@@ -10,6 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <converters:ValueTupleToRelationshipConverter x:Key="ValueTupleToRelationshipConverter"/>
     </UserControl.Resources>
     <Grid Background="#101010">
         <Viewbox Stretch="Uniform">
@@ -95,16 +96,16 @@
                            Style="{DynamicResource SubtitleText}"/>
                 <ListBox Grid.Column="1"
                          Grid.Row="6"
-                         ItemsSource="{Binding Parents}"
+                         ItemsSource="{Binding Parents, Converter={StaticResource ValueTupleToRelationshipConverter}}"
                          Style="{DynamicResource ParentsListBox}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock>
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}{0} {1} - {2}">
-                                        <Binding Path="Item1.FirstName"/>
-                                        <Binding Path="Item1.LastName"/>
-                                        <Binding Path="Item2"/>
+                                        <Binding Path="Person.FirstName"/>
+                                        <Binding Path="Person.LastName"/>
+                                        <Binding Path="Relationship"/>
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>

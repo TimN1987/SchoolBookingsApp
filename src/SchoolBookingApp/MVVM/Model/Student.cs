@@ -16,5 +16,5 @@ namespace SchoolBookingApp.MVVM.Model
         List<(Parent, string)> Parents,
         StudentDataRecord Data,
         MeetingCommentsRecord Comments
-    );
+    ) : Person(Id, FirstName, LastName);
 }
