@@ -85,7 +85,7 @@
                            Style="{DynamicResource SubtitleText}"/>
                 <TextBox Grid.Column="1"
                          Grid.Row="3"
-                         Text="{Binding FirstName}"
+                         Text="{Binding FirstName, UpdateSourceTrigger=PropertyChanged}"
                          Style="{DynamicResource DataFieldTextBoxStyle}"/>
                 <TextBlock Grid.Column="0"
                            Grid.Row="4"
@@ -93,7 +93,7 @@
                            Style="{DynamicResource SubtitleText}"/>
                 <TextBox Grid.Column="1"
                          Grid.Row="4"
-                         Text="{Binding LastName}"
+                         Text="{Binding LastName, UpdateSourceTrigger=PropertyChanged}"
                          Style="{DynamicResource DataFieldTextBoxStyle}"/>
                 <Grid Grid.Column="0" Grid.ColumnSpan="2"
                       Grid.Row="5">
@@ -122,6 +122,7 @@
                                Style="{DynamicResource SubtitleText}"/>
                     <ListBox Grid.Column="1"
                              Grid.Row="1" Grid.RowSpan="3"
+                             SelectedIndex="{Binding SelectedAssignedChildIndex, Mode=TwoWay}"
                              ItemsSource="{Binding Children, Converter={StaticResource ValueTupleToRelationshipConverter}}"
                              Style="{DynamicResource ParentsListBox}">
                         <ListBox.ItemTemplate>
@@ -149,7 +150,7 @@
                                Style="{DynamicResource SubtitleText}"/>
                     <TextBox Grid.Column="0"
                              Grid.Row="4"
-                             Text="{Binding Relationship}"
+                             Text="{Binding Relationship, UpdateSourceTrigger=PropertyChanged}"
                              Style="{DynamicResource DataFieldTextBoxStyle}"/>
                     <Grid Grid.Column="1"
                           Grid.Row="4">
@@ -164,7 +165,7 @@
                         <Button Grid.Column="1"
                                 Content="{Binding DeleteChildButtonLabel}"
                                 Command="{Binding DeleteRelationshipCommand}"
-                                IsEnabled="{Binding IsAssignedStudentSelected}"
+                                IsEnabled="{Binding IsAssignedStudentSelected, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{DynamicResource SmallSelectionButtonStyle}"/>
                     </Grid>
                 </Grid>
