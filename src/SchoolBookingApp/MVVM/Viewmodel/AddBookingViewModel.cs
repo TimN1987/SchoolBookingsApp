@@ -529,7 +529,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
 
             var booking = new Booking(
-                StudentId: 0, 
+                StudentId: _studentId, 
                 FirstName: _firstName, 
                 LastName: _lastName, 
                 BookingDate: _dateTime.Date,
@@ -682,7 +682,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             if (_bookedStudent == null)
                 return;
-            
+
+            StudentId = _bookedStudent.Id;
             FirstName = _bookedStudent.FirstName ?? string.Empty;
             LastName = _bookedStudent.LastName ?? string.Empty;
             Parents = _bookedStudent.Parents ?? [];

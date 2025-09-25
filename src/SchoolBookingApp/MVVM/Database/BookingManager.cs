@@ -74,7 +74,7 @@ namespace SchoolBookingApp.MVVM.Database
         public async Task<bool> CreateBooking(Booking booking)
         {
             //Validate the booking information. ArgumentException will be thrown if the data is invalid.
-            if (await ValidateBookingInformation(booking, true))
+            if (await ValidateBookingInformation(booking))
                 Log.Information("Booking information validated successfully.");
 
             //Check that the booking does not conflict with any existing bookings, both by student id and by date and time.
@@ -279,16 +279,15 @@ namespace SchoolBookingApp.MVVM.Database
         /// databse record. Checks that a valid student Id, date and time have been provided.
         /// </summary>
         /// <param name="bookingInformation">The <see cref="Booking"/> record containing the booking information.</param>
-        /// <param name="isNewBooking">Declares whether or not the booking to be validated is a new booking.</param>
         /// <returns><c>True</c> if all the data is valid.</returns>
         /// <exception cref="ArgumentException">Thrown if any of the data is invalid.</exception>
-        private async Task<bool> ValidateBookingInformation(Booking bookingInformation, bool isNewBooking = false)
+        private async Task<bool> ValidateBookingInformation(Booking bookingInformation)
         {
             //Check the student Id is valid
-            if (!isNewBooking && bookingInformation.StudentId <= 0)
+            if (bookingInformation.StudentId <= 0)
                 throw new ArgumentException("A valid student Id must be provided.", nameof(bookingInformation));
 
-            if (!isNewBooking && !await IsValidStudent(bookingInformation.StudentId))
+            if (!await IsValidStudent(bookingInformation.StudentId))
                 throw new ArgumentException("The provided student Id does not exist for exactly one student.", nameof(bookingInformation));
 
             //Check the date is valid
