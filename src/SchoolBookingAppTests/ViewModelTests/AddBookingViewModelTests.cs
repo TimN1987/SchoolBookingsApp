@@ -240,18 +240,19 @@ namespace SchoolBookingAppTests.ViewModelTests
         /// message is set to a success message.
         /// </summary>
         [Fact]
-        public async Task UpdateBooking_ValidBooking_CallsCreateOperationService()
+        public async Task UpdateBooking_ValidBooking_CallsUpdateBooking()
         {
             //Arrange
             _viewModel.Booking = _testBooking;
-            _bookingManagerMock.Setup(x => x.UpdateBooking(_testBooking))
+            _viewModel.DateTime = DateTime.MinValue; //Ensure that the new date time value does not match the booking value.
+            _bookingManagerMock.Setup(x => x.UpdateBooking(It.IsAny<Booking>()))
                 .Returns(Task.FromResult(true));
 
             //Act
             await _viewModel.UpdateBooking();
 
             //Assert
-            _bookingManagerMock.Verify(x => x.UpdateBooking(_testBooking), Times.Once);
+            _bookingManagerMock.Verify(x => x.UpdateBooking(It.IsAny<Booking>()), Times.Once);
             Assert.Equal(BookingUpdatedMessage, _viewModel.UpdateMessage);
         }
 
@@ -265,14 +266,15 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange
             _viewModel.Booking = _testBooking;
-            _bookingManagerMock.Setup(x => x.UpdateBooking(_testBooking))
+            _viewModel.DateTime = DateTime.MinValue; //Ensure that the date time values are different.
+            _bookingManagerMock.Setup(x => x.UpdateBooking(It.IsAny<Booking>()))
                 .Returns(Task.FromResult(false));
 
             //Act
             await _viewModel.UpdateBooking();
 
             //Assert
-            _bookingManagerMock.Verify(x => x.UpdateBooking(_testBooking), Times.Once);
+            _bookingManagerMock.Verify(x => x.UpdateBooking(It.IsAny<Booking>()), Times.Once);
             Assert.Equal(BookingFailedToUpdateMessage, _viewModel.UpdateMessage);
         }
 
