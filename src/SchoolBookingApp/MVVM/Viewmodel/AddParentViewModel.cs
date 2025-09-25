@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -74,6 +75,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private string _childName;
         private string _relationship;
         private List<(Student child, string relationship)> _children;
+        private int _selectedAssignedChildIndex;
         private Student? _selectedAssignedChild;
 
         //Commands
@@ -223,6 +225,18 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _children;
             set => SetProperty(ref _children, value);
         }
+        public int SelectedAssignedChildIndex
+        {
+            get => _selectedAssignedChildIndex;
+            set
+            {
+                if (value < 0 || value >= Children.Count)
+                    return;
+
+                SetProperty(ref _selectedAssignedChildIndex, value);
+                SelectedAssignedChild = Children[value].child;
+            }
+        }
         public Student? SelectedAssignedChild
         {
             get => _selectedAssignedChild;
@@ -236,9 +250,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
                 SetProperty(ref _selectedAssignedChild, value);
 
-                DisplayStudentDetails();
                 IsAssignedStudentSelected = true;
                 SelectedUnassignedStudent = null;
+                DisplayStudentDetails();
+                UpdateSelectedAssignedChildIndex();
+                
+                OnPropertyChanged(nameof(AddChildHeading));
+                OnPropertyChanged(nameof(AddChildButtonLabel));
             }
         }
 
@@ -285,6 +303,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _childName = string.Empty;
             _relationship = string.Empty;
             _children = [];
+            _selectedAssignedChildIndex = 0;
             _selectedAssignedChild = null;
 
             Task.Run(async () => await RefreshParentStudentLists());
@@ -606,7 +625,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             if (_isAssignedStudentSelected && _selectedAssignedChild != null)
             {
                 ChildName = $"{_selectedAssignedChild.FirstName} {_selectedAssignedChild.LastName}";
-
+                
                 //Find the relationship for the selected child from the Children list.
                 string relationship = _children
                     .Where(child => child.child.Id == _selectedAssignedChild.Id)
@@ -621,6 +640,23 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 ChildName = $"{_selectedUnassignedStudent?.FirstName} {_selectedUnassignedStudent?.LastName}";
                 Relationship = string.Empty; 
             }
+        }
+
+        /// <summary>
+        /// Updates the <see cref="SelectedAssignedChildIndex"/> when the <see cref="SelectedAssignedChild"/> is updated 
+        /// to ensure consistency with the <see cref="Children"/> ListBox binding and avoid UI confusion.
+        /// </summary>
+        private void UpdateSelectedAssignedChildIndex()
+        {
+            int id = _selectedAssignedChild?.Id ?? 0;
+
+            if (id == 0)
+                return;
+
+            int index = _children.FindIndex(c => c.child.Id == id);
+
+            if (_selectedAssignedChildIndex != index)
+                SetProperty(ref _selectedAssignedChildIndex, index);
         }
 
         /// <summary>

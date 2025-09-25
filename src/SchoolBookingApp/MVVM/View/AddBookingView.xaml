@@ -13,345 +13,368 @@
     <UserControl.Resources>
         <converters:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ValueTupleToRelationshipConverter x:Key="ValueTupleToRelationshipConverter"/>
     </UserControl.Resources>
-    <Viewbox Stretch="Fill">
-        <Grid Background="#101010"
-              Width="800"
-              Height="450">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="90"/>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="70"/>
-                <RowDefinition Height="70"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Column="0" Grid.ColumnSpan="2"
-                  Grid.Row="0">
+    <Grid Background="#101010">
+        <Viewbox Stretch="Uniform">
+            <Grid Width="800"
+              Height="575">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="500"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="400"/>
+                    <ColumnDefinition Width="400"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
-                        Content="{Binding ShowHideDataButtonLabel}"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="75"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Column="0" Grid.ColumnSpan="2"
+                  Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="500"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
+                        Content="{Binding ShowHideDataButtonLabel, UpdateSourceTrigger=PropertyChanged}"
                         Command="{Binding ToggleBookingDataVisibilityCommand}"
                         IsEnabled="{Binding IsCommentsVisible,
                                     Converter={StaticResource BooleanInverterConverter}}"
                         Style="{DynamicResource ShowDataCommentsButtonStyle}"/>
-                <TextBlock Grid.Column="1"
+                    <TextBlock Grid.Column="1"
                            Text="{Binding PageTitle}"
                            Style="{DynamicResource TitleText}"/>
-                <Button Grid.Column="2" 
-                        Content="{Binding ShowHideCommentsButtonLabel}"
+                    <Button Grid.Column="2" 
+                        Content="{Binding ShowHideCommentsButtonLabel, UpdateSourceTrigger=PropertyChanged}"
                         Command="{Binding ToggleCommentsVisibilityCommand}"
                         IsEnabled="{Binding IsBookingDataVisible, 
                                     Converter={StaticResource BooleanInverterConverter}}"
                         Style="{DynamicResource ShowDataCommentsButtonStyle}"/>
-            </Grid>
-            <TextBlock Grid.Column="0"
+                </Grid>
+                <TextBlock Grid.Column="0"
                        Grid.Row="1"
                        Text="{Binding SelectBookingLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBlock Grid.Column="1"
+                <TextBlock Grid.Column="1"
                        Grid.Row="1"
                        Text="{Binding SelectStudentLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <ComboBox Grid.Column="0"
+                <ComboBox Grid.Column="0"
                       Grid.Row="2"
                       Style="{DynamicResource SelectPersonComboBoxStyle}"
                       ItemsSource="{Binding AllBookings}"
                       SelectedItem="{Binding Booking}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock>
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0:dd/MM/yyyy HH:mm} - {1} {2}">
-                                    <Binding Path="DateTime"/>
-                                    <Binding Path="FirstName"/>
-                                    <Binding Path="LastName"/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <ComboBox Grid.Column="1"
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:dd/MM/yyyy HH:mm} - {1} {2}">
+                                        <Binding Path="DateTime"/>
+                                        <Binding Path="FirstName"/>
+                                        <Binding Path="LastName"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ComboBox Grid.Column="1"
                       Grid.Row="2"
                       Style="{DynamicResource SelectPersonComboBoxStyle}"
                       ItemsSource="{Binding AllStudents}"
-                      SelectedValue="{Binding SelectedStudent.Id}"
-                      SelectedValuePath="Id">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock>
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0} {1}">
-                                    <Binding Path="FirstName"/>
-                                    <Binding Path="LastName"/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <TextBlock Grid.Column="0"
+                      SelectedItem="{Binding SelectedStudent}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1}">
+                                        <Binding Path="FirstName"/>
+                                        <Binding Path="LastName"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Grid.Column="0"
                            Grid.Row="3"
                            Text="{Binding FirstNameLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBlock Grid.Column="1"
+                <TextBlock Grid.Column="1"
                            Grid.Row="3"
                            Text="{Binding LastNameLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBox Grid.Column="0"
+                <TextBox Grid.Column="0"
                          Grid.Row="4"
-                         Text="{Binding FirstName, Mode=OneWay}"
+                         Text="{Binding FirstName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                      IsReadOnly="True"
                      Style="{DynamicResource DataFieldTextBoxStyle}"/>
-            <TextBox Grid.Column="1"
+                <TextBox Grid.Column="1"
                      Grid.Row="4"
-                     Text="{Binding LastName, Mode=OneWay}"
+                     Text="{Binding LastName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                      IsReadOnly="True"
                      Style="{DynamicResource DataFieldTextBoxStyle}"/>
-            <TextBlock Grid.Column="0"
+                <TextBlock Grid.Column="0"
                        Grid.Row="5"
                        Text="{Binding DateTimeLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <TextBlock Grid.Column="1"
+                <TextBlock Grid.Column="1"
                        Grid.Row="5"
                        Text="{Binding ParentsLabel}"
                        Style="{DynamicResource SubtitleText}"/>
-            <controls:DateTimePicker Grid.Column="0"
+                <controls:DateTimePicker Grid.Column="0"
                                      Grid.Row="6"
                                      BookingDateTime="{Binding DateTime}"/>
-            <ListBox Grid.Column="1"
-                     Grid.Row="6"
-                     ItemsSource="{Binding Parents, Mode=OneWay}"
-                     Style="{DynamicResource ParentsListBox}"/>
-            <Grid Grid.Column="0" Grid.ColumnSpan="2"
-              Grid.Row="7">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
+                <ListBox Grid.Column="1"
+                         Grid.Row="6"
+                         ItemsSource="{Binding Parents, 
+                                        Converter={StaticResource ValueTupleToRelationshipConverter}, 
+                                        Mode=OneWay}"
+                         Style="{DynamicResource ParentsListBox}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0} {1} - {2}">
+                                        <Binding Path="Person.FirstName"/>
+                                        <Binding Path="Person.LastName"/>
+                                        <Binding Path="RelationshipType"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                       Grid.Row="7"
+                       Text="{Binding UpdateMessage}"
+                       Style="{DynamicResource StatusMessageStyle}"/>
+                <Grid Grid.Column="0" Grid.ColumnSpan="2"
+                  Grid.Row="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
                         Content="{Binding AddUpdateButtonLabel}"
                         Command="{Binding AddUpdateBookingCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
-                <Button Grid.Column="1"
+                    <Button Grid.Column="1"
                         Content="{Binding DeleteBookingButtonLabel}"
                         Command="{Binding DeleteBookingCommand}"
+                            IsEnabled="{Binding IsNewBooking, Converter={StaticResource BooleanInverterConverter}}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
-                <Button Grid.Column="2"
+                    <Button Grid.Column="2"
                         Content="{Binding ClearFormButtonLabel}"
                         Command="{Binding ClearFormCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
-            </Grid>
-            <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                </Grid>
+                <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                      Grid.Row="1" Grid.RowSpan="5"
                      Stretch="Uniform"
                      Margin="20,0"
                      Visibility="{Binding IsBookingDataVisible, 
                                 Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Border Background="#202020"
+                    <Border Background="#202020"
                     BorderBrush="#CCCCCC"
                     BorderThickness="1"
                     CornerRadius="10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Viewbox Grid.Column="0"
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="0">
-                            <TextBlock Text="{Binding MathLabel}"
+                                <TextBlock Text="{Binding MathLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="0">
-                            <Slider Value="{Binding Math, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Math, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="1">
-                            <TextBlock Text="{Binding MathCommentsLabel}"
+                                <TextBlock Text="{Binding MathCommentsLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="2">
-                            <TextBox Text="{Binding MathComments, Mode=TwoWay}"
+                                <TextBox Text="{Binding MathComments, Mode=TwoWay}"
                                  Style="{DynamicResource DataFieldTextBoxStyle}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="3">
-                            <TextBlock Text="{Binding ReadingLabel}"
+                                <TextBlock Text="{Binding ReadingLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="3">
-                            <Slider Value="{Binding Reading, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Reading, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="4">
-                            <TextBlock Text="{Binding ReadingCommentsLabel}"
+                                <TextBlock Text="{Binding ReadingCommentsLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="5">
-                            <TextBox Text="{Binding ReadingComments, Mode=TwoWay}"
+                                <TextBox Text="{Binding ReadingComments, Mode=TwoWay}"
                                  Style="{DynamicResource DataFieldTextBoxStyle}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="6">
-                            <TextBlock Text="{Binding WritingLabel}"
+                                <TextBlock Text="{Binding WritingLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="6">
-                            <Slider Value="{Binding Writing, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Writing, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="7">
-                            <TextBlock Text="{Binding WritingCommentsLabel}"
+                                <TextBlock Text="{Binding WritingCommentsLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                              Grid.Row="8">
-                            <TextBox Text="{Binding WritingComments, Mode=TwoWay}"
+                                <TextBox Text="{Binding WritingComments, Mode=TwoWay}"
                                  Style="{DynamicResource DataFieldTextBoxStyle}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="9">
-                            <TextBlock Text="{Binding ScienceLabel}"
+                                <TextBlock Text="{Binding ScienceLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="9">
-                            <Slider Value="{Binding Science, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Science, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="10">
-                            <TextBlock Text="{Binding HistoryLabel}"
+                                <TextBlock Text="{Binding HistoryLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="10">
-                            <Slider Value="{Binding History, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding History, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="11">
-                            <TextBlock Text="{Binding GeographyLabel}"
+                                <TextBlock Text="{Binding GeographyLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="11">
-                            <Slider Value="{Binding Geography, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Geography, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="12">
-                            <TextBlock Text="{Binding MFLLabel}"
+                                <TextBlock Text="{Binding MFLLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="12">
-                            <Slider Value="{Binding MFL, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding MFL, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="13">
-                            <TextBlock Text="{Binding PELabel}"
+                                <TextBlock Text="{Binding PELabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="13">
-                            <Slider Value="{Binding PE, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding PE, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="14">
-                            <TextBlock Text="{Binding ArtLabel}"
+                                <TextBlock Text="{Binding ArtLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="14">
-                            <Slider Value="{Binding Art, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Art, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="15">
-                            <TextBlock Text="{Binding MusicLabel}"
+                                <TextBlock Text="{Binding MusicLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="15">
-                            <Slider Value="{Binding Music, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding Music, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="16">
-                            <TextBlock Text="{Binding RELabel}"
+                                <TextBlock Text="{Binding RELabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="16">
-                            <Slider Value="{Binding RE, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding RE, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="17">
-                            <TextBlock Text="{Binding DesignTechnologyLabel}"
+                                <TextBlock Text="{Binding DesignTechnologyLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="17">
-                            <Slider Value="{Binding DesignTechnology, Mode=TwoWay}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="0"
+                                <Slider Value="{Binding DesignTechnology, Mode=TwoWay}"/>
+                            </Viewbox>
+                            <Viewbox Grid.Column="0"
                              Grid.Row="18">
-                            <TextBlock Text="{Binding ComputingLabel}"
+                                <TextBlock Text="{Binding ComputingLabel}"
                                    Style="{DynamicResource SubtitleText}"/>
-                        </Viewbox>
-                        <Viewbox Grid.Column="1"
+                            </Viewbox>
+                            <Viewbox Grid.Column="1"
                              Grid.Row="18">
-                            <Slider Value="{Binding Computing, Mode=TwoWay}"/>
-                        </Viewbox>
-                    </Grid>
-                </Border>
-            </Viewbox>
-            <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
+                                <Slider Value="{Binding Computing, Mode=TwoWay}"/>
+                            </Viewbox>
+                        </Grid>
+                    </Border>
+                </Viewbox>
+                <Viewbox Grid.Column="0" Grid.ColumnSpan="2"
                  Grid.Row="1" Grid.RowSpan="5"
                  Margin="20,0"
                  Visibility="{Binding IsCommentsVisible, 
                                 Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Border Background="#202020"
+                    <Border Background="#202020"
                     BorderBrush="#CCCCCC"
                     BorderThickness="1"
                     CornerRadius="10">
-                    <Grid></Grid>
-                </Border>
-            </Viewbox>
-        </Grid>
-    </Viewbox>
+                        <Grid></Grid>
+                    </Border>
+                </Viewbox>
+            </Grid>
+        </Viewbox>
+    </Grid>
 </UserControl>

@@ -227,11 +227,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             DateOfBirth = IntToDateTime(selectedStudent.DateOfBirth);
             ClassName = selectedStudent.ClassName;
             Parents = selectedStudent.Parents;
-
-            Debug.WriteLine($"student parent count = {selectedStudent.Parents.Count}");
-            Debug.WriteLine($"parents count = {Parents.Count}");
-            Debug.WriteLine($"student parents first = {selectedStudent.Parents.First().Item2}");
-            Debug.WriteLine($"parents first = {Parents.First().Item2}");
         }
 
         /// <summary>

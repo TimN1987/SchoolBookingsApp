@@ -77,7 +77,7 @@ namespace SchoolBookingApp.MVVM.Database
             if (await ValidateBookingInformation(booking))
                 Log.Information("Booking information validated successfully.");
 
-            //Check that the booking does not conflict with any existing bookings, both by student it and by date and time.
+            //Check that the booking does not conflict with any existing bookings, both by student id and by date and time.
             if (!await IsUniqueBooking(booking))
                 throw new ArgumentException("The provided booking information conflicts with an existing booking.", nameof(booking));
 

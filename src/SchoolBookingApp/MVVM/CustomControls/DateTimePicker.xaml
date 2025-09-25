@@ -7,24 +7,27 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="root">
-    <Border Style="{DynamicResource DateTimePickerBorder}">
-        <StackPanel Width="190"
-                    Height="50"
-                    Orientation="Vertical"
-                    Background="Transparent">
-            <DatePicker Width="190"
-                        Height="25"
+    <Viewbox Stretch="Uniform">
+        <Border Style="{DynamicResource DateTimePickerBorder}">
+            <Grid Width="400"
+              Height="100">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                </Grid.RowDefinitions>
+                <DatePicker Grid.Column="0" Grid.ColumnSpan="2"
+                        Grid.Row="0"
                         SelectedDate="{Binding Date, ElementName=root}"
                         Style="{DynamicResource DateTimePickerDatePickerStyle}"/>
-            <StackPanel Width="190"
-                        Height="25"
-                        Orientation="Horizontal"
-                        Background="Transparent">
-                <ComboBox Width="95"
-                          Height="25"
-                          SelectedValue="{Binding Hours, ElementName=root}"
-                          SelectedValuePath="Content"
-                          Style="{DynamicResource DateTimePickerComboBoxStyle}">
+                <ComboBox Grid.Column="0"
+                      Grid.Row="1"
+                      SelectedValue="{Binding Hours, ElementName=root}"
+                      SelectedValuePath="Content"
+                      Style="{DynamicResource DateTimePickerComboBoxStyle}">
                     <ComboBoxItem Content="07"/>
                     <ComboBoxItem Content="08"/>
                     <ComboBoxItem Content="09"/>
@@ -41,8 +44,8 @@
                     <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="21"/>
                 </ComboBox>
-                <ComboBox Width="95"
-                          Height="25"
+                <ComboBox Grid.Column="1"
+                          Grid.Row="1"
                           SelectedValue="{Binding Minutes, ElementName=root}"
                           SelectedValuePath="Content"
                           Style="{DynamicResource DateTimePickerComboBoxStyle}">
@@ -59,7 +62,7 @@
                     <ComboBoxItem Content="50"/>
                     <ComboBoxItem Content="55"/>
                 </ComboBox>
-            </StackPanel>
-        </StackPanel>
-    </Border>
+            </Grid>
+        </Border>
+    </Viewbox>
 </UserControl>
