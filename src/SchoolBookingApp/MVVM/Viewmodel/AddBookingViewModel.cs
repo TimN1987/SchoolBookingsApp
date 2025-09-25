@@ -559,8 +559,21 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public async Task UpdateBooking()
         {
-            UpdateMessage = string.Empty;
+            //No need to update if the booking date and time are unchanged.
+            if (_booking.DateTime == _dateTime)
+            {
+                UpdateMessage = BookingUpdatedMessage;
+                return;
+            }
 
+            var booking = new Booking(
+                StudentId: _studentId, 
+                FirstName: _firstName, 
+                LastName: _lastName, 
+                BookingDate: _dateTime.Date, 
+                TimeSlot: _dateTime.TimeOfDay);
+            _booking = booking;
+            
             if (!IsValidBooking())
             {
                 UpdateMessage = NoBookingDataMessage;
@@ -675,7 +688,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             LastName = _booking.LastName;
             DateTime = _booking.BookingDate.HasValue && _booking.TimeSlot.HasValue
                 ? _booking.BookingDate.Value.Date + _booking.TimeSlot.Value
-                : DateTime.Now;
+                : EnsureTimeInFiveMinuteIntervals(DateTime.Now);
         }
 
         private void SetStudentProperties()
