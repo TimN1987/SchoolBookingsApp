@@ -2,31 +2,22 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using Microsoft.Win32.SafeHandles;
-using Prism.Common;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
-using Serilog;
 
 namespace SchoolBookingApp.MVVM.Viewmodel
 {
     public class AddBookingViewModel : ViewModelBase
     {
         //Constant error messages
+        private const int MessageDisplayTime = 2500;
         private const string NoBookingDataMessage = "Complete all fields before adding booking.";
         private const string BookingAddedMessage = "Booking added successfully.";
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
@@ -202,7 +193,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string UpdateMessage
         {
             get => _updateMessage;
-            set => SetProperty(ref _updateMessage, value);
+            set
+            {
+                SetProperty(ref _updateMessage, value);
+                Task.Run(async () => await ClearMessageAfterDelay());
+            }
         }
         public bool IsNewBooking
         {
@@ -252,7 +247,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public DateTime DateTime
         {
             get => _dateTime;
-            set => SetProperty(ref _dateTime, value);
+            set
+            {
+                var dateTime = EnsureTimeInFiveMinuteIntervals(value);
+                SetProperty(ref _dateTime, dateTime);
+            }
         }
         public List<(Parent, string)> Parents
         {
@@ -463,7 +462,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _firstName = string.Empty;
             _lastName = string.Empty;
             _parents = [];
-            _dateTime = DateTime.Now;
+            _dateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
 
             _math = 0;
             _mathComments = string.Empty;
@@ -523,15 +522,20 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public async Task AddBooking()
         {
-            UpdateMessage = string.Empty;
-
             if (!IsValidBooking())
             {
                 UpdateMessage = NoBookingDataMessage;
                 return;
             }
 
-            bool bookingAdded = await _bookingManager.CreateBooking(_booking);
+            var booking = new Booking(
+                StudentId: 0, 
+                FirstName: _firstName, 
+                LastName: _lastName, 
+                BookingDate: _dateTime.Date,
+                TimeSlot: _dateTime.TimeOfDay);
+
+            bool bookingAdded = await _bookingManager.CreateBooking(booking);
 
             if (bookingAdded)
             {
@@ -678,7 +682,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             if (_bookedStudent == null)
                 return;
-
+            
             FirstName = _bookedStudent.FirstName ?? string.Empty;
             LastName = _bookedStudent.LastName ?? string.Empty;
             Parents = _bookedStudent.Parents ?? [];
@@ -745,6 +749,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
 
             BookedStudent = await _readOperationService.GetStudentData(SelectedStudent.Id);
+            SetStudentProperties();
         }
 
         /// <summary>
@@ -755,14 +760,22 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// if any data is missing or invalid.</returns>
         private bool IsValidBooking()
         {
-            if (!IsValidDate() || !IsValidTime())
+            if (!_isNewBooking && (!IsValidDate() || !IsValidTime()))
                 return false;
-            
-            return _booking.StudentId > 0 &&
-                   !string.IsNullOrWhiteSpace(_booking.FirstName) &&
-                   !string.IsNullOrWhiteSpace(_booking.LastName) &&
-                   !string.IsNullOrWhiteSpace(_booking.DateString) &&
-                   !string.IsNullOrWhiteSpace(_booking.TimeString);
+
+            return (_isNewBooking || _studentId > 0) &&
+                   !string.IsNullOrWhiteSpace(_firstName) &&
+                   !string.IsNullOrWhiteSpace(_lastName);
+        }
+
+        /// <summary>
+        /// Clears the <see cref="UpdateMessage"/> after a given delay. Ensures that messages to not remain displayed 
+        /// indefinitely.
+        /// </summary>
+        private async Task  ClearMessageAfterDelay()
+        {
+            await Task.Delay(MessageDisplayTime);
+            UpdateMessage = string.Empty;
         }
 
         /// <summary>
@@ -808,6 +821,20 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 "hh\\:mm", 
                 CultureInfo.InvariantCulture, 
                 out _);
+        }
+
+        /// <summary>
+        /// Ensures that the time element of a date time object is exactly divisible by five. Ensures that only valid 
+        /// booking times can be stored in the <see cref="DateTime"/> property.
+        /// </summary>
+        /// <param name="dateTime">The date time instance to be checked and corrected.</param>
+        /// <returns>A date time with the minutes divisible by five.</returns>
+        private static DateTime EnsureTimeInFiveMinuteIntervals(DateTime dateTime)
+        {
+            return dateTime
+                .AddMinutes(-dateTime.Minute % 5)
+                .AddSeconds(-dateTime.Second)
+                .AddMilliseconds(-dateTime.Millisecond);
         }
 
         /// <summary>

@@ -250,11 +250,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
                 SetProperty(ref _selectedAssignedChild, value);
 
-                DisplayStudentDetails();
                 IsAssignedStudentSelected = true;
                 SelectedUnassignedStudent = null;
+                DisplayStudentDetails();
                 UpdateSelectedAssignedChildIndex();
-
+                
                 OnPropertyChanged(nameof(AddChildHeading));
                 OnPropertyChanged(nameof(AddChildButtonLabel));
             }
@@ -625,7 +625,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             if (_isAssignedStudentSelected && _selectedAssignedChild != null)
             {
                 ChildName = $"{_selectedAssignedChild.FirstName} {_selectedAssignedChild.LastName}";
-
+                
                 //Find the relationship for the selected child from the Children list.
                 string relationship = _children
                     .Where(child => child.child.Id == _selectedAssignedChild.Id)
