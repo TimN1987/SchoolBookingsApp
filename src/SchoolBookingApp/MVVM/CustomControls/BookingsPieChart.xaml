@@ -42,7 +42,7 @@
                        Canvas.Left="{Binding BookedPercentage, ElementName=root, 
                                     Converter={StaticResource PercentageToLabelPositionConverter}, 
                                     ConverterParameter=XB}"
-                       Text="{Binding BookedPercentage, ElementName=root, StringFormat={}{0}%}"
+                       Text="{Binding BookedPercentage, ElementName=root, StringFormat={}{0:F0}%}"
                        Foreground="White"
                        FontSize="14"
                        FontFamily="Arial"
@@ -62,7 +62,7 @@
                        Canvas.Left="{Binding UnbookedPercentage, ElementName=root, 
                                      Converter={StaticResource PercentageToLabelPositionConverter}, 
                                       ConverterParameter=XU}"
-                       Text="{Binding UnbookedPercentage, ElementName=root, StringFormat={}{0}%}"
+                       Text="{Binding UnbookedPercentage, ElementName=root, StringFormat={}{0:F0}%}"
                        Foreground="White"
                        FontSize="14"
                        FontFamily="Arial"

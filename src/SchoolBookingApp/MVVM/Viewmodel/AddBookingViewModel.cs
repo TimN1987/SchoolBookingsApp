@@ -87,8 +87,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly IUpdateOperationService _updateOperationService;
         private readonly IDeleteOperationService _deleteOperationService;
 
-        private Booking _booking;
-        private SearchResult _selectedStudent;
+        private Booking? _booking;
+        private SearchResult? _selectedStudent;
         private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private List<SearchResult> _allStudents;
@@ -146,20 +146,25 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ICommand? _toggleCommentsVisibilityCommand;
 
         //Properties
-        public Booking Booking
+        public Booking? Booking
         {
             get => _booking;
             set
             {
+                if (value == null)
+                {
+                    SetProperty(ref _booking, null);
+                    return;
+                }
+                
                 if (!IsSqlInjectionSafe(value))
                 {
                     UpdateMessage = SqlInjectionMessage;
                     return;
                 }
                 
-                UpdateMessage = string.Empty;
                 SetProperty(ref _booking, value);
-
+                SelectedStudent = null;
                 SetBookingProperties();
             }
         }
@@ -171,12 +176,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 SetProperty(ref _bookedStudent, value);
             }
         }
-        public SearchResult SelectedStudent
+        public SearchResult? SelectedStudent
         {
             get => _selectedStudent;
             set
             {
+                if (value.Equals(null))
+                {
+                    SetProperty(ref _selectedStudent, null);
+                    return;
+                }
+                
                 SetProperty(ref _selectedStudent, value);
+                Booking = null;
                 Task.Run(async () => await OnStudentSelected());
             }
         }
@@ -560,7 +572,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public async Task UpdateBooking()
         {
             //No need to update if the booking date and time are unchanged.
-            if (_booking.DateTime == _dateTime)
+            if (_booking?.DateTime == _dateTime)
             {
                 UpdateMessage = BookingUpdatedMessage;
                 return;
@@ -580,7 +592,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
             }
 
-            bool bookingUpdated = await _bookingManager.UpdateBooking(_booking);
+            bool bookingUpdated = await _bookingManager.UpdateBooking(_booking ?? new Database.Booking());
 
             if (bookingUpdated)
             {
@@ -600,7 +612,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public async Task DeleteBooking()
         {
-            bool bookingDeleted = await _bookingManager.DeleteBooking(_booking.StudentId);
+            if (_booking == null)
+            {
+                UpdateMessage = NoBookingDataMessage;
+                return;
+            }
+            
+            bool bookingDeleted = await _bookingManager.DeleteBooking(_booking?.StudentId ?? 0);
             UpdateMessage = bookingDeleted ? BookingDeletedMessage : BookingFailedToDeleteMessage;
         }
 
@@ -609,7 +627,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public void ClearForm()
         {
-            UpdateMessage = string.Empty;
             ResetBooking();
         }
 
@@ -683,12 +700,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         private void SetBookingProperties()
         {
-            StudentId = _booking.StudentId;
-            FirstName = _booking.FirstName;
-            LastName = _booking.LastName;
-            DateTime = _booking.BookingDate.HasValue && _booking.TimeSlot.HasValue
-                ? _booking.BookingDate.Value.Date + _booking.TimeSlot.Value
-                : EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+            StudentId = _booking?.StudentId ?? 0;
+            FirstName = _booking?.FirstName ?? string.Empty;
+            LastName = _booking?.LastName ?? string.Empty;
+            DateTime = (_booking?.BookingDate?.Date + _booking?.TimeSlot)
+                ?? EnsureTimeInFiveMinuteIntervals(DateTime.Now);
         }
 
         private void SetStudentProperties()
@@ -752,17 +768,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         private async Task OnBookingLoaded()
         {
-            BookedStudent = _booking.StudentId > 0
-                ? await _readOperationService.GetStudentData(_booking.StudentId)
+            int studentId = _booking?.StudentId ?? 0;
+
+            if (studentId <= 0)
+                return;
+            
+            BookedStudent = _booking?.StudentId > 0
+                ? await _readOperationService.GetStudentData(studentId)
                 : null;
         }
 
         private async Task OnStudentSelected()
         {
-            if (SelectedStudent.Id <= 0)
+            int studentId = _selectedStudent?.Id ?? 0;
+            
+            if (studentId <= 0)
                 return;
 
-            BookedStudent = await _readOperationService.GetStudentData(SelectedStudent.Id);
+            BookedStudent = await _readOperationService.GetStudentData(studentId);
             SetStudentProperties();
         }
 
@@ -800,10 +823,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// <param name="booking">The <see cref="Booking"/> record to be checked for invalid characters.</param>
         /// <returns><see langword="true"/> if all the characters stored in the name properties of the <see cref="Booking"/> 
         /// are on the whitelist. <see langword="false"/> if any invalid characters are entered.</returns>
-        private static bool IsSqlInjectionSafe(Booking booking)
+        private static bool IsSqlInjectionSafe(Booking? booking)
         {
-            return booking.FirstName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'') &&
-                   booking.LastName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'');
+            string firstName = booking?.FirstName ?? string.Empty;
+            string lastName = booking?.LastName ?? string.Empty;
+            
+            return firstName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'') &&
+                   lastName.All(c => char.IsLetter(c) || c == '-' || c == ' ' || c == '\'');
         }
 
         /// <summary>
@@ -815,7 +841,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private bool IsValidDate()
         {
             return DateTime.TryParseExact(
-                _booking.DateString, 
+                _booking?.DateString, 
                 "yyyy-MM-dd", 
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
@@ -831,7 +857,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private bool IsValidTime()
         {
             return TimeSpan.TryParseExact(
-                _booking.TimeString, 
+                _booking?.TimeString, 
                 "hh\\:mm", 
                 CultureInfo.InvariantCulture, 
                 out _);
@@ -859,6 +885,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private void ResetBooking()
         {
             Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            Parents = [];
             IsNewBooking = true;
         }
     }
