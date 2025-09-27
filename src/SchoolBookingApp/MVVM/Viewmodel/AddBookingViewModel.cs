@@ -467,19 +467,22 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _deleteOperationService = deleteOperationService 
                 ?? throw new ArgumentNullException(nameof(deleteOperationService));
 
-            _booking = new();
+            _booking = null;
             _dateTime = DateTime.Now;
             _bookedStudent = null;
-            _allBookings = _bookingManager
+            _selectedStudent = null;
+            List<Booking> bookings = _bookingManager
                 .ListBookings()
                 .GetAwaiter()
-                .GetResult()
+                .GetResult() ?? [];
+            _allBookings = bookings
                 .OrderBy(booking => booking.DateTime)
                 .ToList();
-            _allStudents = _readOperationService
+            List<SearchResult> students = _readOperationService
                 .GetStudentList()
                 .GetAwaiter()
-                .GetResult()
+                .GetResult() ?? [];
+            _allStudents = students
                 .OrderBy(student => student.LastName)
                 .ThenBy(student => student.FirstName)
                 .ToList();
