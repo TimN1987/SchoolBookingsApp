@@ -95,7 +95,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public List<SearchResult> AllStudents
         {
             get => _allStudents;
-            set => SetProperty(ref _allStudents, value);
+            set
+            {
+                List<SearchResult> orderedStudents = value
+                    .OrderBy(student => student.LastName)
+                    .ThenBy(student => student.FirstName)
+                    .ToList();
+                SetProperty(ref _allStudents, orderedStudents);
+            }
         }
         public SearchResult? SelectedStudent
         {

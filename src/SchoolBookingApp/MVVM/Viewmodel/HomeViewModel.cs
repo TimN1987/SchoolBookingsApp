@@ -69,8 +69,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _readOperationService = readOperationService 
                 ?? throw new ArgumentNullException(nameof(readOperationService));
 
-            _bookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
-            _students = _readOperationService.GetStudentList().GetAwaiter().GetResult();
+            _bookings = _bookingManager
+                .ListBookings()
+                .GetAwaiter()
+                .GetResult()
+                .OrderBy(booking => booking.DateTime)
+                .ToList();
+            _students = _readOperationService
+                .GetStudentList()
+                .GetAwaiter()
+                .GetResult()
+                .OrderBy(student => student.LastName)
+                .ThenBy(student => student.FirstName)
+                .ToList();
             _parentsCount = _readOperationService.GetParentList().GetAwaiter().GetResult().Count;
         }
 
