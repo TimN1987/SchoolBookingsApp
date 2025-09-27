@@ -123,7 +123,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public List<SearchResult> AllParents
         {
             get => _allParents;
-            set => SetProperty(ref _allParents, value);
+            set
+            {
+                List<SearchResult> orderedParents = value
+                    .OrderBy(parent => parent.LastName)
+                    .ThenBy(parent => parent.FirstName)
+                    .ToList();
+                SetProperty(ref _allParents, orderedParents);
+            }
         }
         public SearchResult? SelectedParent
         {
@@ -143,7 +150,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public List<SearchResult> AllStudents
         {
             get => _allStudents;
-            set => SetProperty(ref _allStudents, value);
+            set
+            {
+                List<SearchResult> orderedStudents = value
+                    .OrderBy(student => student.LastName)
+                    .ThenBy(student => student.FirstName)
+                    .ToList();
+                SetProperty(ref _allStudents, orderedStudents);
+            }
         }
         public SearchResult? SelectedUnassignedStudent
         {
@@ -537,8 +551,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         private async Task RefreshParentStudentLists()
         {
-            AllParents = await _readOperationService.GetParentList();
-            AllStudents = await _readOperationService.GetStudentList();
+            List<SearchResult> parents = await _readOperationService.GetParentList();
+            List<SearchResult> students = await _readOperationService.GetStudentList();
+
+            AllParents = parents
+                .OrderBy(parent => parent.LastName)
+                .ThenBy(parent => parent.FirstName)
+                .ToList();
+            AllStudents = students
+                .OrderBy(student => student.LastName)
+                .ThenBy(student => student.FirstName)
+                .ToList();
 
         }
 

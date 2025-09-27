@@ -195,7 +195,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public List<Booking> AllBookings
         {
             get => _allBookings;
-            set => SetProperty(ref _allBookings, value);
+            set
+            {
+                List<Booking> orderedBookings = value
+                    .OrderBy(booking => booking.BookingDate)
+                    .ThenBy(booking => booking.TimeSlot)
+                    .ToList();
+                SetProperty(ref _allBookings, orderedBookings);
+            }
         }
         public List<SearchResult> AllStudents
         {
@@ -463,8 +470,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _booking = new();
             _dateTime = DateTime.Now;
             _bookedStudent = null;
-            _allBookings = _bookingManager.ListBookings().GetAwaiter().GetResult();
-            _allStudents = _readOperationService.GetStudentList().GetAwaiter().GetResult();
+            _allBookings = _bookingManager
+                .ListBookings()
+                .GetAwaiter()
+                .GetResult()
+                .OrderBy(booking => booking.DateTime)
+                .ToList();
+            _allStudents = _readOperationService
+                .GetStudentList()
+                .GetAwaiter()
+                .GetResult()
+                .OrderBy(student => student.LastName)
+                .ThenBy(student => student.FirstName)
+                .ToList();
             _isNewBooking = true;
             _updateMessage = string.Empty;
             _isBookingDataVisible = false;
@@ -516,13 +534,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         //Methods
-
-        public async Task LoadBooking()
-        {
-            //logic to load a booking from the combo box selection
-
-            await OnBookingLoaded(); //Update the booked student data.
-        }
 
         /// <summary>
         /// Adds a new booking to the database using the data stored in the <see cref="_booking"/> field. Validates that 
@@ -705,6 +716,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             LastName = _booking?.LastName ?? string.Empty;
             DateTime = (_booking?.BookingDate?.Date + _booking?.TimeSlot)
                 ?? EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+
+            if (_studentId > 0)
+                Parents = _readOperationService.GetStudentData(_studentId).GetAwaiter().GetResult().Parents;
         }
 
         private void SetStudentProperties()
@@ -787,6 +801,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             BookedStudent = await _readOperationService.GetStudentData(studentId);
             SetStudentProperties();
+            DateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
         }
 
         /// <summary>
