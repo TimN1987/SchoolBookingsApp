@@ -166,6 +166,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 SetProperty(ref _booking, value);
                 SelectedStudent = null;
                 SetBookingProperties();
+                IsNewBooking = false;
             }
         }
         public Student? BookedStudent
@@ -189,7 +190,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 
                 SetProperty(ref _selectedStudent, value);
                 Booking = null;
+
+                if (StudentHasExistingBooking())
+                {
+                    LoadBookingForSelectedStudent();
+                    SetProperty(ref _selectedStudent, null);
+                    return;
+                }
+
                 Task.Run(async () => await OnStudentSelected());
+                IsNewBooking = true;
             }
         }
         public List<Booking> AllBookings
@@ -826,6 +836,25 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             return _allBookings
                 .Any(booking => booking.StudentId == selectedStudentId);
+        }
+
+        /// <summary>
+        /// Loads the existing <see cref="Database.Booking"/> for the <see cref="SelectedStudent"/> when the <see 
+        /// cref="SelectedStudent"/> has already had a meeting booked. Ensures that the prior <see cref="Database.Booking"/> 
+        /// is updated rather than adding a new <see cref="Database.Booking"/>.
+        /// </summary>
+        private void LoadBookingForSelectedStudent()
+        {
+            int selectedStudentId = _selectedStudent?.Id ?? 0;
+
+            if (selectedStudentId <= 0)
+                return;
+
+            Booking existingBooking = _allBookings
+                .Where(booking => booking.StudentId == selectedStudentId)
+                .FirstOrDefault();
+
+            Booking = existingBooking;
         }
 
         /// <summary>
