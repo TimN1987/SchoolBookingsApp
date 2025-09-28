@@ -566,7 +566,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             if (bookingAdded)
             {
                 AllBookings = await _bookingManager.ListBookings(); //Update bookings list with new booking.
-                ResetBooking();
+                ClearForm();
                 UpdateMessage = BookingAddedMessage;
             }
             else 
@@ -611,7 +611,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             if (bookingUpdated)
             {
                 AllBookings = await _bookingManager.ListBookings(); //Update bookings list with updated booking data.
-                ResetBooking();
+                ClearForm();
                 UpdateMessage = BookingUpdatedMessage;
             }
             else
@@ -637,11 +637,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         /// <summary>
-        /// Clears all information from the form to start a new booking without affecting the current booking.
+        /// Clears all information from the form to start a new booking, ensuring that the displayed information is updated 
+        /// to show a new booking.
         /// </summary>
         public void ClearForm()
         {
-            ResetBooking();
+            Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            Parents = [];
+            IsNewBooking = true;
         }
 
         /// <summary>
@@ -808,6 +811,24 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         /// <summary>
+        /// Checks whether the <see cref="SelectedStudent"/> already has a valid <see cref="Database.Booking"/>. Used to 
+        /// ensure that a second booking cannot be added for a given student.
+        /// </summary>
+        /// <returns><see langword="true"/> if the <see cref="SelectedStudent"/> already has an existing <see 
+        /// cref="Database.Booking"/> in the <see cref="AllBookings"/> list. <see langword="false"/> if no such <see 
+        /// cref="Database.Booking"/> exists.</returns>
+        private bool StudentHasExistingBooking()
+        {
+            int selectedStudentId = _booking?.StudentId ?? 0;
+
+            if (selectedStudentId <= 0)
+                return false;
+
+            return _allBookings
+                .Any(booking => booking.StudentId == selectedStudentId);
+        }
+
+        /// <summary>
         /// Checks that all necessary fields in the <see cref="_booking"/> record contain valid data. Used to ensure that 
         /// a booking can be added to the database.
         /// </summary>
@@ -893,18 +914,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 .AddMinutes(-dateTime.Minute % 5)
                 .AddSeconds(-dateTime.Second)
                 .AddMilliseconds(-dateTime.Millisecond);
-        }
-
-        /// <summary>
-        /// Resets the <see cref="_booking"/> field to a new instance of the <see cref="Booking"/> record with default data 
-        /// ready to add a new booking or view an existing booking. Sets the <see cref="_isNewBooking"/> flag to <c>true</c> 
-        /// to indicate that the next data added will be for a new booking.
-        /// </summary>
-        private void ResetBooking()
-        {
-            Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
-            Parents = [];
-            IsNewBooking = true;
         }
     }
 }
