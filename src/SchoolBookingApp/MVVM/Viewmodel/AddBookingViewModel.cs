@@ -190,10 +190,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 
                 SetProperty(ref _selectedStudent, value);
                 Booking = null;
-
+                
                 if (StudentHasExistingBooking())
                 {
                     LoadBookingForSelectedStudent();
+                    Task.Run(async () => await SetBookedStudent());
                     SetProperty(ref _selectedStudent, null);
                     return;
                 }
@@ -829,11 +830,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// cref="Database.Booking"/> exists.</returns>
         private bool StudentHasExistingBooking()
         {
-            int selectedStudentId = _booking?.StudentId ?? 0;
-
+            int selectedStudentId = _selectedStudent?.Id ?? 0;
+            
             if (selectedStudentId <= 0)
                 return false;
-
+            
             return _allBookings
                 .Any(booking => booking.StudentId == selectedStudentId);
         }
@@ -855,6 +856,23 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 .FirstOrDefault();
 
             Booking = existingBooking;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="BookedStudent"/> property based on a <see cref="SelectedStudent"/> with a pre-existing 
+        /// <see cref="Database.Booking"/>. Used to ensure that all the data is loaded for a booked student.
+        /// </summary>
+        private async Task SetBookedStudent()
+        {
+            int selectedStudentId = _selectedStudent?.Id ?? 0;
+
+            if (selectedStudentId <= 0)
+                return;
+
+            Student studentInformation = await _readOperationService.GetStudentData(selectedStudentId);
+
+            BookedStudent = studentInformation;
+            SelectedStudent = null;
         }
 
         /// <summary>
