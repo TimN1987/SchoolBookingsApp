@@ -83,9 +83,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Text properties for binding to Button content in the MainWindow.
         public static string HomeButtonText => "Home";
-        public static string AddStudentButtonText => "Add Student";
-        public static string AddParentButtonText => "Add Parent";
-        public static string AddBookingButtonText => "Add Booking";
+        public static string AddStudentButtonText => "Student";
+        public static string AddParentButtonText => "Parent";
+        public static string AddBookingButtonText => "Booking";
 
 
         //Image properties for binding to Button content in the MainWindow.

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
@@ -144,6 +145,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ICommand? _updateStudentCommentsCommand;
         private ICommand? _toggleBookingDataVisibilityCommand;
         private ICommand? _toggleCommentsVisibilityCommand;
+        private ICommand? _updateDataCommand;
+        private ICommand? _updateCommentsCommand;
 
         //Properties
         public Booking? Booking
@@ -167,6 +170,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 SelectedStudent = null;
                 SetBookingProperties();
                 IsNewBooking = false;
+                Task.Run(async () => await LoadStudentFromBooking());
             }
         }
         public Student? BookedStudent
@@ -456,6 +460,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             ??= new RelayCommand(param => IsBookingDataVisible = !IsBookingDataVisible);
         public ICommand? ToggleCommentsVisibilityCommand => _toggleCommentsVisibilityCommand
             ??= new RelayCommand(param => IsCommentsVisible = !IsCommentsVisible);
+        public ICommand? UpdateDataCommand => _updateDataCommand
+            ??= new RelayCommand(async param => await UpdateStudentData());
+        public ICommand? UpdateCommentsCommand => _updateCommentsCommand
+            ??= new RelayCommand(async param => await UpdateStudentComments());
 
         public AddBookingViewModel(
             IEventAggregator eventAggregator,
@@ -819,6 +827,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             BookedStudent = await _readOperationService.GetStudentData(studentId);
             SetStudentProperties();
             DateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+        }
+
+        private async Task LoadStudentFromBooking()
+        {
+            int studentId = _booking?.StudentId ?? 0;
+
+            if (studentId <= 0)
+                return;
+
+            BookedStudent = await _readOperationService.GetStudentData(studentId);
+
+            SetDataProperties();
+            SetCommentsProperties();
         }
 
         /// <summary>
