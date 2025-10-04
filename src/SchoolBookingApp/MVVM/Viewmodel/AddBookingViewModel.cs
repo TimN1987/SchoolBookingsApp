@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -11,6 +12,7 @@ using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Services;
+using SchoolBookingApp.MVVM.Struct;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 
 namespace SchoolBookingApp.MVVM.Viewmodel
@@ -90,13 +92,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         private Booking? _booking;
         private SearchResult? _selectedStudent;
-        private Student? _bookedStudent;
         private List<Booking> _allBookings;
         private List<SearchResult> _allStudents;
         private bool _isNewBooking;
         private string _updateMessage;
         private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
+        private bool _isExistingData;
+        private bool _isExistingComments;
 
         //Booking fields
         private int _studentId;
@@ -167,18 +170,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 }
                 
                 SetProperty(ref _booking, value);
-                SelectedStudent = null;
-                SetBookingProperties();
-                IsNewBooking = false;
-                Task.Run(async () => await LoadStudentFromBooking());
-            }
-        }
-        public Student? BookedStudent
-        {
-            get => _bookedStudent;
-            set
-            {
-                SetProperty(ref _bookedStudent, value);
+                Task.Run(async () => await OnBookingSelected());
             }
         }
         public SearchResult? SelectedStudent
@@ -193,18 +185,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 }
                 
                 SetProperty(ref _selectedStudent, value);
-                Booking = null;
-                
-                if (StudentHasExistingBooking())
-                {
-                    LoadBookingForSelectedStudent();
-                    Task.Run(async () => await SetBookedStudent());
-                    SetProperty(ref _selectedStudent, null);
-                    return;
-                }
-
                 Task.Run(async () => await OnStudentSelected());
-                IsNewBooking = true;
             }
         }
         public List<Booking> AllBookings
@@ -488,7 +469,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             _booking = null;
             _dateTime = DateTime.Now;
-            _bookedStudent = null;
             _selectedStudent = null;
             List<Booking> bookings = _bookingManager
                 .ListBookings()
@@ -509,6 +489,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _updateMessage = string.Empty;
             _isBookingDataVisible = false;
             _isCommentsVisible = false;
+            _isExistingData = false;
+            _isExistingComments = false;
 
             _studentId = 0;
             _firstName = string.Empty;
@@ -555,7 +537,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             });
         }
 
-        //Methods
+        //Methods for commands
 
         /// <summary>
         /// Adds a new booking to the database using the data stored in the <see cref="_booking"/> field. Validates that 
@@ -674,24 +656,37 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public async Task UpdateStudentData()
         {
             //Check if a valid student has been added.
-            if (BookedStudent == null || BookedStudent.Id <= 0)
+            if (_studentId <= 0)
             {
                 UpdateMessage = InvalidStudentDataFailedMessage;
                 return;
             }
-
+            
             bool dataAdded;
-
+            var inputData = new StudentDataRecord(
+                _studentId,
+                _math,
+                _mathComments,
+                _reading,
+                _readingComments,
+                _writing,
+                _writingComments,
+                _science,
+                _history,
+                _geography,
+                _mfl,
+                _pe,
+                _art,
+                _music,
+                _re,
+                _designTechnology,
+                _computing);
+            
             //Check if valid data has already been added/loaded.
-            if (BookedStudent.Data.StudentId > 0)
-            {
-                dataAdded = await _updateOperationService.UpdateData(BookedStudent.Data);
-            }
+            if (_isExistingData)
+                dataAdded = await _updateOperationService.UpdateData(inputData);
             else
-            {
-                StudentId = BookedStudent.Id;
-                dataAdded = await _createOperationService.AddData(BookedStudent.Data);
-            }
+                dataAdded = await _createOperationService.AddData(inputData);
 
             if (dataAdded)
                 UpdateMessage = DataAddedMessage;
@@ -707,24 +702,32 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public async Task UpdateStudentComments()
         {
             //Checks that a student has been selected.
-            if (BookedStudent == null || BookedStudent.Id <= 0)
+            if (_studentId <= 0)
             {
                 UpdateMessage = InvalidStudentCommentsFailedMessage;
                 return;
             }
 
             bool commentsAdded;
+            MeetingCommentsRecord inputComments = new MeetingCommentsRecord(
+                _studentId,
+                _generalComments,
+                _pupilComments,
+                _parentComments,
+                _behaviorNotes,
+                _attendanceNotes,
+                _homeworkNotes,
+                _extraCurricularNotes,
+                _specialEducationalNeedsNotes,
+                _safeguardingNotes,
+                _otherNotes,
+                _dateAdded);
 
             //Checks if comments have already been added before attempting to update.
-            if (BookedStudent.Comments.StudentId > 0)
-            {
-                commentsAdded = await _updateOperationService.UpdateComments(BookedStudent.Comments);
-            }
+            if (_isExistingComments)
+                commentsAdded = await _updateOperationService.UpdateComments(inputComments);
             else
-            {
-                StudentId = BookedStudent.Id;
-                commentsAdded = await _createOperationService.AddComments(BookedStudent.Comments);
-            }
+                commentsAdded = await _createOperationService.AddComments(inputComments);
 
             if (commentsAdded)
                 UpdateMessage = CommentsAddedMessage;
@@ -732,114 +735,152 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 UpdateMessage = CommentsFailedToAddMessage;
         }
 
-        //Helper methods
+        //UI element methods
 
-        private void SetBookingProperties()
-        {
-            StudentId = _booking?.StudentId ?? 0;
-            FirstName = _booking?.FirstName ?? string.Empty;
-            LastName = _booking?.LastName ?? string.Empty;
-            DateTime = (_booking?.BookingDate?.Date + _booking?.TimeSlot)
-                ?? EnsureTimeInFiveMinuteIntervals(DateTime.Now);
-
-            if (_studentId > 0)
-                Parents = _readOperationService.GetStudentData(_studentId).GetAwaiter().GetResult().Parents;
-        }
-
-        private void SetStudentProperties()
-        {
-            if (_bookedStudent == null)
-                return;
-
-            StudentId = _bookedStudent.Id;
-            FirstName = _bookedStudent.FirstName ?? string.Empty;
-            LastName = _bookedStudent.LastName ?? string.Empty;
-            Parents = _bookedStudent.Parents ?? [];
-
-            SetDataProperties();
-            SetCommentsProperties();
-        }
-
-        private void SetDataProperties()
-        {
-            if (_bookedStudent == null)
-                return;
-
-            Math = _bookedStudent.Data.Math;
-            MathComments = _bookedStudent.Data.MathComments;
-            Reading = _bookedStudent.Data.Reading;
-            ReadingComments = _bookedStudent.Data.ReadingComments;
-            Writing = _bookedStudent.Data.Writing;
-            WritingComments = _bookedStudent.Data.WritingComments;
-            Science = _bookedStudent.Data.Science;
-            History = _bookedStudent.Data.History;
-            Geography = _bookedStudent.Data.Geography;
-            MFL = _bookedStudent.Data.MFL;
-            PE = _bookedStudent.Data.PE;
-            Art = _bookedStudent.Data.Art;
-            Music = _bookedStudent.Data.Music;
-            RE = _bookedStudent.Data.RE;
-            DesignTechnology = _bookedStudent.Data.DesignTechnology;
-            Computing = _bookedStudent.Data.Computing;
-        }
-
-        private void SetCommentsProperties()
-        {
-            if (_bookedStudent == null)
-                return;
-            
-            GeneralComments = _bookedStudent.Comments.GeneralComments;
-            PupilComments = _bookedStudent.Comments.PupilComments;
-            ParentComments = _bookedStudent.Comments.ParentComments;
-            BehaviorNotes = _bookedStudent.Comments.BehaviorNotes;
-            AttendanceNotes = _bookedStudent.Comments.AttendanceNotes;
-            HomeworkNotes = _bookedStudent.Comments.HomeworkNotes;
-            ExtraCurricularNotes = _bookedStudent.Comments.ExtraCurricularNotes;
-            SpecialEducationalNeedsNotes = _bookedStudent.Comments.SpecialEducationalNeedsNotes;
-            SafeguardingNotes = _bookedStudent.Comments.SafeguardingNotes;
-            OtherNotes = _bookedStudent.Comments.OtherNotes;
-            DateAdded = _bookedStudent.Comments.DateAdded;
-        }
-
-        /// <summary>
-        /// Updates the <see cref="BookedStudent"/> property when a <see cref="Booking"/> property is loaded to ensure 
-        /// that the correct student data is available for display in the view.
-        /// </summary>
-        private async Task OnBookingLoaded()
+        private async Task OnBookingSelected()
         {
             int studentId = _booking?.StudentId ?? 0;
 
             if (studentId <= 0)
+            {
+                UpdateMessage = NoBookingDataMessage;
                 return;
-            
-            BookedStudent = _booking?.StudentId > 0
-                ? await _readOperationService.GetStudentData(studentId)
-                : null;
+            }
+
+            Student student = await _readOperationService.GetStudentData(studentId);
+
+            SelectedStudent = null;
+            IsNewBooking = false;
+            SetStudentProperties(student);
+
+            if (student.Data.StudentId > 0)
+                SetDataProperties(student.Data);
+            else
+                ResetDataProperties();
+
+            if (student.Comments.StudentId > 0)
+                SetCommentsProperties(student.Comments);
+            else
+                ResetCommentsProperties();
         }
 
-        private async Task OnStudentSelected()
+        private async Task  OnStudentSelected()
         {
             int studentId = _selectedStudent?.Id ?? 0;
-            
-            if (studentId <= 0)
-                return;
 
-            BookedStudent = await _readOperationService.GetStudentData(studentId);
-            SetStudentProperties();
-            DateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+            if (studentId <= 0)
+            {
+                UpdateMessage = NoBookingDataMessage;
+                return;
+            }
+
+            Student student = await _readOperationService.GetStudentData(studentId);
+
+            if (StudentHasExistingBooking())
+            {
+                LoadBookingForSelectedStudent(); //Ensures the existing booking is loaded for editing.
+                return;
+            }
+
+            Booking = null; //Ensure no booking is displayed to avoid UI confusion.
+            IsNewBooking = true;
+            SetStudentProperties(student);
+            ResetDataProperties();
+            ResetCommentsProperties();
         }
 
-        private async Task LoadStudentFromBooking()
+        private void SetStudentProperties(Student student)
         {
-            int studentId = _booking?.StudentId ?? 0;
+            StudentId = student.Id;
+            FirstName = student.FirstName;
+            LastName = student.LastName;
+            DateTime = (_booking?.BookingDate?.Date + _booking?.TimeSlot)
+                ?? EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+            Parents = student.Parents;
+        }
 
-            if (studentId <= 0)
+        private void SetDataProperties(StudentDataRecord studentData)
+        {
+            if (studentData.StudentId <= 0)
                 return;
 
-            BookedStudent = await _readOperationService.GetStudentData(studentId);
+            Math = studentData.Math;
+            MathComments = studentData.MathComments;
+            Reading = studentData.Reading;
+            ReadingComments = studentData.ReadingComments;
+            Writing = studentData.Writing;
+            WritingComments = studentData.WritingComments;
+            Science = studentData.Science;
+            History = studentData.History;
+            Geography = studentData.Geography;
+            MFL = studentData.MFL;
+            PE = studentData.PE;
+            Art = studentData.Art;
+            Music = studentData.Music;
+            RE = studentData.RE;
+            DesignTechnology = studentData.DesignTechnology;
+            Computing = studentData.Computing;
 
-            SetDataProperties();
-            SetCommentsProperties();
+            _isExistingData = true;
+        }
+
+        private void ResetDataProperties()
+        {
+            Math = 0;
+            MathComments = string.Empty;
+            Reading = 0;
+            ReadingComments = string.Empty;
+            Writing = 0;
+            WritingComments = string.Empty;
+            Science = 0;
+            History = 0;
+            Geography = 0;
+            MFL = 0;
+            PE = 0;
+            Art = 0;
+            Music = 0;
+            RE = 0;
+            DesignTechnology = 0;
+            Computing = 0;
+
+            _isExistingData = false;
+        }
+
+        private void SetCommentsProperties(MeetingCommentsRecord comments)
+        {
+            if (comments.StudentId <= 0)
+                return;
+            
+            GeneralComments = comments.GeneralComments;
+            PupilComments = comments.PupilComments;
+            ParentComments = comments.ParentComments;
+            BehaviorNotes = comments.BehaviorNotes;
+            AttendanceNotes = comments.AttendanceNotes;
+            HomeworkNotes = comments.HomeworkNotes;
+            ExtraCurricularNotes = comments.ExtraCurricularNotes;
+            SpecialEducationalNeedsNotes = comments.SpecialEducationalNeedsNotes;
+            SafeguardingNotes = comments.SafeguardingNotes;
+            OtherNotes = comments.OtherNotes;
+            DateAdded = comments.DateAdded;
+
+            _isExistingComments = true;
+        }
+
+        private void ResetCommentsProperties()
+        {
+            GeneralComments = string.Empty;
+            PupilComments = string.Empty;
+            ParentComments = string.Empty;
+            BehaviorNotes = string.Empty;
+            AttendanceNotes = string.Empty;
+            HomeworkNotes = string.Empty;
+            ExtraCurricularNotes = string.Empty;
+            SpecialEducationalNeedsNotes = string.Empty;
+            SafeguardingNotes = string.Empty;
+            OtherNotes = string.Empty;
+            DateAdded = 0;
+
+            _isExistingComments = false;
         }
 
         /// <summary>
@@ -880,21 +921,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         /// <summary>
-        /// Sets the <see cref="BookedStudent"/> property based on a <see cref="SelectedStudent"/> with a pre-existing 
-        /// <see cref="Database.Booking"/>. Used to ensure that all the data is loaded for a booked student.
+        /// Clears the <see cref="UpdateMessage"/> after a given delay. Ensures that messages to not remain displayed 
+        /// indefinitely.
         /// </summary>
-        private async Task SetBookedStudent()
+        private async Task ClearMessageAfterDelay()
         {
-            int selectedStudentId = _selectedStudent?.Id ?? 0;
-
-            if (selectedStudentId <= 0)
-                return;
-
-            Student studentInformation = await _readOperationService.GetStudentData(selectedStudentId);
-
-            BookedStudent = studentInformation;
-            SelectedStudent = null;
+            await Task.Delay(MessageDisplayTime);
+            UpdateMessage = string.Empty;
         }
+
+        //Validation methods
 
         /// <summary>
         /// Checks that all necessary fields in the <see cref="_booking"/> record contain valid data. Used to ensure that 
@@ -910,16 +946,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             return (_isNewBooking || _studentId > 0) &&
                    !string.IsNullOrWhiteSpace(_firstName) &&
                    !string.IsNullOrWhiteSpace(_lastName);
-        }
-
-        /// <summary>
-        /// Clears the <see cref="UpdateMessage"/> after a given delay. Ensures that messages to not remain displayed 
-        /// indefinitely.
-        /// </summary>
-        private async Task  ClearMessageAfterDelay()
-        {
-            await Task.Delay(MessageDisplayTime);
-            UpdateMessage = string.Empty;
         }
 
         /// <summary>

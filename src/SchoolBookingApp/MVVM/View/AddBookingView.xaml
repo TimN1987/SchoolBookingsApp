@@ -226,7 +226,7 @@
                                 <Slider Grid.Column="1"
                                         Grid.Row="0"
                                         Value="{Binding Math, Mode=TwoWay}"
-                                        Style="{DynamicResource DateValueSliderStyle}"/>
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="1"
                                        Text="{Binding MathCommentsLabel}"
@@ -241,7 +241,8 @@
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="3"
-                                    Value="{Binding Reading, Mode=TwoWay}"/>
+                                    Value="{Binding Reading, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="4"
                                        Text="{Binding ReadingCommentsLabel}"
@@ -256,7 +257,8 @@
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="6"
-                                    Value="{Binding Writing, Mode=TwoWay}"/>
+                                    Value="{Binding Writing, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="7"
                                        Text="{Binding WritingCommentsLabel}"
@@ -271,70 +273,80 @@
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="9"
-                                    Value="{Binding Science, Mode=TwoWay}"/>
+                                    Value="{Binding Science, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="10"
                                        Text="{Binding HistoryLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="10"
-                                    Value="{Binding History, Mode=TwoWay}"/>
+                                    Value="{Binding History, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="11"
                                        Text="{Binding GeographyLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="11"
-                                    Value="{Binding Geography, Mode=TwoWay}"/>
+                                    Value="{Binding Geography, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="12"
                                        Text="{Binding MFLLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="12"
-                                    Value="{Binding MFL, Mode=TwoWay}"/>
+                                    Value="{Binding MFL, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="13"
                                        Text="{Binding PELabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="13"
-                                    Value="{Binding PE, Mode=TwoWay}"/>
+                                    Value="{Binding PE, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="14"
                                        Text="{Binding ArtLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="14"
-                                    Value="{Binding Art, Mode=TwoWay}"/>
+                                    Value="{Binding Art, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="15"
                                        Text="{Binding MusicLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="15"
-                                    Value="{Binding Music, Mode=TwoWay}"/>
+                                    Value="{Binding Music, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="16"
                                        Text="{Binding RELabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="16"
-                                    Value="{Binding RE, Mode=TwoWay}"/>
+                                    Value="{Binding RE, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="17"
                                        Text="{Binding DesignTechnologyLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="17"
-                                    Value="{Binding DesignTechnology, Mode=TwoWay}"/>
+                                    Value="{Binding DesignTechnology, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                                 <TextBlock Grid.Column="0"
                                        Grid.Row="18"
                                        Text="{Binding ComputingLabel}"
                                        Style="{DynamicResource SubtitleText}"/>
                                 <Slider Grid.Column="1"
                                     Grid.Row="18"
-                                    Value="{Binding Computing, Mode=TwoWay}"/>
+                                    Value="{Binding Computing, Mode=TwoWay}"
+                                        Style="{DynamicResource DataValueSliderStyle}"/>
                             </Grid>
                         </ScrollViewer>
                         <Button Grid.Row="1"
