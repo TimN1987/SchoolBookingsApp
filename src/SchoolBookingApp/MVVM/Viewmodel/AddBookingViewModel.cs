@@ -47,7 +47,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string ParentsLabel => "Responsible adults:";
         public string AddUpdateButtonLabel => IsNewBooking ? "Add Booking" : "Update Booking";
         public static string DeleteBookingButtonLabel => "Delete Booking";
-        public static string ClearFormButtonLabel => "Clear Form";
+        public static string ClearFormButtonLabel => "Clear Forms";
         public string ShowHideDataButtonLabel => IsBookingDataVisible ? "Hide Data" : "Show Data";
         public string ShowHideCommentsButtonLabel => IsCommentsVisible ? "Hide Comments" : "Show Comments";
 
@@ -644,12 +644,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         /// </summary>
         public void ClearForm()
         {
-            Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            Booking = null;
             FirstName = string.Empty;
             LastName = string.Empty;
             DateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
             SelectedStudent = null;
             Parents = [];
+            ResetDataProperties();
+            ResetCommentsProperties();
             IsNewBooking = true;
             UpdateMessage = string.Empty;
         }

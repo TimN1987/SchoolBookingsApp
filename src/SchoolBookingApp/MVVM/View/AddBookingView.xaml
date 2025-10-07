@@ -167,13 +167,13 @@
                         Command="{Binding AddUpdateBookingCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
                     <Button Grid.Column="1"
+                        Content="{Binding ClearFormButtonLabel}"
+                        Command="{Binding ClearFormCommand}"
+                        Style="{DynamicResource StandardSelectionButtonStyle}"/>
+                    <Button Grid.Column="2"
                         Content="{Binding DeleteBookingButtonLabel}"
                         Command="{Binding DeleteBookingCommand}"
                             IsEnabled="{Binding IsNewBooking, Converter={StaticResource BooleanInverterConverter}}"
-                        Style="{DynamicResource StandardSelectionButtonStyle}"/>
-                    <Button Grid.Column="2"
-                        Content="{Binding ClearFormButtonLabel}"
-                        Command="{Binding ClearFormCommand}"
                         Style="{DynamicResource StandardSelectionButtonStyle}"/>
                 </Grid>
                 <Border Grid.Column="0" Grid.ColumnSpan="2"

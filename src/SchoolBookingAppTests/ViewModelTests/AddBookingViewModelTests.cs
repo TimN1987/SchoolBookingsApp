@@ -348,7 +348,7 @@ namespace SchoolBookingAppTests.ViewModelTests
 
             //Assert
             Assert.Equal(string.Empty, _viewModel.UpdateMessage);
-            Assert.Equal(_defaultBooking, _viewModel.Booking);
+            Assert.Equal(null, _viewModel.Booking);
         }
 
         //MemberData
