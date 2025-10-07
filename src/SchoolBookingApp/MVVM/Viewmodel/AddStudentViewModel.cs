@@ -324,6 +324,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             DateOfBirth = DateTime.Now;
             ClassName = string.Empty;
             Parents = [];
+
+            SelectedStudent = null;
         }
 
         //Private helper methods

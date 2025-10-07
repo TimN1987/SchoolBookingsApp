@@ -107,6 +107,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<AddStudentView>();
         services.AddTransient<AddParentView>();
         services.AddTransient<AddBookingView>();
+        services.AddTransient<SearchView>();
 
         //Viewmodels
         services.AddSingleton<MainViewModel>();
@@ -114,6 +115,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<AddStudentViewModel>();
         services.AddTransient<AddParentViewModel>();
         services.AddTransient<AddBookingViewModel>();
+        services.AddTransient<SearchViewModel>();
 
         //Services
         services.AddSingleton(connectionInformation);
