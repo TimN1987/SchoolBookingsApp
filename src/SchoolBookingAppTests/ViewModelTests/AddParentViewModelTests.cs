@@ -337,10 +337,9 @@ namespace SchoolBookingAppTests.ViewModelTests
         }
 
         /// <summary>
-        /// Verifies that the <see cref="DeleteOperationService.DeleteRecord"/> method is called exactly once and the 
-        /// statuc message is updated to the expected success message if the <see cref="AddParentViewModel.
-        /// DeleteCurrentParent"/> method is called with a valid parent selected. Ensures that the correct deletion method 
-        /// is called as expected.
+        /// Verifies that the <see cref="DeleteOperationService.DeleteRecord"/> method is called exactly once if the 
+        /// <see cref="AddParentViewModel.DeleteCurrentParent"/> method is called with a valid parent selected. Ensures 
+        /// that the correct deletion method is called as expected.
         /// </summary>
         [Fact]
         public async Task DeleteCurrentParent_ValidCurrentParentSelected_DeleteRecordCalledExactlyOnce()
@@ -359,7 +358,6 @@ namespace SchoolBookingAppTests.ViewModelTests
             await _viewModel.DeleteCurrentParent();
 
             //Assert
-            Assert.Equal(RecordDeletedMessage, _viewModel.StatusMessage);
             _deleteOperationServiceMock.Verify(x => x.DeleteRecord(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
         }
     }

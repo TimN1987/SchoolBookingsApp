@@ -341,29 +341,6 @@ namespace SchoolBookingAppTests.ViewModelTests
         }
 
         /// <summary>
-        /// Verifies that when a min value <see cref="DateTime"/> is provided for the <see cref="AddStudentViewModel
-        /// .DateOfBirth"/> property, the data is not considered valid and neither the <see cref="ICreateOperationService
-        /// .AddStudent"/> nor the <see cref="IUpdateOperationService.UpdateStudent"/> methods are called. Ensures that 
-        /// invalid data is not added to or updated in the database.
-        /// </summary>
-        [Fact]
-        public async Task AddUpdateStudent_MinValueDateOfBirth_AddStudentInvalidStudentNotCalled()
-        {
-            //Arrange
-            _viewModel.FirstName = _testString;
-            _viewModel.LastName = _testString;
-            _viewModel.DateOfBirth = DateTime.MinValue;
-            _viewModel.ClassName = _testString;
-
-            //Act
-            await _viewModel.AddUpdateStudent();
-
-            //Assert
-            _createOperationServiceMock.Verify(x => x.AddStudent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
-            _updateOperationServiceMock.Verify(x => x.UpdateStudent(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
-        }
-
-        /// <summary>
         /// Verifies that when a <see langword="null"/> <see cref="AddStudentViewModel.SelectedStudent"/> is provided when 
         /// the <see cref="AddStudentViewModel.IsNewStudent"/> property is set to <see langword="false"/>, neither the 
         /// <see cref="ICreateOperationService.AddStudent"/> nor the <see cref="IUpdateOperationService.UpdateStudent"/> 

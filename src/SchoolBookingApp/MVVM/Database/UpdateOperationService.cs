@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -270,10 +271,10 @@ namespace SchoolBookingApp.MVVM.Database
                 {
                     if (update.Value == null)
                         continue;
-                    if (!await UpdateColumn("Data", update.Key, update.Value, "Id", dataRecord.StudentId, transaction))
+                    if (!await UpdateColumn("Data", update.Key, update.Value, "StudentId", dataRecord.StudentId, transaction))
                         return false;
                 }
-
+                
                 await transaction.CommitAsync();
                 Log.Information("Student data record updated successfully for StudentId {StudentId}.", dataRecord.StudentId);
                 return true;
@@ -323,7 +324,7 @@ namespace SchoolBookingApp.MVVM.Database
                     if (!await UpdateColumn("Comments", update.Key, update.Value, "StudentId", comments.StudentId, transaction))
                         return false;
                 }
-
+                
                 await transaction.CommitAsync();
                 Log.Information("Comments updated successfully for student {StudentId}.", comments.StudentId);
                 return true;
