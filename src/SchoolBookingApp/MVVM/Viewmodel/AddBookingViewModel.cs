@@ -651,6 +651,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             SelectedStudent = null;
             Parents = [];
             IsNewBooking = true;
+            UpdateMessage = string.Empty;
         }
 
         /// <summary>

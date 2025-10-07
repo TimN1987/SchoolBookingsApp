@@ -216,7 +216,7 @@ namespace SchoolBookingAppTests.ViewModelTests
             await _viewModel.AddBooking();
 
             //Assert
-            _bookingManagerMock.Verify(x => x.CreateBooking(_testBooking), Times.Once);
+            Assert.Equal(BookingFailedToAddMessage, _viewModel.UpdateMessage);
         }
 
         //UpdateBooking tests.
@@ -285,7 +285,7 @@ namespace SchoolBookingAppTests.ViewModelTests
             await _viewModel.UpdateBooking();
 
             //Assert
-            _bookingManagerMock.Verify(x => x.UpdateBooking(It.IsAny<Booking>()), Times.Once);
+            Assert.Equal(BookingFailedToUpdateMessage, _viewModel.UpdateMessage);
         }
 
         //DeleteBooking tests.
