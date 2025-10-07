@@ -259,12 +259,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
             }
 
-            if (DateOfBirth == DateTime.MinValue)
-            {
-                StatusMessage = MissingFieldsMessage;
-                return;
-            }
-
             if (!IsNewStudent && (_selectedStudent == null || _selectedStudent?.Id <= 0))
             {
                 StatusMessage = InvalidStudentSelectedMessage;

@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
+using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Struct;
@@ -72,14 +73,15 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         //Comments UI labels
         public static string GeneralCommentsLabel => "General Comments:";
         public static string PupilCommentsLabel => "Pupil Comments:";
-        public static string ParentCommentLabel => "Parent Comments:";
+        public static string ParentCommentsLabel => "Parent Comments:";
         public static string BehaviorNotesLabel => "Behavior Notes:";
         public static string AttendanceNotesLabel => "Attendance Notes:";
         public static string HomeworkNotesLabel => "Homework Notes:";
-        public static string ExtraCurricularNotesLabel => "Extra-Curricular Notes:";
+        public static string ExtraCurricularNotesLabel => "Extra Curricular Notes:";
         public static string SpecialEducationalNeedsNotesLabel => "Special Educational Needs Notes:";
         public static string SafeguardingNotesLabel => "Safeguarding Notes:";
         public static string OtherNotesLabel => "Other Notes:";
+        public static string DateAddedLabel => "Date Added:";
         public static string UpdateCommentsButtonLabel => "Update Comments";
 
         //Fields
@@ -98,8 +100,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private string _updateMessage;
         private bool _isBookingDataVisible;
         private bool _isCommentsVisible;
-        private bool _isExistingData;
-        private bool _isExistingComments;
 
         //Booking fields
         private int _studentId;
@@ -412,7 +412,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _dateAdded;
             set => SetProperty(ref _dateAdded, value);
         }
-        public int CurrentDateAdded => (int)DateTime.Now
+        public DateTime DisplayDateAdded => 
+            _dateAdded > 0 ? DateTime.ParseExact(_dateAdded.ToString(), "yyyyMMdd", CultureInfo.InvariantCulture) 
+                           : DateTime.Now;
+        public static int CurrentDateAdded => (int)DateTime.Now
                 .ToString("yyyyMMdd")
                 .ToCharArray().Select(c => c - '0')
                 .Aggregate(0, (a, b) => a * 10 + b); //Stored as an int value in the database.
@@ -489,8 +492,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _updateMessage = string.Empty;
             _isBookingDataVisible = false;
             _isCommentsVisible = false;
-            _isExistingData = false;
-            _isExistingComments = false;
 
             _studentId = 0;
             _firstName = string.Empty;
@@ -644,6 +645,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public void ClearForm()
         {
             Booking = new Booking(0, string.Empty, string.Empty, string.Empty, string.Empty);
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            DateTime = EnsureTimeInFiveMinuteIntervals(DateTime.Now);
+            SelectedStudent = null;
             Parents = [];
             IsNewBooking = true;
         }
@@ -683,7 +688,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 _computing);
             
             //Check if valid data has already been added/loaded.
-            if (_isExistingData)
+            if (await IsExistingRecords("Data"))
                 dataAdded = await _updateOperationService.UpdateData(inputData);
             else
                 dataAdded = await _createOperationService.AddData(inputData);
@@ -709,7 +714,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
 
             bool commentsAdded;
-            MeetingCommentsRecord inputComments = new MeetingCommentsRecord(
+            MeetingCommentsRecord inputComments = new(
                 _studentId,
                 _generalComments,
                 _pupilComments,
@@ -724,7 +729,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 _dateAdded);
 
             //Checks if comments have already been added before attempting to update.
-            if (_isExistingComments)
+            if (await IsExistingRecords("Comments"))
                 commentsAdded = await _updateOperationService.UpdateComments(inputComments);
             else
                 commentsAdded = await _createOperationService.AddComments(inputComments);
@@ -753,12 +758,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             IsNewBooking = false;
             SetStudentProperties(student);
 
-            if (student.Data.StudentId > 0)
+            if (await IsExistingRecords("Data"))
                 SetDataProperties(student.Data);
             else
                 ResetDataProperties();
 
-            if (student.Comments.StudentId > 0)
+            if (await IsExistingRecords("Comments"))
                 SetCommentsProperties(student.Comments);
             else
                 ResetCommentsProperties();
@@ -785,8 +790,15 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             Booking = null; //Ensure no booking is displayed to avoid UI confusion.
             IsNewBooking = true;
             SetStudentProperties(student);
-            ResetDataProperties();
-            ResetCommentsProperties();
+            if (await IsExistingRecords("Data"))
+                SetDataProperties(student.Data);
+            else
+                ResetDataProperties();
+
+            if (await IsExistingRecords("Comments"))
+                SetCommentsProperties(student.Comments);
+            else
+                ResetCommentsProperties();
         }
 
         private void SetStudentProperties(Student student)
@@ -820,8 +832,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             RE = studentData.RE;
             DesignTechnology = studentData.DesignTechnology;
             Computing = studentData.Computing;
-
-            _isExistingData = true;
         }
 
         private void ResetDataProperties()
@@ -842,8 +852,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             RE = 0;
             DesignTechnology = 0;
             Computing = 0;
-
-            _isExistingData = false;
         }
 
         private void SetCommentsProperties(MeetingCommentsRecord comments)
@@ -862,8 +870,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             SafeguardingNotes = comments.SafeguardingNotes;
             OtherNotes = comments.OtherNotes;
             DateAdded = comments.DateAdded;
-
-            _isExistingComments = true;
         }
 
         private void ResetCommentsProperties()
@@ -879,8 +885,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             SafeguardingNotes = string.Empty;
             OtherNotes = string.Empty;
             DateAdded = 0;
-
-            _isExistingComments = false;
         }
 
         /// <summary>
@@ -991,9 +995,27 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             return TimeSpan.TryParseExact(
                 _booking?.TimeString, 
-                "hh\\:mm", 
+                ["hh\\:mm", "hh\\:mm\\:ss"],
                 CultureInfo.InvariantCulture, 
                 out _);
+        }
+
+        /// <summary>
+        /// Checks if there are existing records for the selected student in the given database table. Used to determine 
+        /// whether to add a new record or update an existing record when the user saves student data or comments.
+        /// </summary>
+        /// <param name="table">The name of the database table to be checked for existing records. Should be either <c>Data</c> 
+        /// or <c>Comments</c>.</param>
+        /// <returns><see langword="true"/> if there is data already stored in the database. <see langword="false"/> if 
+        /// no existing records can found.</returns>
+        private async Task<bool> IsExistingRecords(string table)
+        {
+            if (_studentId <= 0)
+                return false;
+
+            int existingRecordsCount = await _readOperationService.CountRecordsById(_studentId, table);
+
+            return existingRecordsCount > 0;
         }
 
         /// <summary>

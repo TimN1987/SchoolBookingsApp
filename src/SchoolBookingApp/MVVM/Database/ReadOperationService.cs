@@ -13,6 +13,7 @@ using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Struct;
 using Serilog;
+using Serilog.Formatting.Display;
 
 namespace SchoolBookingApp.MVVM.Database
 {
@@ -31,6 +32,7 @@ namespace SchoolBookingApp.MVVM.Database
         Task<List<SearchResult>> GetParentList();
         Task<List<string>> ListClasses();
         Task<List<Student>> GetClassList(string className);
+        Task<int> CountRecordsById(int id, string table);
     }
 
     /// <summary>
@@ -54,6 +56,7 @@ namespace SchoolBookingApp.MVVM.Database
         private readonly string _listClassesQuery;
         private readonly string _searchByCriteriaBaseQuery;
         private readonly string _parentListQuery;
+        private readonly string _countRecordsQuery;
 
         public ReadOperationService(SqliteConnection connection)
         {
@@ -151,6 +154,10 @@ namespace SchoolBookingApp.MVVM.Database
                 LEFT JOIN ParentStudents AS ps
                 ON p.Id = ps.ParentId
                 WHERE p.Id = @id;";
+            _countRecordsQuery = @"
+                SELECT COUNT(*) 
+                FROM {0}
+                WHERE {1} = {2};";
         }
 
         //Methods
@@ -459,6 +466,48 @@ namespace SchoolBookingApp.MVVM.Database
             return await SearchByCriteria(criteria);
         }
 
+        /// <summary>
+        /// Counts the number of records in a given table with a given student id. Used to check if a record already exists 
+        /// for the given student id before adding a new record. Enables easy checking of existing records to determine 
+        /// whether a record should be created or updated.
+        /// </summary>
+        /// <param name="id">The student id value for the records to be counted.</param>
+        /// <param name="table">The name of the table in which the records should be counted.</param>
+        /// <returns>The number of records in the given <paramref name="table"/> with the given student <paramref name="id"/>. 
+        /// Returns -1 if the records cannot be counted.</returns>
+        public async Task<int> CountRecordsById(int id, string table)
+        {
+            if (id <= 0 || !_validTables.Contains(table))
+                return -1;
+
+            string field = table switch
+            {
+                    "Students" => "Id",
+                    "Parents" => "Id",
+                    "ParentStudents" => "StudentId",
+                    "Data" => "StudentId",
+                    "Comments" => "StudentId",
+                    _ => "StudentId"
+            };
+
+            string commandText = string.Format(_countRecordsQuery, table, field, "@id");
+
+            try
+            {
+                await using var command = _connection.CreateCommand();
+                command.CommandText = commandText;
+                command.Parameters.AddWithValue("@id", id);
+                var result = await command.ExecuteScalarAsync();
+
+                return Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error counting records.");
+                return -1;
+            }
+        }
+
         //Helper methods
 
         /// <summary>
@@ -705,7 +754,7 @@ namespace SchoolBookingApp.MVVM.Database
         private static List<Student> ReadStudentDataFromSearch(SqliteDataReader reader)
         {
             var results = new List<Student>();
-            var count = 0;
+            
             if (reader.HasRows)
             {
                 while (reader.Read())
@@ -753,7 +802,7 @@ namespace SchoolBookingApp.MVVM.Database
                         }
                         );
 
-                    results.Add(student); count++;
+                    results.Add(student);
                 }
             }
 
