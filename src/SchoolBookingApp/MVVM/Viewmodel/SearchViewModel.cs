@@ -7,6 +7,7 @@ using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
+using Serilog;
 
 namespace SchoolBookingApp.MVVM.Viewmodel
 {
@@ -17,6 +18,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidFieldMessage = "Ensure that a ";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
+        private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
+        private const string InvalidInputMessage = "Invalid character attempted in input.";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -46,8 +49,84 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         //Command fields
 
         //Keyword search properties
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _searchText, value);
+                else
+                {
+                    OnPropertyChanged(nameof(SearchText));
+                    StatusMessage = InvalidInputMessage;
+                }
+            }
+        }
+        public List<SearchResult> SearchResults
+        {
+            get => _searchResults;
+            set => SetProperty(ref _searchResults, value);
+        }
+        public List<Student> AdvancedStudentSearchResults
+        {
+            get => _advancedStudentSearchResults;
+            set => SetProperty(ref _advancedStudentSearchResults, value);
+        }
+        public string TableName
+        {
+            get => _tableName;
+            set => SetProperty(ref _tableName, value);
+        }
+        public string Field
+        {
+            get => _field;
+            set => SetProperty(ref _field, value);
+        }
+        public List<string> TablesList => _tablesList;
+        public List<string> FieldsList => _fieldsList;
 
         //Advanced student search properties
+        public DatabaseField? DatabaseField
+        {
+            get => _databaseField;
+            set => SetProperty(ref _databaseField, value);
+        }
+        public List<DatabaseField> DatabaseFieldsList => _databaseFieldsList;
+        public SQLOperator? SqlOperator
+        {
+            get => _sqlOperator;
+            set => SetProperty(ref _sqlOperator, value);
+        }
+        public List<SQLOperator> SqlOperatorsList => _sqlOperatorsList;
+        public string MainParameter
+        {
+            get => _mainParameter;
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _mainParameter, value);
+                else
+                {
+                    OnPropertyChanged(nameof(MainParameter));
+                    StatusMessage = InvalidInputMessage;
+                }
+            }
+        }
+        public string SecondaryParameter
+        {
+            get => _secondaryParameter;
+            set
+            {
+                if (IsSqlInjectionSafe(value))
+                    SetProperty(ref _secondaryParameter, value);
+                else
+                {
+                    OnPropertyChanged(nameof(SecondaryParameter));
+                    StatusMessage = InvalidInputMessage;
+                }
+            }
+        }
 
         public string StatusMessage
         {
@@ -56,6 +135,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             {
                 SetProperty(ref _statusMessage, value);
                 Task.Run(async () => await ClearStatusMessageAfterDelay());
+            }
+        }
+        public bool IsAdvancedStudentSearch
+        {
+            get => _isAdvancedStudentSearch;
+            set
+            {
+                SetProperty(ref _isAdvancedStudentSearch, value);
             }
         }
 
@@ -108,7 +195,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             if (string.IsNullOrWhiteSpace(_field))
             {
-                StatusMessage = InvalidFieldMessage + "search field is selected.";
+                StatusMessage = InvalidFieldMessage;
                 return;
             }
 
@@ -116,15 +203,35 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             {
                 List<SearchResult> results = await _readOperationService.SearchByKeyword(_searchText, _tableName, _field);
             }
+            catch (ArgumentNullException ex)
+            {
+                Log.Information(ex, "A null keyword was entered to the SearchByKeyword method.");
+                StatusMessage = DataMissingMessage;
+            }
+            catch (ArgumentException ex)
+            {
+                Log.Information(ex, "An invalid table or field name was entered to the SearchByKeyword method.");
+                StatusMessage = InvalidTableMessage;
+            }
             catch (Exception ex)
             {
-                StatusMessage = DataMissingMessage;
+                Log.Error(ex, "An unexpected error occurred during keyword search.");
+                StatusMessage = SearchErrorMessage;
             }
         }
 
 
         //Display property methods
 
+        private void ResetKeywordSearchProperties()
+        {
+
+        }
+
+        private void ResetAdvancedStudentSearchProperties()
+        {
+
+        }
 
         /// <summary>
         /// Resets the status message after a given delay to ensure that messages do not remain displayed indefinitely.
@@ -140,6 +247,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private static bool IsSqlInjectionSafe(string input)
         {
             return input.All(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-' || c == '_');
+        }
+
+        private bool IsValidParameterForOperator(string parameter)
+        {
+            return true; // Placeholder for actual validation logic
         }
     }
 }
