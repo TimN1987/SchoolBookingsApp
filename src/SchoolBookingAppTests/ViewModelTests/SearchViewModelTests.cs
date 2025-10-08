@@ -103,5 +103,28 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.Equal(InvalidTableMessage, _viewModel.StatusMessage);
         }
+
+        /// <summary>
+        /// Verifies that when FieldName is null, empty, or whitespace, the StatusMessage is set to InvalidFieldMessage. 
+        /// Ensures that the correct status message is displayed for invalid field names.
+        /// </summary>
+        /// <param name="fieldName">The invalid field name.</param>
+        [Theory]
+        [InlineData(null!)]
+        [InlineData(EmptyString)]
+        [InlineData(WhiteSpace)]
+        public async Task KeywordSearch_InvalidFieldName_SetsInvalidFieldMessage(string fieldName)
+        {
+            //Arrange
+            _viewModel.TableName = ValidTableName;
+            _viewModel.Field = fieldName;
+            _viewModel.SearchText = ValidSearchText;
+
+            //Act
+            await _viewModel.KeywordSearch();
+
+            //Assert
+            Assert.Equal(InvalidFieldMessage, _viewModel.StatusMessage);
+        }
     }
 }
