@@ -15,7 +15,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
     {
         //Constant status messages
         private const int StatusMessageDisplayTime = 2500; //in milliseconds
-        private const string InvalidFieldMessage = "Ensure that a ";
+        private const string InvalidFieldMessage = "Ensure that a search property is selected.";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
         private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
@@ -244,6 +244,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Validation methods
 
+        /// <summary>
+        /// Checks if a string is safe from SQL injection by allowing only alphanumeric characters, whitespace, hyphens, 
+        /// and underscores. Used to validate user input before processing.
+        /// </summary>
+        /// <param name="input">The string to be validated.</param>
+        /// <returns><see langword="true"/> if the <paramref name="input"/> <see langword="string"/> is safe from 
+        /// SQL injection. <see langword="false"/> if there is a SQL injection risk.</returns>
         private static bool IsSqlInjectionSafe(string input)
         {
             return input.All(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-' || c == '_');
