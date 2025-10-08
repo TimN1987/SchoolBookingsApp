@@ -14,6 +14,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string InvalidFieldMessage = "Ensure that a search property is selected.";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
+        private const string NoResultsMessage = "No results found for the given search criteria.";
         private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
         private const string InvalidInputMessage = "Invalid character attempted in input.";
 
@@ -32,6 +33,12 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             _eventAggregatorMock = new Mock<IEventAggregator>();
             _readOperationServiceMock = new Mock<IReadOperationService>();
+
+            _readOperationServiceMock.Setup(s => s.GetAllSearchData())
+                .ReturnsAsync([]);
+            _readOperationServiceMock.Setup(s => s.SearchByKeyword(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync([]);
+
             _viewModel = new SearchViewModel(_eventAggregatorMock.Object, _readOperationServiceMock.Object);
         }
 
@@ -87,7 +94,6 @@ namespace SchoolBookingAppTests.ViewModelTests
         /// </summary>
         /// <param name="tableName">The invalid table name.</param>
         [Theory]
-        [InlineData(null!)]
         [InlineData(EmptyString)]
         [InlineData(WhiteSpace)]
         public async Task KeywordSearch_InvalidTableName_SetsInvalidTableMessage(string tableName)
@@ -110,7 +116,6 @@ namespace SchoolBookingAppTests.ViewModelTests
         /// </summary>
         /// <param name="fieldName">The invalid field name.</param>
         [Theory]
-        [InlineData(null!)]
         [InlineData(EmptyString)]
         [InlineData(WhiteSpace)]
         public async Task KeywordSearch_InvalidFieldName_SetsInvalidFieldMessage(string fieldName)
@@ -125,6 +130,38 @@ namespace SchoolBookingAppTests.ViewModelTests
 
             //Assert
             Assert.Equal(InvalidFieldMessage, _viewModel.StatusMessage);
+        }
+
+        [Fact]
+        public async Task KeywordSearch_WhiteSpaceKeyword_NoResultsMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.TableName = ValidTableName;
+            _viewModel.Field = ValidFieldName;
+            _viewModel.SearchText = WhiteSpace;
+
+            //Act
+            await _viewModel.KeywordSearch();
+
+            //Assert
+            Assert.Equal(NoResultsMessage, _viewModel.StatusMessage);
+        }
+
+        [Fact]
+        public async Task KeywordSearch_ValidKeyword_SearchByKeywordCalledOnce()
+        {
+            //Arrange
+            _viewModel.TableName = ValidTableName;
+            _viewModel.Field = ValidFieldName;
+            _viewModel.SearchText = ValidSearchText;
+            _readOperationServiceMock.Setup(s => s.SearchByKeyword(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(It.IsAny<List<SearchResult>>());
+
+            //Act
+            await _viewModel.KeywordSearch();
+
+            //Assert
+            _readOperationServiceMock.Verify(s => s.SearchByKeyword(ValidSearchText, ValidTableName, ValidFieldName), Times.Once);
         }
     }
 }

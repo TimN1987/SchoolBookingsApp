@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
@@ -18,8 +19,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidFieldMessage = "Ensure that a search property is selected.";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
+        private const string NoResultsMessage = "No results found for the given search criteria.";
         private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
         private const string InvalidInputMessage = "Invalid character attempted in input.";
+
+        //UI label properties
+        public string KeywordSearchButtonLabel => "Search";
+        public string AdvancedStudentSearchButtonLabel => "Student Search";
+        public string ClearFormsButtonLabel => "Clear Forms";
 
         //Fields
         private readonly IEventAggregator _eventAggregator;
@@ -28,12 +35,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         //Keyword search fields
         private string _searchText;
         private List<SearchResult> _searchResults;
-        private List<Student> _advancedStudentSearchResults;
         private string _tableName;
         private readonly List<string> _tablesList;
         private string _field;
         private readonly Dictionary<string, List<string>> _fieldsDictionary;
-        private readonly List<string> _fieldsList;
+        private List<string> _fieldsList;
 
         //Advanced student search fields
         private DatabaseField? _databaseField;
@@ -42,11 +48,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private readonly List<SQLOperator> _sqlOperatorsList;
         private string _mainParameter;
         private string _secondaryParameter;
+        private bool _isSecondaryParameterVisible;
+        private List<Student> _advancedStudentSearchResults;
 
         private string _statusMessage;
         private bool _isAdvancedStudentSearch;
 
         //Command fields
+        private RelayCommand? _keywordSearchCommand;
+        private RelayCommand? _advancedStudentSearchCommand;
+        private RelayCommand? _clearFormsCommand;
 
         //Keyword search properties
         public string SearchText
@@ -68,15 +79,17 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             get => _searchResults;
             set => SetProperty(ref _searchResults, value);
         }
-        public List<Student> AdvancedStudentSearchResults
-        {
-            get => _advancedStudentSearchResults;
-            set => SetProperty(ref _advancedStudentSearchResults, value);
-        }
         public string TableName
         {
             get => _tableName;
-            set => SetProperty(ref _tableName, value);
+            set
+            {
+                SetProperty(ref _tableName, value);
+                if (_fieldsDictionary.TryGetValue(_tableName, out List<string>? fields))
+                {
+                    FieldsList = fields;
+                }
+            }
         }
         public string Field
         {
@@ -84,7 +97,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             set => SetProperty(ref _field, value);
         }
         public List<string> TablesList => _tablesList;
-        public List<string> FieldsList => _fieldsList;
+        public List<string> FieldsList
+        {
+            get => _fieldsList;
+            set => SetProperty(ref _fieldsList, value);
+        }
 
         //Advanced student search properties
         public DatabaseField? DatabaseField
@@ -127,6 +144,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 }
             }
         }
+        public bool IsSecondaryParameterVisible
+        {
+            get => _isSecondaryParameterVisible;
+            set => SetProperty(ref _isSecondaryParameterVisible, value);
+        }
+        public List<Student> AdvancedStudentSearchResults
+        {
+            get => _advancedStudentSearchResults;
+            set => SetProperty(ref _advancedStudentSearchResults, value);
+        }
 
         public string StatusMessage
         {
@@ -147,6 +174,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         }
 
         //Constructor
+
         public SearchViewModel(IEventAggregator eventAggregator, IReadOperationService readOperationService)
         {
             _eventAggregator = eventAggregator 
@@ -156,7 +184,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             _searchText = string.Empty;
             _searchResults = _readOperationService.GetAllSearchData().GetAwaiter().GetResult();
-            _advancedStudentSearchResults = [];
             _tableName = string.Empty;
             _tablesList = ["All", "Students", "Parents"];
             _field = string.Empty;
@@ -178,6 +205,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 .ToList();
             _mainParameter = string.Empty;
             _secondaryParameter = string.Empty;
+            _isSecondaryParameterVisible = false;
+            _advancedStudentSearchResults = [];
 
             _statusMessage = string.Empty;
             _isAdvancedStudentSearch = false;
@@ -202,6 +231,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             try
             {
                 List<SearchResult> results = await _readOperationService.SearchByKeyword(_searchText, _tableName, _field);
+                SearchResults = results;
+
+                if (results.Count == 0)
+                    StatusMessage = NoResultsMessage;
             }
             catch (ArgumentNullException ex)
             {
@@ -223,14 +256,31 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Display property methods
 
+        /// <summary>
+        /// Resets the keyword search properties to their default values. Enables simple clearing of searches and resetting 
+        /// of the search form.
+        /// </summary>
         private void ResetKeywordSearchProperties()
         {
-
+            SearchText = string.Empty;
+            SearchResults = _readOperationService.GetAllSearchData().GetAwaiter().GetResult();
+            TableName = string.Empty;
+            Field = string.Empty;
+            FieldsList = [];
         }
 
+        /// <summary>
+        /// Resets the advanced student search properties to their default values. Enables simple clearing of searches
+        /// and resetting of the search form.
+        /// </summary>
         private void ResetAdvancedStudentSearchProperties()
         {
-
+            DatabaseField = null;
+            SqlOperator = null;
+            MainParameter = string.Empty;
+            SecondaryParameter = string.Empty;
+            IsSecondaryParameterVisible = false;
+            AdvancedStudentSearchResults = [];
         }
 
         /// <summary>
@@ -258,7 +308,19 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         private bool IsValidParameterForOperator(string parameter)
         {
-            return true; // Placeholder for actual validation logic
+            bool isIntegerParameter = int.TryParse(parameter, out _);
+
+            return _sqlOperator switch
+            {
+                SQLOperator.Equals => true,
+                SQLOperator.NotEquals => true,
+                SQLOperator.GreaterThan => isIntegerParameter,
+                SQLOperator.LessThan => isIntegerParameter,
+                SQLOperator.GreaterThanOrEqual => isIntegerParameter,
+                SQLOperator.LessThanOrEqual => isIntegerParameter,
+                SQLOperator.Between => isIntegerParameter,
+                _ => false,
+            }; //further thinking needed to decide if this is sufficient
         }
     }
 }
