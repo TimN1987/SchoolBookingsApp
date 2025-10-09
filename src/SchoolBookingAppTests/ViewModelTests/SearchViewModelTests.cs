@@ -374,6 +374,11 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(NoCriteriaMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method is called exactly once if valid 
+        /// criteria are added before the <see cref="SearchViewModel.AdvancedStudentSearch"/> method is called. Ensures that 
+        /// the business logic works as expected.
+        /// </summary>
         [Fact]
         public async Task AdvancedStudentSearch_ValidCriteria_SearchByCriteriaCalledOnce()
         {
@@ -392,6 +397,11 @@ namespace SchoolBookingAppTests.ViewModelTests
             _readOperationServiceMock.Verify(s => s.SearchByCriteria(It.IsAny<List<SearchCriteria>>()), Times.Once);
         }
 
+        /// <summary>
+        /// Verifies that an empty list is displayed if no results were returned by the <see cref="ReadOperationService.
+        /// SearchByCriteria"/> method. Ensures that the user is not shown misleading or erroneous results.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task AdvancedStudentSearch_SearchByCriteriaReturnsEmptyList_EmptyResultsListDisplayed()
         {
@@ -410,6 +420,10 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Empty(_viewModel.AdvancedStudentSearchResults);
         }
 
+        /// <summary>
+        /// Verifies that the correct status update is displayed if no search results were found. Ensures that the user is 
+        /// informed of the reason that no results are displayed.
+        /// </summary>
         [Fact]
         public async Task AdvancedStudentSearch_SearchByCriteriaReturnsEmptyList_NoResultsMessageDisplayed()
         {
@@ -428,6 +442,10 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(NoResultsMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that the correct error message is displayed if the search is unable to complete. Ensures that the 
+        /// user is aware an error has occurred.
+        /// </summary>
         [Fact]
         public async Task AdvancedStudentSearch_ErrorOccurs_SearchErrorMessageDisplayed()
         {
