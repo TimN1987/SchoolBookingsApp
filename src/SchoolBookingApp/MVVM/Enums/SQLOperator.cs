@@ -24,6 +24,7 @@ namespace SchoolBookingApp.MVVM.Enums
         Between,
         NotBetween,
         IsNull,
-        IsNotNull
+        IsNotNull,
+        Invalid
     }
 }
