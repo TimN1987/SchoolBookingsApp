@@ -8,6 +8,8 @@ using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Enums;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Services;
+using SchoolBookingApp.MVVM.View;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 using Serilog;
 
@@ -27,6 +29,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string MissingCriteriaMessage = "Ensure all search criteria are entered.";
         private const string IntegerRequiredMessage = "Ensure that you have entered valid numbers for your search.";
         private const string NoCriteriaMessage = "Ensure criteria are added before searching.";
+        private const string CannotViewResultMessage = "This result is invalid and cannot be viewed.";
 
         //UI label properties
         public string SearchTitle => IsAdvancedStudentSearch ? "Student Search" : "Keyword Search";
@@ -268,6 +271,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public RelayCommand? SearchCommand => IsAdvancedStudentSearch
             ? _advancedStudentSearchCommand ??= new RelayCommand(async param => await AdvancedStudentSearch())
             : _keywordSearchCommand ??= new RelayCommand(async param => await KeywordSearch());
+        public RelayCommand? ViewResultCommand => _viewResultCommand
+            ??= new RelayCommand(param => ViewResult());
         public RelayCommand? ClearFormsCommand => _clearFormsCommand
             ??= new RelayCommand(param => ClearForms());
 
@@ -419,6 +424,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        /// <summary>
+        /// Searches the <see cref="Student"/>s in the database to find all that match the given list of <see 
+        /// cref="CriteriaToBeApplied"/>. Contains validation to ensure that the criteria list is not <see langword="null"/> 
+        /// or empty. Allows the user to search for students based on multiple criteria.
+        /// </summary>
         public async Task AdvancedStudentSearch()
         {
             if (_criteriaToBeApplied == null || _criteriaToBeApplied.Count == 0)
@@ -438,6 +448,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             catch (Exception ex)
             {
                 Log.Error(ex, "Error occurred while searching for students by criteria.");
+                AdvancedStudentSearchResults = [];
                 StatusMessage = SearchErrorMessage;
             }
         }
@@ -475,6 +486,35 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _criteriaToBeApplied.Add(criteria);
             OnPropertyChanged(nameof(CriteriaToBeApplied));
             ResetSearchCriteria();
+        }
+
+        /// <summary>
+        /// Navigates to the appropriate view to display the search result data fully and publishes an <see 
+        /// cref="EventAggregator"/> message containing the <see cref="Student"/> or <see cref="Parent"/> id to allow the 
+        /// relevant data to be loaded. Allows the user to see their selected search result in full detail.
+        /// </summary>
+        public void ViewResult()
+        {
+            //Retrieve the id for the selected student or parent as well as the category for a keyword search.
+            int id = _isAdvancedStudentSearch ? _selectedStudentResult?.Id ?? 0 : _selectedKeywordResult?.Id ?? 0;
+            string category = _selectedKeywordResult?.Category ?? string.Empty;
+
+            if (id == 0 || (!_isAdvancedStudentSearch && category == string.Empty))
+            {
+                StatusMessage = CannotViewResultMessage;
+                return;
+            }
+
+            //Navigate to the appropriate view to display the selected student or parent data.
+            if (_isAdvancedStudentSearch)
+                _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddBookingView));
+            if (category == "Student")
+                _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddStudentView));
+            if (category == "Parent")
+                _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddParentView));
+
+            //Publish the id to the selected view to enable loading of the relevant data.
+            _eventAggregator.GetEvent<LoadFromIdEvent>().Publish(id);
         }
 
         //Display property methods
