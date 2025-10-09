@@ -28,6 +28,13 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const SQLOperator ValidSQLOperator = SQLOperator.Equals;
         private const DatabaseField ValidDatabaseField = DatabaseField.GeneralComments;
 
+        private const DatabaseField TextDatabaseField = DatabaseField.GeneralComments;
+        private const DatabaseField IntegerDatabaseField = DatabaseField.Math;
+        private const SQLOperator TextOperator = SQLOperator.Like;
+        private const SQLOperator IntegerOperator = SQLOperator.GreaterThan;
+        private const string TextString = "Text string";
+        private const string IntegerString = "12345";
+
         private const string WhiteSpace = "    ";
         private const string EmptyString = "";
 
@@ -183,6 +190,11 @@ namespace SchoolBookingAppTests.ViewModelTests
 
         //AddSearchCriteria tests.
 
+        /// <summary>
+        /// Verifies that the expected error message is displayed if a null <see cref="SearchViewModel.SearchField"/> is 
+        /// passed to the <see cref="SearchViewModel.AddSearchCriteria"/> method. Ensures that an invalid criteria cannot 
+        /// be added to the criteria list before searching.
+        /// </summary>
         [Fact]
         public void AddSearchCriteria_NullSearchField_MissingCriteriaMessageDisplayed()
         {
@@ -199,6 +211,11 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(MissingCriteriaMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that the expected error message is displayed if a null <see cref="SearchViewModel.SqlOperator"/> is 
+        /// passed to the <see cref="SearchViewModel.AddSearchCriteria"/> method. Ensures that an invalid criteria cannot 
+        /// be added to the criteria list before searching.
+        /// </summary>
         [Fact]
         public void AddSearchCriteria_NullSQLOperator_MissingCriteriaMessageDisplayed()
         {
@@ -215,6 +232,11 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(MissingCriteriaMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that the expected error message is displayed if a invalid <see cref="SearchViewModel.MainParameter"/> 
+        /// is passed to the <see cref="SearchViewModel.AddSearchCriteria"/> method. Ensures that an invalid criteria cannot 
+        /// be added to the criteria list before searching.
+        /// </summary>
         [Theory]
         [InlineData(EmptyString)]
         [InlineData(WhiteSpace)]
@@ -233,6 +255,11 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(MissingCriteriaMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that the expected error message is displayed if a invalid <see cref="SearchViewModel.SecondaryParameter"/> 
+        /// is passed to the <see cref="SearchViewModel.AddSearchCriteria"/> method. Ensures that an invalid criteria cannot 
+        /// be added to the criteria list before searching.
+        /// </summary>
         [Theory]
         [InlineData(EmptyString)]
         [InlineData(WhiteSpace)]
@@ -251,6 +278,54 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.Equal(MissingCriteriaMessage, _viewModel.StatusMessage);
         }
+
+        [Theory]
+        [InlineData(IntegerDatabaseField, IntegerOperator, TextString, IntegerRequiredMessage)]
+        [InlineData(TextDatabaseField, TextOperator, IntegerString, DataMissingMessage)]
+        public void AddSearchCriteria_InvalidMainParameterType_CorrectErrorMessageDisplayed(
+            DatabaseField fieldType,
+            SQLOperator operatorType,
+            string parameterType,
+            string expectedMessage)
+        {
+            //Arrange
+            _viewModel.SearchField = fieldType;
+            _viewModel.SqlOperator = operatorType;
+            _viewModel.MainParameter = parameterType;
+            _viewModel.IsSecondaryParameterVisible = false;
+
+            //Act
+            _viewModel.AddSearchCriteria();
+
+            //Assert
+            Assert.Equal(expectedMessage, _viewModel.StatusMessage);
+        }
+
+
+        [Theory]
+        [InlineData(IntegerDatabaseField, IntegerOperator, IntegerString, TextString, IntegerRequiredMessage)]
+        [InlineData(TextDatabaseField, TextOperator, TextString, IntegerString, DataMissingMessage)]
+        public void AddSearchCriteria_InvalidSecondaryParameterType_CorrectErrorMessageDisplayed(
+            DatabaseField fieldType,
+            SQLOperator operatorType,
+            string mainParameterType,
+            string secondaryParameterType,
+            string expectedMessage)
+        {
+            //Arrange
+            _viewModel.SearchField = fieldType;
+            _viewModel.SqlOperator = operatorType;
+            _viewModel.MainParameter = mainParameterType;
+            _viewModel.IsSecondaryParameterVisible = true;
+            _viewModel.SecondaryParameter = secondaryParameterType;
+
+            //Act
+            _viewModel.AddSearchCriteria();
+
+            //Assert
+            Assert.Equal(expectedMessage, _viewModel.StatusMessage);
+        }
+
 
         //AdvancedStudentSearch tests.
 
