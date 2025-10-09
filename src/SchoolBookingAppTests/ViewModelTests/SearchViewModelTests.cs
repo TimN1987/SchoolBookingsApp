@@ -279,6 +279,10 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(MissingCriteriaMessage, _viewModel.StatusMessage);
         }
 
+        /// <summary>
+        /// Verifies that an invalid data type cannot be added to a search criteria and that the correct error message is 
+        /// displayed. Ensures that invalid searches cannot be created.
+        /// </summary>
         [Theory]
         [InlineData(IntegerDatabaseField, IntegerOperator, TextString, IntegerRequiredMessage)]
         [InlineData(TextDatabaseField, TextOperator, IntegerString, DataMissingMessage)]
@@ -301,7 +305,10 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(expectedMessage, _viewModel.StatusMessage);
         }
 
-
+        /// <summary>
+        /// Verifies that an invalid data type cannot be added to a search criteria and that the correct error message is 
+        /// displayed. Ensures that invalid searches cannot be created.
+        /// </summary>
         [Theory]
         [InlineData(IntegerDatabaseField, IntegerOperator, IntegerString, TextString, IntegerRequiredMessage)]
         [InlineData(TextDatabaseField, TextOperator, TextString, IntegerString, DataMissingMessage)]
@@ -326,6 +333,23 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.Equal(expectedMessage, _viewModel.StatusMessage);
         }
 
+        [Fact]
+        public void AddSearchCriteria_ValidCriteria_CriteriaAddedToList()
+        {
+            //Arrange
+            _viewModel.CriteriaToBeApplied = [];
+            _viewModel.SearchField = ValidDatabaseField;
+            _viewModel.SqlOperator = ValidSQLOperator;
+            _viewModel.MainParameter = ValidSearchText;
+            _viewModel.IsSecondaryParameterVisible = false;
+
+            //Act
+            _viewModel.AddSearchCriteria();
+
+            //Assert
+            Assert.NotEmpty(_viewModel.CriteriaToBeApplied);
+            Assert.Single(_viewModel.CriteriaToBeApplied);
+        }
 
         //AdvancedStudentSearch tests.
 
