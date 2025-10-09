@@ -373,5 +373,80 @@ namespace SchoolBookingAppTests.ViewModelTests
             //Assert
             Assert.Equal(NoCriteriaMessage, _viewModel.StatusMessage);
         }
+
+        [Fact]
+        public async Task AdvancedStudentSearch_ValidCriteria_SearchByCriteriaCalledOnce()
+        {
+            //Arrange
+            _viewModel.CriteriaToBeApplied = [];
+            _viewModel.SearchField = ValidDatabaseField;
+            _viewModel.SqlOperator = ValidSQLOperator;
+            _viewModel.MainParameter = ValidSearchText;
+            _viewModel.IsSecondaryParameterVisible = false;
+            _viewModel.AddSearchCriteria();
+
+            //Act
+            await _viewModel.AdvancedStudentSearch();
+
+            //Assert
+            _readOperationServiceMock.Verify(s => s.SearchByCriteria(It.IsAny<List<SearchCriteria>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AdvancedStudentSearch_SearchByCriteriaReturnsEmptyList_EmptyResultsListDisplayed()
+        {
+            //Arrange
+            _viewModel.CriteriaToBeApplied = [];
+            _viewModel.SearchField = ValidDatabaseField;
+            _viewModel.SqlOperator = ValidSQLOperator;
+            _viewModel.MainParameter = ValidSearchText;
+            _viewModel.IsSecondaryParameterVisible = false;
+            _viewModel.AddSearchCriteria();
+
+            //Act
+            await _viewModel.AdvancedStudentSearch();
+
+            //Assert
+            Assert.Empty(_viewModel.AdvancedStudentSearchResults);
+        }
+
+        [Fact]
+        public async Task AdvancedStudentSearch_SearchByCriteriaReturnsEmptyList_NoResultsMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.CriteriaToBeApplied = [];
+            _viewModel.SearchField = ValidDatabaseField;
+            _viewModel.SqlOperator = ValidSQLOperator;
+            _viewModel.MainParameter = ValidSearchText;
+            _viewModel.IsSecondaryParameterVisible = false;
+            _viewModel.AddSearchCriteria();
+
+            //Act
+            await _viewModel.AdvancedStudentSearch();
+
+            //Assert
+            Assert.Equal(NoResultsMessage, _viewModel.StatusMessage);
+        }
+
+        [Fact]
+        public async Task AdvancedStudentSearch_ErrorOccurs_SearchErrorMessageDisplayed()
+        {
+            //Arrange
+            _viewModel.CriteriaToBeApplied = [];
+            _viewModel.SearchField = ValidDatabaseField;
+            _viewModel.SqlOperator = ValidSQLOperator;
+            _viewModel.MainParameter = ValidSearchText;
+            _viewModel.IsSecondaryParameterVisible = false;
+            _viewModel.AddSearchCriteria();
+
+            _readOperationServiceMock.Setup(s => s.SearchByCriteria(It.IsAny<List<SearchCriteria>>()))
+                .Throws<Exception>();
+
+            //Act
+            await _viewModel.AdvancedStudentSearch();
+
+            //Assert
+            Assert.Equal(SearchErrorMessage, _viewModel.StatusMessage);
+        }
     }
 }

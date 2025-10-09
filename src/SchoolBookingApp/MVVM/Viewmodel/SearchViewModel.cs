@@ -426,6 +426,20 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 StatusMessage = NoCriteriaMessage;
                 return;
             }
+
+            try
+            {
+                List<Student> results = await _readOperationService.SearchByCriteria(_criteriaToBeApplied);
+                AdvancedStudentSearchResults = results;
+
+                if (results.Count == 0)
+                    StatusMessage = NoResultsMessage;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while searching for students by criteria.");
+                StatusMessage = SearchErrorMessage;
+            }
         }
 
         /// <summary>
