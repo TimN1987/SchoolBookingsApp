@@ -46,6 +46,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string DeleteButtonLabel => "Delete Student";
 
         //Fields
+        private readonly IEventAggregator _eventAggregator;
         private readonly IReadOperationService _readOperationService;
         private readonly ICreateOperationService _createOperationService;
         private readonly IUpdateOperationService _updateOperationService;
@@ -187,11 +188,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //Constructor
         public AddStudentViewModel(
+            IEventAggregator eventAggregator,
             IReadOperationService readOperationService,
             ICreateOperationService createOperationService,
             IUpdateOperationService updateOperationService,
             IDeleteOperationService deleteOperationService)
         {
+            _eventAggregator = eventAggregator 
+                ?? throw new ArgumentNullException(nameof(eventAggregator));
             _readOperationService = readOperationService
                 ?? throw new ArgumentNullException(nameof(readOperationService));
             _createOperationService = createOperationService
