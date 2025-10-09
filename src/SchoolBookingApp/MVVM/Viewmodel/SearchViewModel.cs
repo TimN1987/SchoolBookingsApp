@@ -441,6 +441,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 StatusMessage = isIntegerExpected ? IntegerRequiredMessage : DataMissingMessage;
                 return;
             }
+
+            object[] parameters = _isSecondaryParameterVisible 
+                ? [_mainParameter] 
+                : [_mainParameter, _secondaryParameter];
+            var criteria = new SearchCriteria((DatabaseField)_searchField, (SQLOperator)_sqlOperator, parameters);
+
+            _criteriaToBeApplied.Add(criteria);
+            OnPropertyChanged(nameof(CriteriaToBeApplied));
         }
 
         //Display property methods
