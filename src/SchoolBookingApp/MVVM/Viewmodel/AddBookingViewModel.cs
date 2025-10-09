@@ -536,6 +536,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                     IsNewBooking = false;
                 }
             });
+            _eventAggregator.GetEvent<LoadFromIdEvent>().Subscribe(param =>
+            {
+                if (param is int id)
+                {
+                    SelectedStudent = _allStudents.Where(student => student.Id == id).FirstOrDefault();
+                }
+            });
         }
 
         //Methods for commands

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Viewmodel;
 
 namespace SchoolBookingAppTests.ViewModelTests
@@ -25,22 +26,30 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string DeleteNewParentMessage = "Cannot delete a new parent. They must be added first.";
         private const string NoParentToDeleteMessage = "Cannot delete - no parent selected.";
 
+        private readonly Mock<IEventAggregator> _eventAggregatorMock;
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<ICreateOperationService> _createOperationServiceMock;
         private readonly Mock<IUpdateOperationService> _updateOperationServiceMock;
         private readonly Mock<IDeleteOperationService> _deleteOperationServiceMock;
+        private readonly Mock<LoadFromIdEvent> _loadFromIdEventMock;
 
         private readonly AddParentViewModel _viewModel;
         private readonly SearchResult _testParent;
 
         public AddParentViewModelTests()
         {
+            _eventAggregatorMock = new Mock<IEventAggregator>();
             _readOperationServiceMock = new Mock<IReadOperationService>();
             _createOperationServiceMock = new Mock<ICreateOperationService>();
             _updateOperationServiceMock = new Mock<IUpdateOperationService>();
             _deleteOperationServiceMock = new Mock<IDeleteOperationService>();
+            _loadFromIdEventMock = new Mock<LoadFromIdEvent>();
+
+            _eventAggregatorMock.Setup(e => e.GetEvent<LoadFromIdEvent>())
+                .Returns(_loadFromIdEventMock.Object);
 
             _viewModel = new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object, 
                 _createOperationServiceMock.Object, 
                 _updateOperationServiceMock.Object, 
@@ -76,6 +85,23 @@ namespace SchoolBookingAppTests.ViewModelTests
 
         /// <summary>
         /// Verifies that an <see cref="ArgumentNullException"/> is thrown when a <see langword="null"/> <see 
+        /// cref="EventAggregator"/> is passed as a parameter to the constructor. Ensures that <see cref="EventAggregator"/> 
+        /// messages are succesfully published and subscribed to.
+        /// </summary>
+        [Fact]
+        public void Constructor_NullEventAggregator_ThrowsArgumentNullException()
+        {
+            //Arrange, Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new AddParentViewModel(
+                null!,
+                _readOperationServiceMock.Object,
+                _createOperationServiceMock.Object,
+                _updateOperationServiceMock.Object,
+                _deleteOperationServiceMock.Object));
+        }
+
+        /// <summary>
+        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when a <see langword="null"/> <see 
         /// cref="ReadOperationService"/> is passed as a parameter to the constructor. Ensures that database operations are 
         /// not attempted using a <see langword="null"/> instance of the class.
         /// </summary>
@@ -84,6 +110,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 null!, 
                 _createOperationServiceMock.Object, 
                 _updateOperationServiceMock.Object, 
@@ -100,6 +127,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 null!,
                 _updateOperationServiceMock.Object,
@@ -116,6 +144,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 null!,
@@ -132,6 +161,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -147,6 +177,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange & Act
             var viewModel = new AddParentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -156,8 +187,6 @@ namespace SchoolBookingAppTests.ViewModelTests
             Assert.NotNull(viewModel);
             Assert.IsType<AddParentViewModel>(viewModel);
         }
-
-        //Property tests.
 
         //AddUpdateParent tests.
 

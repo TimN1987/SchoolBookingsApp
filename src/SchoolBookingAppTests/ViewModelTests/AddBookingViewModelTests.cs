@@ -30,6 +30,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly Mock<IUpdateOperationService> _updateOperationServiceMock;
         private readonly Mock<IDeleteOperationService> _deleteOperationServiceMock;
         private readonly Mock<DisplayBookingEvent> _displayBookingEventMock;
+        private readonly Mock<LoadFromIdEvent> _loadFromIdEventMock;
         private readonly AddBookingViewModel _viewModel;
         private readonly Student _testStudent;
         private readonly Booking _testBooking;
@@ -46,12 +47,16 @@ namespace SchoolBookingAppTests.ViewModelTests
             _deleteOperationServiceMock = new Mock<IDeleteOperationService>();
 
             _displayBookingEventMock = new Mock<DisplayBookingEvent>();
+            _loadFromIdEventMock = new Mock<LoadFromIdEvent>();
             _testStudent = new Student(
                 1, "John", "Doe", 20191110, "5B", [], new StudentDataRecord(), new MeetingCommentsRecord());
 
             _eventAggregatorMock
                 .Setup(x => x.GetEvent<DisplayBookingEvent>())
                 .Returns(_displayBookingEventMock.Object);
+            _eventAggregatorMock
+                .Setup(e => e.GetEvent<LoadFromIdEvent>())
+                .Returns(_loadFromIdEventMock.Object);
             _bookingManagerMock.Setup(x => x.ListBookings())
                 .Returns(Task.FromResult<List<Booking>>([]));
             _readOperationServiceMock.Setup(x => x.GetStudentData(It.IsAny<int>()))

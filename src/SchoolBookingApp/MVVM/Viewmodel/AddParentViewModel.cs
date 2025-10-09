@@ -10,6 +10,7 @@ using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 
 namespace SchoolBookingApp.MVVM.Viewmodel
@@ -55,6 +56,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string DeleteParentButtonLabel => "Delete Parent";
 
         //Fields
+        private readonly IEventAggregator _eventAggregator;
         private readonly IReadOperationService _readOperationService;
         private readonly ICreateOperationService _createOperationService;
         private readonly IUpdateOperationService _updateOperationService;
@@ -289,11 +291,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         //Constructor
 
         public AddParentViewModel(
+            IEventAggregator eventAggregator,
             IReadOperationService readOperationService, 
             ICreateOperationService createOperationService, 
             IUpdateOperationService updateOperationService, 
             IDeleteOperationService deleteOperationService)
         {
+            _eventAggregator = eventAggregator 
+                ?? throw new ArgumentNullException(nameof(eventAggregator));
             _readOperationService = readOperationService 
                 ?? throw new ArgumentNullException(nameof(readOperationService));
             _createOperationService = createOperationService 
@@ -321,6 +326,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _selectedAssignedChild = null;
 
             Task.Run(async () => await RefreshParentStudentLists());
+
+            _eventAggregator.GetEvent<LoadFromIdEvent>().Subscribe(param =>
+            {
+                if (param is int id)
+                {
+                    SelectedParent = _allParents.Where(parent => parent.Id == id).FirstOrDefault();
+                }
+            });
         }
 
         //Methods

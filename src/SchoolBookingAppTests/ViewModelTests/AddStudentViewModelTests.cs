@@ -6,16 +6,19 @@ using System.Threading.Tasks;
 using Moq;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Viewmodel;
 
 namespace SchoolBookingAppTests.ViewModelTests
 {
     public class AddStudentViewModelTests
     {
+        private readonly Mock<IEventAggregator> _eventAggregatorMock;
         private readonly Mock<IReadOperationService> _readOperationServiceMock;
         private readonly Mock<ICreateOperationService> _createOperationServiceMock;
         private readonly Mock<IUpdateOperationService> _updateOperationServiceMock;
         private readonly Mock<IDeleteOperationService> _deleteOperationServiceMock;
+        private readonly Mock<LoadFromIdEvent> _loadFromIdEventMock;
 
         private readonly AddStudentViewModel _viewModel;
         private readonly AddStudentViewModel _viewModelWithSelectedStudent;
@@ -30,10 +33,12 @@ namespace SchoolBookingAppTests.ViewModelTests
         private readonly string _whiteSpaceString;
         public AddStudentViewModelTests()
         {
+            _eventAggregatorMock = new Mock<IEventAggregator>();
             _readOperationServiceMock = new Mock<IReadOperationService>();
             _createOperationServiceMock = new Mock<ICreateOperationService>();
             _updateOperationServiceMock = new Mock<IUpdateOperationService>();
             _deleteOperationServiceMock = new Mock<IDeleteOperationService>();
+            _loadFromIdEventMock = new Mock<LoadFromIdEvent>();
 
             _testString = "test string";
             _sqlInjectionString = "'; DROP TABLE Students;--";
@@ -50,6 +55,8 @@ namespace SchoolBookingAppTests.ViewModelTests
                 Category = _testString
             };
 
+            _eventAggregatorMock.Setup(e => e.GetEvent<LoadFromIdEvent>())
+                .Returns(_loadFromIdEventMock.Object);
             _readOperationServiceMock
                 .Setup(x => x.GetStudentList())
                 .Returns(Task.FromResult<List<SearchResult>>([]));
@@ -67,6 +74,7 @@ namespace SchoolBookingAppTests.ViewModelTests
                 .Returns(Task.FromResult(true));
 
             _viewModel = new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -77,6 +85,22 @@ namespace SchoolBookingAppTests.ViewModelTests
         //Constructor tests.
 
         /// <summary>
+        /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the <see cref="IEventAggregator"/> 
+        /// parameter is null.
+        /// </summary>
+        [Fact]
+        public void Constructor_NullEventAggregator_ThrowsArgumentNullException()
+        {
+            //Arrange, Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new AddStudentViewModel(
+                null!,
+                _readOperationServiceMock.Object,
+                _createOperationServiceMock.Object,
+                _updateOperationServiceMock.Object,
+                _deleteOperationServiceMock.Object));
+        }
+
+        /// <summary>
         /// Verifies that an <see cref="ArgumentNullException"/> is thrown when the <see cref="IReadOperationService"/> 
         /// parameter is null.
         /// </summary>
@@ -85,6 +109,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 null!,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -100,6 +125,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 null!,
                 _updateOperationServiceMock.Object,
@@ -115,6 +141,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 null!,
@@ -130,6 +157,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act & Assert
             Assert.Throws<ArgumentNullException>(() => new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -145,6 +173,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         {
             //Arrange, Act
             var viewModel = new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
@@ -253,6 +282,7 @@ namespace SchoolBookingAppTests.ViewModelTests
                 Category = "Student"
             };
             var viewModel = new AddStudentViewModel(
+                _eventAggregatorMock.Object,
                 _readOperationServiceMock.Object,
                 _createOperationServiceMock.Object,
                 _updateOperationServiceMock.Object,
