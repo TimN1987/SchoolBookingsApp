@@ -45,6 +45,7 @@ namespace SchoolBookingApp.MVVM.Enums
         SpecialEducationalNeedsNotes,
         SafeguardingNotes,
         OtherNotes,
-        DateAdded
+        DateAdded,
+        Invalid
     }
 }
