@@ -20,11 +20,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string InvalidFieldMessage = "Ensure that a search property is selected.";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
+        private const string InvalidDataMessage = "Ensure that all required fields are filled correctly.";
         private const string NoResultsMessage = "No results found for the given search criteria.";
         private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
         private const string InvalidInputMessage = "Invalid character attempted in input.";
         private const string MissingCriteriaMessage = "Ensure all search criteria are entered.";
         private const string IntegerRequiredMessage = "Ensure that you have entered valid numbers for your search.";
+        private const string NoCriteriaMessage = "Ensure criteria are added before searching.";
 
         //UI label properties
         public string SearchTitle => IsAdvancedStudentSearch ? "Student Search" : "Keyword Search";
@@ -419,9 +421,32 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         public async Task AdvancedStudentSearch()
         {
+            if (_criteriaToBeApplied == null || _criteriaToBeApplied.Count == 0)
+            {
+                StatusMessage = NoCriteriaMessage;
+                return;
+            }
 
+            try
+            {
+                List<Student> results = await _readOperationService.SearchByCriteria(_criteriaToBeApplied);
+                AdvancedStudentSearchResults = results;
+
+                if (results.Count == 0)
+                    StatusMessage = NoResultsMessage;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error occurred while searching for students by criteria.");
+                StatusMessage = SearchErrorMessage;
+            }
         }
 
+        /// <summary>
+        /// Adds the currently selected search criteria to the <see cref="CriteriaToBeApplied"/> list ready for a search to 
+        /// be called with the given criteria. Contains validation to ensure that searches can run as expected. Allows the 
+        /// user to add to a list of criteria to customise their student search.
+        /// </summary>
         public void AddSearchCriteria()
         {
             //Ensure that valid search criteria have been entered.
@@ -438,17 +463,18 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 || (_isSecondaryParameterVisible && !IsValidParameterForOperator(_secondaryParameter)))
             {
                 bool isIntegerExpected = _fieldsRequiringIntegerParameters.Contains((DatabaseField)_searchField);
-                StatusMessage = isIntegerExpected ? IntegerRequiredMessage : DataMissingMessage;
+                StatusMessage = isIntegerExpected ? IntegerRequiredMessage : InvalidDataMessage;
                 return;
             }
 
             object[] parameters = _isSecondaryParameterVisible 
-                ? [_mainParameter] 
-                : [_mainParameter, _secondaryParameter];
+                ? [_mainParameter, _secondaryParameter] 
+                : [_mainParameter];
             var criteria = new SearchCriteria((DatabaseField)_searchField, (SQLOperator)_sqlOperator, parameters);
 
             _criteriaToBeApplied.Add(criteria);
             OnPropertyChanged(nameof(CriteriaToBeApplied));
+            ResetSearchCriteria();
         }
 
         //Display property methods
@@ -487,12 +513,27 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         {
             SearchField = null;
             SqlOperator = null;
+            SqlOperatorsList = [];
             MainParameter = string.Empty;
             SecondaryParameter = string.Empty;
             IsSecondaryParameterVisible = false;
             CriteriaToBeApplied = [];
             AdvancedStudentSearchResults = [];
             SelectedKeywordResult = null;
+        }
+
+        /// <summary>
+        /// Resets the search criteria fields ready to start a new search criteria. Used after adding a search criteria to 
+        /// the list to ensure that the fields are cleared for the new criteria.
+        /// </summary>
+        private void ResetSearchCriteria()
+        {
+            SearchField = null;
+            SqlOperator = null;
+            SqlOperatorsList = [];
+            MainParameter = string.Empty;
+            SecondaryParameter = string.Empty;
+            IsSecondaryParameterVisible = false;
         }
 
         /// <summary>
