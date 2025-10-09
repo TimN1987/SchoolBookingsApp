@@ -15,11 +15,13 @@ namespace SchoolBookingAppTests.ViewModelTests
         private const string InvalidFieldMessage = "Ensure that a search property is selected.";
         private const string InvalidTableMessage = "Ensure that a search category is selected.";
         private const string DataMissingMessage = "Ensure that all required fields are filled.";
+        private const string InvalidDataMessage = "Ensure that all required fields are filled correctly.";
         private const string NoResultsMessage = "No results found for the given search criteria.";
         private const string SearchErrorMessage = "An error occurred during the search. Please try again.";
         private const string InvalidInputMessage = "Invalid character attempted in input.";
         private const string MissingCriteriaMessage = "Ensure all search criteria are entered.";
         private const string IntegerRequiredMessage = "Ensure that you have entered valid numbers for your search.";
+        private const string NoCriteriaMessage = "Ensure criteria are added before searching.";
 
         private const string ValidTableName = "Parents";
         private const string ValidFieldName = "FirstName";
@@ -285,7 +287,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         /// </summary>
         [Theory]
         [InlineData(IntegerDatabaseField, IntegerOperator, TextString, IntegerRequiredMessage)]
-        [InlineData(TextDatabaseField, TextOperator, IntegerString, DataMissingMessage)]
+        [InlineData(TextDatabaseField, TextOperator, IntegerString, InvalidDataMessage)]
         public void AddSearchCriteria_InvalidMainParameterType_CorrectErrorMessageDisplayed(
             DatabaseField fieldType,
             SQLOperator operatorType,
@@ -311,7 +313,7 @@ namespace SchoolBookingAppTests.ViewModelTests
         /// </summary>
         [Theory]
         [InlineData(IntegerDatabaseField, IntegerOperator, IntegerString, TextString, IntegerRequiredMessage)]
-        [InlineData(TextDatabaseField, TextOperator, TextString, IntegerString, DataMissingMessage)]
+        [InlineData(TextDatabaseField, TextOperator, TextString, IntegerString, InvalidDataMessage)]
         public void AddSearchCriteria_InvalidSecondaryParameterType_CorrectErrorMessageDisplayed(
             DatabaseField fieldType,
             SQLOperator operatorType,
@@ -353,11 +355,23 @@ namespace SchoolBookingAppTests.ViewModelTests
 
         //AdvancedStudentSearch tests.
 
-        [Fact(Skip = "Incomplete test")]
-        public async Task AdvancedStudentSearch_EmptyCriteriaList_Calls() //Think more
+        /// <summary>
+        /// Verifies that the no criteria message is displayed if the <see cref="SearchViewModel.AdvancedStudentSearch"/> 
+        /// method is called with no criteria added to the <see cref="SearchViewModel.CriteriaToBeApplied"/> list. Ensures 
+        /// that criteria are selected before a search is run.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task AdvancedStudentSearch_EmptyCriteriaList_NoCriteriaMessageDisplayed()
         {
             //Arrange & Act
             _viewModel.CriteriaToBeApplied = [];
+
+            //Act
+            await _viewModel.AdvancedStudentSearch();
+
+            //Assert
+            Assert.Equal(NoCriteriaMessage, _viewModel.StatusMessage);
         }
     }
 }
