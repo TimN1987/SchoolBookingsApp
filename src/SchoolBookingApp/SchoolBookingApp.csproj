@@ -14,6 +14,7 @@
     <None Remove="Resources\Images\MainWindow\addparent.png" />
     <None Remove="Resources\Images\MainWindow\addstudent.png" />
     <None Remove="Resources\Images\MainWindow\home.png" />
+    <None Remove="Resources\Images\MainWindow\search.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +31,7 @@
     <Resource Include="Resources\Images\MainWindow\addparent.png" />
     <Resource Include="Resources\Images\MainWindow\addstudent.png" />
     <Resource Include="Resources\Images\MainWindow\home.png" />
+    <Resource Include="Resources\Images\MainWindow\search.png" />
   </ItemGroup>
 
 </Project>

@@ -33,6 +33,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private ChangePageCommand<AddStudentView>? _addStudentViewCommand;
         private ChangePageCommand<AddParentView>? _addParentViewCommand;
         private ChangePageCommand<AddBookingView>? _addBookingViewCommand;
+        private ChangePageCommand<SearchView>? _searchViewCommand;
 
         /// <summary>
         /// The current <see cref="UserControl"/> that is displayed in the <see cref="MainWindow"/>'s <see 
@@ -81,11 +82,21 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             }
         }
 
+        public ChangePageCommand<SearchView>? SearchViewCommand
+        {
+            get
+            {
+                return _searchViewCommand 
+                    ?? new ChangePageCommand<SearchView>(_eventAggregator);
+            }
+        }
+
         //Text properties for binding to Button content in the MainWindow.
         public static string HomeButtonText => "Home";
         public static string AddStudentButtonText => "Student";
         public static string AddParentButtonText => "Parent";
         public static string AddBookingButtonText => "Booking";
+        public static string SearchButtonText => "Search";
 
 
         //Image properties for binding to Button content in the MainWindow.
@@ -93,6 +104,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static ImageSource AddStudentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addstudent.png", UriKind.Absolute));
         public static ImageSource AddParentButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addparent.png", UriKind.Absolute));
         public static ImageSource AddBookingButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/addbooking.png", UriKind.Absolute));
+        public static ImageSource SearchButtonImage => new BitmapImage(new Uri(@"pack://application:,,,/Resources/Images/MainWindow/search.png", UriKind.Absolute));
 
         public MainViewModel(IEventAggregator eventAggregator, IViewFactory viewFactory)
         {

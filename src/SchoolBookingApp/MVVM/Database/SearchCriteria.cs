@@ -13,5 +13,8 @@ namespace SchoolBookingApp.MVVM.Database
     /// <param name="Field">The database field to be queried.</param>
     /// <param name="Operator">The type of query to execute.</param>
     /// <param name="Parameters">The parameter(s) for the query.</param>
-    public record SearchCriteria(DatabaseField Field, SQLOperator Operator, object[] Parameters);
+    public record SearchCriteria(DatabaseField Field, SQLOperator Operator, object[] Parameters)
+    {
+        public string ParametersString => string.Join(" and ", Parameters ?? Array.Empty<object>());
+    }
 }

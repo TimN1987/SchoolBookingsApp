@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -35,9 +36,16 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public string SearchTitle => IsAdvancedStudentSearch ? "Student Search" : "Keyword Search";
         public static string KeywordSearchLabel => "Keyword search";
         public static string AdvancedStudentSearchLabel => "Student search";
+        public static string KeywordLabel => "Keyword";
+        public static string SearchTableLabel => "Person type";
         public static string SearchFieldLabel => "Field";
         public static string SearchOperatorLabel => "Search type";
         public string SearchParameterLabel => IsSecondaryParameterVisible ? "Search parameters" : "Search parameter";
+        public static string FirstNameHeader => "First name";
+        public static string LastNameHeader => "Last name";
+        public static string CategoryHeader => "Category";
+        public static string ClassNameHeader => "Class name";
+        public static string DateOfBirthHeader => "Date of birth";
         public static string AddSearchCriteriaButtonLabel => "Add";
         public static string SearchButtonLabel => "Search";
         public static string ClearFormsButtonLabel => "Clear Forms";
@@ -65,7 +73,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private string _mainParameter;
         private string _secondaryParameter;
         private bool _isSecondaryParameterVisible;
-        private List<SearchCriteria> _criteriaToBeApplied;
+        private ObservableCollection<SearchCriteria> _criteriaToBeApplied;
         private List<Student> _advancedStudentSearchResults;
         private Student? _selectedStudentResult;
 
@@ -218,7 +226,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 OnPropertyChanged(nameof(SearchParameterLabel));
             }
         }
-        public List<SearchCriteria> CriteriaToBeApplied
+        public ObservableCollection<SearchCriteria> CriteriaToBeApplied
         {
             get => _criteriaToBeApplied;
             set => SetProperty(ref _criteriaToBeApplied, value);
@@ -260,6 +268,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             {
                 SetProperty(ref _isAdvancedStudentSearch, value);
                 OnPropertyChanged(nameof(SearchTitle));
+                OnPropertyChanged(nameof(SearchCommand));
                 ClearForms(); //Ensure that the search fields are cleared ready for a new search.
             }
         }
@@ -439,7 +448,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
             try
             {
-                List<Student> results = await _readOperationService.SearchByCriteria(_criteriaToBeApplied);
+                List<Student> results = await _readOperationService.SearchByCriteria(_criteriaToBeApplied.ToList());
                 AdvancedStudentSearchResults = results;
 
                 if (results.Count == 0)
@@ -484,7 +493,6 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             var criteria = new SearchCriteria((DatabaseField)_searchField, (SQLOperator)_sqlOperator, parameters);
 
             _criteriaToBeApplied.Add(criteria);
-            OnPropertyChanged(nameof(CriteriaToBeApplied));
             ResetSearchCriteria();
         }
 
@@ -508,9 +516,9 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             //Navigate to the appropriate view to display the selected student or parent data.
             if (_isAdvancedStudentSearch)
                 _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddBookingView));
-            if (category == "Student")
+            if (category == "Students")
                 _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddStudentView));
-            if (category == "Parent")
+            if (category == "Parents")
                 _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddParentView));
 
             //Publish the id to the selected view to enable loading of the relevant data.
