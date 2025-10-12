@@ -44,6 +44,13 @@
                     IsEnabled="{Binding CurrentView, 
                                 Converter={StaticResource ViewToEnabledConverter}, 
                                 ConverterParameter={x:Type view:AddBookingView}}"/>
+            <Button Content="{Binding SearchButtonImage}"
+                    Tag="{Binding SearchButtonText}"
+                    Command="{Binding SearchViewCommand}"
+                    Style="{DynamicResource MainWindowNavigationButton}"
+                    IsEnabled="{Binding CurrentView, 
+                                Converter={StaticResource ViewToEnabledConverter}, 
+                                ConverterParameter={x:Type view:SearchView}}"/>
         </StackPanel>
         <ContentControl Content="{Binding CurrentView, Mode=OneWay}"
                         Style="{DynamicResource MainWindow}"/>

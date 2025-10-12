@@ -78,7 +78,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         public static string AttendanceNotesLabel => "Attendance Notes:";
         public static string HomeworkNotesLabel => "Homework Notes:";
         public static string ExtraCurricularNotesLabel => "Extra Curricular Notes:";
-        public static string SpecialEducationalNeedsNotesLabel => "Special Educational Needs Notes:";
+        public static string SpecialEducationalNeedsNotesLabel => "Special Educational Needs:";
         public static string SafeguardingNotesLabel => "Safeguarding Notes:";
         public static string OtherNotesLabel => "Other Notes:";
         public static string DateAddedLabel => "Date Added:";

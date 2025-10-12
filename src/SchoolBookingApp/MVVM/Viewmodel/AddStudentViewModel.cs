@@ -12,6 +12,7 @@ using System.Windows.Input;
 using SchoolBookingApp.MVVM.Commands;
 using SchoolBookingApp.MVVM.Database;
 using SchoolBookingApp.MVVM.Model;
+using SchoolBookingApp.MVVM.Services;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 
 namespace SchoolBookingApp.MVVM.Viewmodel
@@ -216,6 +217,14 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _allStudents = [];
 
             Task.Run(async () => await SetStudentSelectionList());
+
+            _eventAggregator.GetEvent<LoadFromIdEvent>().Subscribe(param =>
+            {
+                if (param is int id)
+                {
+                    SelectedStudent = _allStudents.Where(student => student.Id == id).FirstOrDefault();
+                }
+            });
         }
 
         //Methods
