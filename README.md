@@ -2,6 +2,7 @@
 A booking app for managing parents' evening bookings and records in schools. Stores parent and student information, booking dates, student data and meeting comments. Uses Sqlite database for storage of and access to data. Provides a desktop interface allowing users to input, read and search data.
 
 <img width="950" height="480" alt="Dashboard showing key booking information." src="https://github.com/user-attachments/assets/9a5bc76c-9c07-493f-9fbc-157631e7c48d" />
-<img width="500" height="300" alt="Add student view." src="https://github.com/user-attachments/assets/c0fe73d5-bd9d-41be-96e6-6c20b40feba2" /> <img width="400" height="300" alt="Add parent view." src="https://github.com/user-attachments/assets/ff6a0e67-e0fd-4fa8-b50e-ee67e1e1bb7d" />
+<img width="500" height="300" alt="Add student view." src="https://github.com/user-attachments/assets/fd6d182f-47e9-49f2-86ec-ed0ae297aec9" /> <img width="400" height="300" alt="Add parent view." src="https://github.com/user-attachments/assets/ff6a0e67-e0fd-4fa8-b50e-ee67e1e1bb7d" />
+<img width="500" height="300" alt="Add booking view with data displayed." src="https://github.com/user-attachments/assets/233bcb05-b908-4226-919f-6db8463480f2" /> <img width="400" height="300" alt="Student search view." src="https://github.com/user-attachments/assets/9e7e125f-2f49-432d-bec6-60a8711d35e5" />
 
 ## How it's made:
