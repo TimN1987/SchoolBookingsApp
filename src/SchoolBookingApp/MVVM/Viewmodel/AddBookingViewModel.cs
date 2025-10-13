@@ -752,6 +752,13 @@ namespace SchoolBookingApp.MVVM.Viewmodel
 
         //UI element methods
 
+        /// <summary>
+        /// Loads the relevant <see cref="Student"/> information when a <see cref="Booking"/> is selected from the list. 
+        /// Ensures that the correct <see cref="Student"/> information is displayed and that the properties show that an 
+        /// existing booking is loaded, rather than an unbooked student. Includes validation to ensure that the booking 
+        /// exists. Used when a booking is selected from the list to ensure that the correct information is displayed 
+        /// clearly to the user.
+        /// </summary>
         private async Task OnBookingSelected()
         {
             int studentId = _booking?.StudentId ?? 0;
@@ -779,6 +786,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 ResetCommentsProperties();
         }
 
+        /// <summary>
+        /// Called when a student is selected from the student list. Loads the relevant <see cref="Student"/> information 
+        /// to display. If the student has an existing booking, loads that booking for editing. Ensures that the student 
+        /// data is clearly displayed to the user and that it is clear whether a new booking is being added or an existing 
+        /// booking is being updated.
+        /// </summary>
         private async Task  OnStudentSelected()
         {
             int studentId = _selectedStudent?.Id ?? 0;
@@ -811,6 +824,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 ResetCommentsProperties();
         }
 
+        /// <summary>
+        /// Sets the key student information properties from the given <see cref="Student"/> instance. Used when the user 
+        /// selects a <see cref="Student"/> or <see cref="Booking"/> to ensure that the relevant information is correctly 
+        /// loaded.
+        /// </summary>
+        /// <param name="student">The <see cref="Student"/> information to display.</param>
         private void SetStudentProperties(Student student)
         {
             StudentId = student.Id;
@@ -821,6 +840,11 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             Parents = student.Parents;
         }
 
+        /// <summary>
+        /// Sets the data properties for a selected <see cref="Student"/> using the given <see cref="StudentDataRecord"/>. 
+        /// Ensures that the data is correctly displayed when a student or booking is selected.
+        /// </summary>
+        /// <param name="studentData">The <see cref="StudentDataRecord"/> containing the student data to be displayed.</param>
         private void SetDataProperties(StudentDataRecord studentData)
         {
             if (studentData.StudentId <= 0)
@@ -844,6 +868,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             Computing = studentData.Computing;
         }
 
+        /// <summary>
+        /// Resets the UI data properties to default values. Used when a new student is selected who does not have any 
+        /// data to display or when the forms are cleared.
+        /// </summary>
         private void ResetDataProperties()
         {
             Math = 0;
@@ -864,6 +892,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             Computing = 0;
         }
 
+        /// <summary>
+        /// Sets the comments properties for a selected <see cref="Student"/> using the given <see cref="MeetingCommentsRecord"/>. 
+        /// Ensures that the comments are correctly displayed when a student or booking is selected.
+        /// </summary>
+        /// <param name="comments">The <see cref="MeetingCommentsRecord"/> containing the meeting comments to be 
+        /// displayed.</param>
         private void SetCommentsProperties(MeetingCommentsRecord comments)
         {
             if (comments.StudentId <= 0)
@@ -882,6 +916,10 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             DateAdded = comments.DateAdded;
         }
 
+        /// <summary>
+        /// Resets the UI comments properties to default values. Used when a new student is selected who does not have any 
+        /// existing comments to display or when the forms are cleared.
+        /// </summary>
         private void ResetCommentsProperties()
         {
             GeneralComments = string.Empty;

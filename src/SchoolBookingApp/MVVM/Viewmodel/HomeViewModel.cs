@@ -44,7 +44,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             .FirstOrDefault(booking => booking.BookingDate >= DateTime.Now);
 
         public ICommand? ViewBookingCommand => _viewBookingCommand 
-            ??= new RelayCommand(param => OnSubmit());
+            ??= new RelayCommand(param => ViewBooking());
 
         //Text for UI features
         public string DashboardTitleText => "Bookings Dashboard";
@@ -85,7 +85,12 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             _parentsCount = _readOperationService.GetParentList().GetAwaiter().GetResult().Count;
         }
 
-        private void OnSubmit()
+        /// <summary>
+        /// Navigates to the <see cref="AddBookingView"/> and publishes the selected booking to be displayed in full, if one 
+        /// has been selected. Allows the user to view the full details of a selected booking from the bookings list in the 
+        /// appropriate view.
+        /// </summary>
+        private void ViewBooking()
         {
             _eventAggregator.GetEvent<NavigateToViewEvent>().Publish(typeof(AddBookingView));
 
