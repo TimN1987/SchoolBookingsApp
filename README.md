@@ -5,3 +5,5 @@ for users to interact with the application. Allows teachers to manage their avai
 with them.
 
 CI pipeline runs automatically on pull requests to main branch.
+
+<img width="1909" height="968" alt="image" src="https://github.com/user-attachments/assets/771d4dd3-fb38-4bea-bc10-a7a021a4b8df" />
