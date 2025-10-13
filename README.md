@@ -1,7 +1,6 @@
 # SchoolBookingsApp
-A booking app for managing parents' evening and other booking in schools. Stores parents and students data as well as 
-bookings for meetings with teachers. Uses Sqlite database for storage of and access to data. Provides a desktop interface 
-for users to interact with the application. Allows teachers to manage their availability and parents to book meetings 
-with them.
+A booking app for managing parents' evening bookings and records in schools. Stores parent and student information, booking dates, student data and meeting comments. Uses Sqlite database for storage of and access to data. Provides a desktop interface allowing users to input, read and search data.
 
-CI pipeline runs automatically on pull requests to main branch.
+<img width="1909" height="968" alt="Dashboard showing key booking information." src="https://github.com/user-attachments/assets/9a5bc76c-9c07-493f-9fbc-157631e7c48d" />
+
+##How it's made:
