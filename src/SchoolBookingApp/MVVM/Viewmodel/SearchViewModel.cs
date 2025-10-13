@@ -565,8 +565,8 @@ namespace SchoolBookingApp.MVVM.Viewmodel
             MainParameter = string.Empty;
             SecondaryParameter = string.Empty;
             IsSecondaryParameterVisible = false;
-            CriteriaToBeApplied = [];
-            AdvancedStudentSearchResults = [];
+            CriteriaToBeApplied.Clear();
+            AdvancedStudentSearchResults.Clear();
             SelectedKeywordResult = null;
         }
 
