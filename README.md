@@ -49,10 +49,10 @@ A **desktop booking system** designed for managing parents' evening schedules an
    ```
 2. Open the solution in Visual Studio.
 3. Run the application.
-  - Set **SchoolBookingsApp** as the startup project.
-  - Build with **F5**.
+  1. Set **SchoolBookingsApp** as the startup project.
+  2. Build with **F5**.
 
-> The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.
+*The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.*
 
 ## ⚙️ Tech stack:
 
@@ -94,7 +94,7 @@ SchoolBookingsAppTests/
 └── ViewModelTests
 ```
 
->🔧 The project structure will be improved in future iterations to ensure better separation of concerns (e.g. placing **Services** outside of **MVVM**. Current structure retained to avoid breaking namespace references.
+🔧 *The project structure will be improved in future iterations to ensure better separation of concerns (e.g. placing **Services** outside of **MVVM**. Current structure retained to avoid breaking namespace references.*
 
 ## 🛠️ How it's made:
 
