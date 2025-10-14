@@ -114,6 +114,14 @@ Adopting the MVVM pattern also allowed the project to be developed in stages, al
 
 The next stage of development involved creating *ViewModels* that exposed key data properties to the *Views*. This required careful planning to define which properties should be accessible and how different data entities interact — for example, ensuring that either a Booking or a Student could be selected, but not both. This design foresight made the creation of *Views* straightforward, with a focus on precise *data bindings* and polished, consistent **XAML** styling.
 
+### Why Sqlite?
+
+**Sqlite** provided the ideal data management solution for this application due to its lightweight and self-contained **relational database** structure. This eliminated any need for server usage, ensuring that the application can run smoothly on any **Windows** desktop with minimal configuration.
+
+As a **relational database**, **SQLite** offered a realistic environment for handling data persistence while keeping setup simple. It supported full **CRUD** functionality across multiple tables, providing valuable experience working with *primary keys*, *foreign keys*, *relationship tables*, and *joins*.
+
+Its lightweight nature also made it ideal for testing and debugging throughout development. The application automatically creates and initialises a local database on startup if one does not already exist, ensuring that users can begin using the system immediately without any setup overhead.
+
 ## 🔨 Future Improvements:
 
 ## 💡 Lessons Learned:
