@@ -104,6 +104,16 @@ It was built with **C#** (.NET 8) and **XAML** using **Windows Presentation Foun
 
 Development followed **Test-Driven Development (TDD)** principles, supported by **xUnit tests** for core logic and ViewModels. This enabled the setup of a **Continuous Integration (CI)** pipeline using **GitHub Actions**, ensuring that all commits trigger automated builds and test validation.
 
+### Why WPF and MVVM?
+
+The **School Bookings App** was designed as a personal desktop application, making **WPF** a natural choice for its rich UI capabilities and seamless integration with .NET. The **MVVM** pattern complements the app’s core functionality (inputting, managing, and displaying data) through a clean separation of concerns and efficient *data bindings* powered by *INotifyPropertyChanged*.
+
+This architecture ensures that once data is read from the database, it can be displayed dynamically and reliably, while the expressive nature of **XAML** enables clear, maintainable, and accessible layouts. This project also created opportunities to develop confidence using *custom controls* and highly customised styles in **XAML**.
+
+Adopting the MVVM pattern also allowed the project to be developed in stages, aligning with Test-Driven Development (TDD) principles. Early development focused on building and testing a robust Model layer to handle all database CRUD operations. This approach kept database logic modular and independent from the UI, simplifying scalability and future maintenance.
+
+The next stage of development involved creating *ViewModels* that exposed key data properties to the *Views*. This required careful planning to define which properties should be accessible and how different data entities interact — for example, ensuring that either a Booking or a Student could be selected, but not both. This design foresight made the creation of *Views* straightforward, with a focus on precise *data bindings* and polished, consistent **XAML** styling.
+
 ## 🔨 Future Improvements:
 
 ## 💡 Lessons Learned:
