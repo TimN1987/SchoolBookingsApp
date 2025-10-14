@@ -122,7 +122,19 @@ As a **relational database**, **SQLite** offered a realistic environment for han
 
 Its lightweight nature also made it ideal for testing and debugging throughout development. The application automatically creates and initialises a local database on startup if one does not already exist, ensuring that users can begin using the system immediately without any setup overhead.
 
+### Why TDD and CI?
+
+The use of **TDD** supported the development of the application by ensuring that there was a clear focus on the expected behavior and outcomes in the development of each class and its methods. This led to more maintainable and thoughtful logic, backed by automated tests. Using **xUnit**, I wrote a comprehensive suite of tests covering database operations, input validation, and ViewModel logic. This ensured that issues were detected early, updates remained reliable, and behaviour stayed consistent across refactors.
+
+The use of **TDD** also enabled seamless integration through **GitHub Actions**, triggering automated builds and test runs on every commit. This not only increased confidence in code quality but also strengthened my understanding of modern **CI/CD** workflows.
+
+### Why asynchronous operations?
+
+The majority of database operations were implemented **asynchronously** to ensure smooth background processing of data without blocking the UI thread. Due to the small-scale nature of the application and database, only one **Sqlite connection** was opened and so tasks were not run in parallel (although this approach was considered). Although the application’s data load is lightweight, implementing **asynchronous** methods ensures better scalability and makes the underlying logic more reusable for future, larger applications.
+
 ## 🔨 Future Improvements:
+
+## 🌟 Project Highlights:
 
 ## 💡 Lessons Learned:
 
