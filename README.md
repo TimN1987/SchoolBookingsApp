@@ -114,6 +114,16 @@ Adopting the MVVM pattern also allowed the project to be developed in stages, al
 
 The next stage of development involved creating *ViewModels* that exposed key data properties to the *Views*. This required careful planning to define which properties should be accessible and how different data entities interact — for example, ensuring that either a Booking or a Student could be selected, but not both. This design foresight made the creation of *Views* straightforward, with a focus on precise *data bindings* and polished, consistent **XAML** styling.
 
+### Why Dependency Injection (DI)?
+
+The application uses **IServiceCollection** and **IServiceProvider** to create a dedicated **Dependency Injection container**, ensuring that all required dependencies are cleanly resolved through constructor injection.
+
+Given the range of **CRUD** operations and the integration of **Prism’s EventAggregator**, it was essential to maintain strong *separation of concerns* while enabling cross-component communication. **Dependency Injection** made it possible to inject shared services (such as data access layers and event aggregators) across different ViewModels without resorting to static references or multiple service instances.
+
+All services are registered as **singletons**, guaranteeing consistent state and availability throughout the application’s lifecycle. Meanwhile, Views and ViewModels are registered as **transient**, ensuring that each navigation or screen load creates a fresh instance.
+
+This architectural choice supports clean memory management and reduces unintended data persistence between Views. However, it also means that certain navigation features (such as Back and Forward buttons) are intentionally omitted, since **transient** views do not retain unsaved state between transitions.
+
 ### Why Sqlite?
 
 **Sqlite** provided the ideal data management solution for this application due to its lightweight and self-contained **relational database** structure. This eliminated any need for server usage, ensuring that the application can run smoothly on any **Windows** desktop with minimal configuration.
@@ -133,6 +143,13 @@ The use of **TDD** also enabled seamless integration through **GitHub Actions**,
 The majority of database operations were implemented **asynchronously** to ensure smooth background processing of data without blocking the UI thread. Due to the small-scale nature of the application and database, only one **Sqlite connection** was opened and so tasks were not run in parallel (although this approach was considered). Although the application’s data load is lightweight, implementing **asynchronous** methods ensures better scalability and makes the underlying logic more reusable for future, larger applications.
 
 ## 🔨 Future Improvements:
+
+- 🧑‍🎨 UI and UX Enhancements:
+  Enable the viewing of more granular data overviews on the dashboard, for example next meeting, average student scores and bookings by class. Enable visual displays of student data, such as bar graphs of data by subject.
+- 📂 Cleaner Project Structure:
+  Ensure that the project structure is more clearly organised, for example moving the *Services* folder outside the *MVVM* folder, ensuring that namespace references are corrected as required. This would make the separation of concerns clearer.
+- 📈 Enable data tracking:
+  Add the ability to save multiple sets of data and meeting records for each student, allowing 
 
 ## 🌟 Project Highlights:
 
