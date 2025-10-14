@@ -49,8 +49,8 @@ A **desktop booking system** designed for managing parents' evening schedules an
    ```
 2. Open the solution in Visual Studio.
 3. Run the application.
-  1. Set **SchoolBookingsApp** as the startup project.
-  2. Build with **F5**.
+    - Set **SchoolBookingsApp** as the startup project.
+    - Build with **F5**.
 
 *The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.*
 
