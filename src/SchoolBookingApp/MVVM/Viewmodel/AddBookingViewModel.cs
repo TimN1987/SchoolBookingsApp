@@ -5,6 +5,7 @@ using System.ComponentModel.Design.Serialization;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -25,6 +26,7 @@ namespace SchoolBookingApp.MVVM.Viewmodel
         private const string NoBookingDataMessage = "Complete all fields before adding booking.";
         private const string BookingAddedMessage = "Booking added successfully.";
         private const string BookingFailedToAddMessage = "Failed to add booking. Please try again.";
+        private const string BookingConflictMessage = "The provided booking information conflicts with an existing booking.";
         private const string BookingUpdatedMessage = "Booking updated successfully.";
         private const string BookingFailedToUpdateMessage = "Failed to update booking. Please try again.";
         private const string BookingDeletedMessage = "Booking deleted successfully.";
@@ -570,16 +572,28 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 BookingDate: _dateTime.Date,
                 TimeSlot: _dateTime.TimeOfDay);
 
-            bool bookingAdded = await _bookingManager.CreateBooking(booking);
-
-            if (bookingAdded)
+            try
             {
-                AllBookings = await _bookingManager.ListBookings(); //Update bookings list with new booking.
-                ClearForm();
-                UpdateMessage = BookingAddedMessage;
+
+                bool bookingAdded = await _bookingManager.CreateBooking(booking);
+
+                if (bookingAdded)
+                {
+                    AllBookings = await _bookingManager.ListBookings(); //Update bookings list with new booking.
+                    ClearForm();
+                    UpdateMessage = BookingAddedMessage;
+                }
+                else
+                {
+                    UpdateMessage = BookingFailedToAddMessage;
+                }
             }
-            else 
-            {                 
+            catch (ArgumentException ex) when (ex.Message.Contains("The provided booking information conflicts with an existing booking."))
+            {
+                UpdateMessage = BookingConflictMessage;
+            }
+            catch (Exception)
+            {
                 UpdateMessage = BookingFailedToAddMessage;
             }
         }
@@ -615,15 +629,26 @@ namespace SchoolBookingApp.MVVM.Viewmodel
                 return;
             }
 
-            bool bookingUpdated = await _bookingManager.UpdateBooking(_booking ?? new Database.Booking());
-
-            if (bookingUpdated)
+            try
             {
-                AllBookings = await _bookingManager.ListBookings(); //Update bookings list with updated booking data.
-                ClearForm();
-                UpdateMessage = BookingUpdatedMessage;
+                bool bookingUpdated = await _bookingManager.UpdateBooking(_booking ?? new Database.Booking());
+
+                if (bookingUpdated)
+                {
+                    AllBookings = await _bookingManager.ListBookings(); //Update bookings list with updated booking data.
+                    ClearForm();
+                    UpdateMessage = BookingUpdatedMessage;
+                }
+                else
+                {
+                    UpdateMessage = BookingFailedToUpdateMessage;
+                }
             }
-            else
+            catch (ArgumentException ex) when (ex.Message.Contains("The provided booking information conflicts with an existing booking."))
+            {
+                UpdateMessage = BookingConflictMessage;
+            }
+            catch (Exception)
             {
                 UpdateMessage = BookingFailedToUpdateMessage;
             }
