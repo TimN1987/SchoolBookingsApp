@@ -32,18 +32,19 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | Add Data | Student Search |
 | <img width="500" height="300" alt="Add booking view with data displayed." src="https://github.com/user-attachments/assets/233bcb05-b908-4226-919f-6db8463480f2" /> | <img width="400" height="300" alt="Student search view." src="https://github.com/user-attachments/assets/9e7e125f-2f49-432d-bec6-60a8711d35e5" /> |
 
-## Getting started:
+## 🚀 Getting started:
 
-### Prerequisites
+### 📃 Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/vs/community/)
   - With the **“.NET Desktop Development”** workload installed
 
-### Run Locally
+### 💻 Run Locally
 
 1. Clone the repository.
    ```bash
    git clone https://github.com/TimN1987/SchoolBookingsApp.git
+   ```
 2. Open the solution in Visual Studio.
 3. Run the application.
   - Set **SchoolBookingsApp** as the startup project.
@@ -51,7 +52,7 @@ A **desktop booking system** designed for managing parents' evening schedules an
 
 > The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.
 
-## Tech stack:
+## ⚙️ Tech stack:
 
 | Technology | Role |
 |------------|------|
@@ -61,7 +62,7 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | Sqlite | Database management |
 | MVVM | Architectural pattern |
 
-## Project Structure:
+## 📂 Project Structure:
 
 ```
 SchoolBookingsApp/
@@ -89,5 +90,16 @@ SchoolBookingsAppTests/
 ├── FactoryTests
 ├── Mocks
 └── ViewModelTests
+```
 
->The project structure could be improved to ensure that files are more logically ordered and to show a more clear separation of concerns. For example, Services should wit within **SchoolBookingsApp** but outside **MVVM**. This has not been corrected yet to avoid issues with changing namespaces.
+>🔧 The project structure will be improved in future iterations to ensure better separation of concerns (e.g. placing **Services** outside of **MVVM**. Current structure retained to avoid breaking namespace references.
+
+## 🛠️ How it's made:
+
+## 🔨 Future Improvements:
+
+## 💡 Lessons Learned:
+
+## 📜 License:
+
+This project is licensed under the MIT License.
