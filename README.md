@@ -29,8 +29,9 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | Add Student | Add Parent |
 |-------------|------------|
 | <img width="500" height="300" alt="Add student view." src="https://github.com/user-attachments/assets/fd6d182f-47e9-49f2-86ec-ed0ae297aec9" /> | <img width="400" height="300" alt="Add parent view." src="https://github.com/user-attachments/assets/ff6a0e67-e0fd-4fa8-b50e-ee67e1e1bb7d" /> |
+---
 | Add Data | Student Search |
-|---|---|
+|----------|----------------|
 | <img width="500" height="300" alt="Add booking view with data displayed." src="https://github.com/user-attachments/assets/233bcb05-b908-4226-919f-6db8463480f2" /> | <img width="400" height="300" alt="Student search view." src="https://github.com/user-attachments/assets/9e7e125f-2f49-432d-bec6-60a8711d35e5" /> |
 
 ## 🚀 Getting started:
