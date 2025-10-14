@@ -32,6 +32,23 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | Add Data | Student Search |
 | <img width="500" height="300" alt="Add booking view with data displayed." src="https://github.com/user-attachments/assets/233bcb05-b908-4226-919f-6db8463480f2" /> | <img width="400" height="300" alt="Student search view." src="https://github.com/user-attachments/assets/9e7e125f-2f49-432d-bec6-60a8711d35e5" /> |
 
+## Getting started:
+
+### Prerequisites
+- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
+- Visual Studio 2022 (recommended)
+
+### Run Locally
+
+1. Clone the repository.
+   ```bash
+   git clone https://github.com/TimN1987/SchoolBookingsApp.git
+2. Open the solution in Visual Studio.
+3. Set **SchoolBookingsApp** as the startup project.
+4. Run with **F5**.
+
+> The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.
+
 ## Tech stack:
 
 | Technology | Role |
