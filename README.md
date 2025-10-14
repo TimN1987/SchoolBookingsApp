@@ -36,7 +36,8 @@ A **desktop booking system** designed for managing parents' evening schedules an
 
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
-- Visual Studio 2022 (recommended)
+- [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/vs/community/)
+  - With the **“.NET Desktop Development”** workload installed
 
 ### Run Locally
 
@@ -44,8 +45,9 @@ A **desktop booking system** designed for managing parents' evening schedules an
    ```bash
    git clone https://github.com/TimN1987/SchoolBookingsApp.git
 2. Open the solution in Visual Studio.
-3. Set **SchoolBookingsApp** as the startup project.
-4. Run with **F5**.
+3. Run the application.
+  - Set **SchoolBookingsApp** as the startup project.
+  - Build with **F5**.
 
 > The application will automatically create a local **Sqlite database** on its first launch. This will be stored in AppData/Roaming/SchoolBookingsApp/Database.
 
@@ -58,3 +60,32 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | XAML | UI Markup |
 | Sqlite | Database management |
 | MVVM | Architectural pattern |
+
+## Project Structure:
+
+```
+SchoolBookingsApp/
+├── MVVM/
+|  ├── Commands
+|  ├── Converters
+|  ├── CustomControls
+|  ├── Database
+|  ├── Enums
+|  ├── Factories
+|  ├── Model
+|  ├── Services
+|  ├── Struct
+|  ├── View
+|  └── ViewModel
+|    └── Base
+├── Resources/
+|  └── Images/
+|    ├── AddBookingView
+|    └── MainWindow
+└── App.xaml
+SchoolBookingsAppTests/
+├── ConverterTests
+├── DatabaseTests
+├── FactoryTests
+├── Mocks
+└── ViewModelTests
