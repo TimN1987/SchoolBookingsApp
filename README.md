@@ -89,3 +89,5 @@ SchoolBookingsAppTests/
 ├── FactoryTests
 ├── Mocks
 └── ViewModelTests
+
+>The project structure could be improved to ensure that files are more logically ordered and to show a more clear separation of concerns. For example, Services should wit within **SchoolBookingsApp** but outside **MVVM**. This has not been corrected yet to avoid issues with changing namespaces.
