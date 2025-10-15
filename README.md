@@ -100,7 +100,7 @@ SchoolBookingsAppTests/
 
 The goal of this project was to strengthen my confidence in using a **relational database** to manage structured data, applying **SQL commands** to perform a full range of **CRUD operations** across multiple related tables. The application provides a simple yet scalable system for teachers to schedule and manage parents’ meetings, prepare data, and record meeting notes efficiently.
 
-It was built with **C#** (.NET 8) and **XAML** using **Windows Presentation Foundation (WPF)**, following the **MVVM** (Model–View–ViewModel) design pattern to ensure a clean, maintainable, and testable architecture.
+It was built with **C#** (.NET 8) and **XAML** using **Windows Presentation Foundation (WPF)**, following the **MVVM** (Model–View–ViewModel) design pattern to ensure a clean, maintainable, and testable architecture. Each **View** is implemented as an individual *UserControl*, displayed within a *ContentControl* in the **MainWindow**. Views are resolved from the *Dependency Injection Container* using a **Factory** pattern, with their corresponding **ViewModel** injected via constructor injection. 
 
 Development followed **Test-Driven Development (TDD)** principles, supported by **xUnit tests** for core logic and ViewModels. This enabled the setup of a **Continuous Integration (CI)** pipeline using **GitHub Actions**, ensuring that all commits trigger automated builds and test validation.
 
