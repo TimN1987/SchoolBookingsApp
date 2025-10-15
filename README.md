@@ -61,7 +61,7 @@ A **desktop booking system** designed for managing parents' evening schedules an
 | WPF | UI Framework |
 | C# | Backend (Models and ViewModels) |
 | XAML | UI Markup |
-| Sqlite | Database management |
+| SQLite | Database management |
 | MVVM | Architectural pattern |
 
 ## 📂 Project Structure:
@@ -124,9 +124,9 @@ All services are registered as **singletons**, guaranteeing consistent state and
 
 This architectural choice supports clean memory management and reduces unintended data persistence between Views. However, it also means that certain navigation features (such as Back and Forward buttons) are intentionally omitted, since **transient** views do not retain unsaved state between transitions.
 
-### Why Sqlite?
+### Why SQLite?
 
-**Sqlite** provided the ideal data management solution for this application due to its lightweight and self-contained **relational database** structure. This eliminated any need for server usage, ensuring that the application can run smoothly on any **Windows** desktop with minimal configuration.
+**SQLite** provided the ideal data management solution for this application due to its lightweight and self-contained **relational database** structure. This eliminated any need for server usage, ensuring that the application can run smoothly on any **Windows** desktop with minimal configuration.
 
 As a **relational database**, **SQLite** offered a realistic environment for handling data persistence while keeping setup simple. It supported full **CRUD** functionality across multiple tables, providing valuable experience working with *primary keys*, *foreign keys*, *relationship tables*, and *joins*.
 
@@ -140,18 +140,35 @@ The use of **TDD** also enabled seamless integration through **GitHub Actions**,
 
 ### Why asynchronous operations?
 
-The majority of database operations were implemented **asynchronously** to ensure smooth background processing of data without blocking the UI thread. Due to the small-scale nature of the application and database, only one **Sqlite connection** was opened and so tasks were not run in parallel (although this approach was considered). Although the application’s data load is lightweight, implementing **asynchronous** methods ensures better scalability and makes the underlying logic more reusable for future, larger applications.
+The majority of database operations were implemented **asynchronously** to ensure smooth background processing of data without blocking the UI thread. Due to the small-scale nature of the application and database, only one **SQLite connection** was opened and so tasks were not run in parallel (although this approach was considered). Although the application’s data load is lightweight, implementing **asynchronous** methods ensures better scalability and makes the underlying logic more reusable for future, larger applications.
 
 ## 🔨 Future Improvements:
 
 - 🧑‍🎨 UI and UX Enhancements:
-  Enable the viewing of more granular data overviews on the dashboard, for example next meeting, average student scores and bookings by class. Enable visual displays of student data, such as bar graphs of data by subject.
+  Expand the dashboard to include richer visualisations and data summaries, such as upcoming meetings, average attainment scores, and bookings by class. Implement interactive graphs (e.g., bar charts for student performance by subject) to make data easier to interpret at a glance.
 - 📂 Cleaner Project Structure:
-  Ensure that the project structure is more clearly organised, for example moving the *Services* folder outside the *MVVM* folder, ensuring that namespace references are corrected as required. This would make the separation of concerns clearer.
+  Reorganise folders to better reflect *separation of concerns*. For example, moving the *Services* directory outside the *MVVM* folder and updating namespaces accordingly. This will align the solution more closely with professional .NET conventions.
 - 📈 Enable data tracking:
-  Add the ability to save multiple sets of data and meeting records for each student, allowing 
+  Add functionality to track multiple sets of attainment data and meeting records per student. This would provide deeper insights, enabling teachers to monitor student progress over time and refer back to prior meeting records to action discussion points.
+- 📨 Refactor Status Messaging:
+  Centralise all user-facing messages in a dedicated *static* **StatusMessage** class to improve consistency and maintainability. Replace the existing **Task.Delay**–based message clearing with **cancellation tokens** for more robust and responsive UI updates.
+- 📅 Improve Booking View:
+  Implement a **calendar-based layout** to present bookings in a more visual and intuitive format. Provide users with the option to toggle between *calendar* and *list* views, enhancing usability and making it easier to manage and review appointments.
 
 ## 🌟 Project Highlights:
+
+- 💻 Full CRUD functionality:
+  Designed and implemented complete **Create**, **Read**, **Update**, and **Delete** operations across multiple tables, ensuring consistent data handling and validation. Included a range of flexible data retrieval methods, including the ability to search by multiple criteria for more refined and efficient data access.
+- 🔍 Relational Database Design:
+  Introduced a relationship table to manage *many-to-many* links between students and parents, demonstrating practical use of **foreign keys** and **JOIN** operations in **SQLite**. Implemented *cascading deletes* to maintain data integrity when records are removed, and extended read operations across related tables for combined data queries.
+- 🧩 Dependency Injection and Modularity:
+  Used **IServiceCollection** and **IServiceProvider** for clean and testable dependency management. This ensured that all components (including **CRUD** services and **EventAggregator**) were easily maintainable and decoupled.
+- 📊 Dynamic Data Visualisation:
+  Implemented a **custom control** for pie charts to display key data summaries, such as student booking distribution, making data more engaging and accessible. Used *trigonometric calculations*, *converters* and *Geometry paths* in **XAML** to create accurate and responsive pie chart segments.
+- 🎨 Customised and Consistent XAML UI:
+  Developed a clear and modern UI using **XAML**, featuring *DataTemplates*, *ControlTemplates*, and *Styles* for a cohesive appearance across all **Views**. Emphasis was placed on clarity, maintainability, and ease of navigation. Incorporated *VisualStateManager* with Storyboard animations and *Template Triggers* for smoother visual feedback and dynamic UI interactions.
+- 🧪 Testing and Continuous Integration:
+  Followed **Test-Driven Development (TDD)** principles using **xUnit**, ensuring that logic for database access, ViewModels, and validation was fully testable. Integrated **GitHub Actions** to automatically build and run all tests on each commit, supporting a professional **CI pipeline** and maintaining code reliability throughout development.
 
 ## 💡 Lessons Learned:
 
