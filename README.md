@@ -183,6 +183,10 @@ The majority of database operations were implemented **asynchronously** to ensur
 - 🧑‍🎨 CustomControls & XAML:
   Developing **CustomControls** with **DependencyProperties** enabled reusable, personalised UI elements. This improved control over how data was displayed and reduced repetitive code. Animations, triggers, and templating further enhanced UI clarity and polish.
 
+## 🗒️ Final Notes:
+
+This project reflects my journey in building maintainable, scalable desktop applications with polished UI and thoughtful architecture. It developed my skills in the use of *databases*, **SQL** and **CRUD** operations as well as in setting up *testing* and clean *workflows*. It has given me increased confidence in the management and display of data, and I look forward to developing these skills further in future projects.
+
 ## 📜 License:
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
