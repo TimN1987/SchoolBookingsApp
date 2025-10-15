@@ -172,6 +172,17 @@ The majority of database operations were implemented **asynchronously** to ensur
 
 ## 💡 Lessons Learned:
 
+- 📝 Careful Planning:
+  The project scope grew quickly during development, and at times I spent more time refactoring than expected. Early **CRUD** services included unused methods due to initial uncertainties in planning. As development progressed, I planned each **View** in more detail, clarifying which *properties*, *commands*, and *methods* were needed in the associated **ViewModel** and how they should interact.
+- 💻 CRUD Organisation:
+  Structuring **CRUD** operations by type (Create, Read, Update, Delete) led to **ViewModels** requiring multiple injected dependencies. A more purpose-driven approach, e.g., ParentManager and StudentManager, would have simplified dependency management and improved maintainability.
+- 🧪 Test-Driven Development (TDD) & CI:
+  The use of **TDD** involved an initial learning curve, but when followed rigorously, it significantly reduced bugs and unexpected UI behavior. Integrating **TDD** with **GitHub Actions** for **CI** created a workflow that automatically validated all commits, improving confidence in code quality and maintainability.
+- 🔗 SQLite Connection Management:
+  In hindsight, keeping a single **SQLite connection** open for the service lifetime is suboptimal, but the use of a **ConnectionFactory** clarified how connections could be scoped properly within methods. This also highlighted opportunities to introduce concurrency in future projects for larger databases by running *asynchronous tasks* in *parallel*.
+- 🧑‍🎨 CustomControls & XAML:
+  Developing **CustomControls** with **DependencyProperties** enabled reusable, personalised UI elements. This improved control over how data was displayed and reduced repetitive code. Animations, triggers, and templating further enhanced UI clarity and polish.
+
 ## 📜 License:
 
 This project is licensed under the MIT License.
