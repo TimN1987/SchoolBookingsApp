@@ -9,8 +9,10 @@ A **desktop booking system** designed for managing parents' evening schedules an
 ## ✨ Features:
 
 - 📊 **Dashboard Overview**
+
   Displays upcoming bookings and key information at a glance.
 - 🧑‍🤝‍🧑 **Student and Parent Management**
+
   Add and update personal records and relationships with ease.
 - 🗓️ **Booking Management**
   Schedule meetings for students, avoiding clashes.
