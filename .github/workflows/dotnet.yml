@@ -26,4 +26,4 @@ jobs:
       run: dotnet build SchoolBookingApp.sln --configuration Release
 
     - name: Test
-      run: dotnet test SchoolBookingAppTests/SchoolBookingAppTests.csproj --no-build --configuration Release --verbosity normal
+      run: dotnet test SchoolBookingApp.sln --configuration Release --verbosity normal
