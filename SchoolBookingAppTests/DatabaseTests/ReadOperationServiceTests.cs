@@ -1,0 +1,907 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using SchoolBookingApp.Database;
+using SchoolBookingApp.Enums;
+using SchoolBookingApp.MVVM.Model;
+using Serilog;
+
+namespace SchoolBookingAppTests.DatabaseTests;
+
+public class ReadOperationServiceTests
+{
+    private const string TestConnectionString = "Data Source=:memory:";
+    private const int TotalNameRecords = 20;
+    private const int TotalStudentRecords = 10;
+    private const int TotalParentRecords = 10;
+    private const int NumberOfClasses = 5;
+
+    private const string InvalidTableName = "InvalidTableName";
+    private const string ValidTableName = "Students";
+    private const string InvalidFieldName = "InvalidFieldName";
+    private const string InvalidClassName = "InvalidClassName";
+    private const string ValidKeyword = "Doe";
+    private const string WhiteSpace = " ";
+
+    private readonly DatabaseConnectionInformation _connectionInformation;
+    private readonly SqliteConnection _connection;
+    private readonly SqliteConnection _closedConnection;
+    private readonly DatabaseInitializer _databaseInitializer;
+    private readonly ReadOperationService _readOperationService;
+    private readonly string _loggingFilePath;
+
+    public ReadOperationServiceTests()
+    {
+        _connectionInformation = new DatabaseConnectionInformation();
+
+        _connection = new SqliteConnection(TestConnectionString);
+        _connection.Open();
+
+        _closedConnection = new SqliteConnection(TestConnectionString);
+
+        _databaseInitializer = new DatabaseInitializer(_connection, _connectionInformation);
+        _databaseInitializer.InitializeDatabaseAsync().GetAwaiter().GetResult();
+
+        _readOperationService = new ReadOperationService(_connection);
+
+        _loggingFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), _connectionInformation.ApplicationFolder, "Logs", "CreateOperationServiceTests.log");
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(_loggingFilePath)
+            .CreateLogger();
+    }
+
+    //Constructor tests.
+
+    /// <summary>
+    /// Checks that an <see cref="ArgumentNullException"/> is thrown if a null parameter is passed to the constructor. 
+    /// Ensures that the <see cref="SqliteConnection"/> is not <see langword="null"/> which would lead to errors in 
+    /// accessing the database.
+    /// </summary>
+    [Fact]
+    public void Constructor_NullInput_ThrowsArgumentNullException()
+    {
+        //Arrange, Act & Assert
+        Assert.Throws<ArgumentNullException>(() =>
+            new ReadOperationService(null!));
+    }
+
+    /// <summary>
+    /// Verifies that an instance of <see cref="ReadOperationService"/> is successfully created  when a valid
+    /// connection is provided to its constructor. Ensures that no exceptions are thrown and that the created instance 
+    /// is not null and is of the correct type.
+    /// </summary>
+    [Fact]
+    public void Constructor_ValidConnection_CreatesInstanceSuccessfully()
+    {
+        //Arrange & Act
+        var readOperationService = new ReadOperationService(_connection);
+
+        //Assert
+        Assert.NotNull(readOperationService);
+        Assert.IsType<ReadOperationService>(readOperationService);
+    }
+
+    /// <summary>
+    /// Verifies that an <see cref="InvalidOperationException"/> is thrown if a closed connection is passed as the 
+    /// parameter of the Constructor. Ensures that the <see cref="ReadOperationService"/> is not relying on a 
+    /// closed connection to read from the database and that the connection is handled separately.
+    /// </summary>
+    [Fact]
+    public void Constructor_ClosedConnection_ThrowsInvalidOperationException()
+    {
+        //Arrange, Act & Assert
+        Assert.Throws<InvalidOperationException>(() => new ReadOperationService(_closedConnection));
+    }
+
+    //GetAllSearchData tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetAllSearchData"/> method returns a non-null list of 
+    /// <see cref="SearchResult"/> objects when the database contains data with the correct number of records.
+    /// </summary>
+    [Fact]
+    public async Task GetAllSearchData_TablesContainData_ReturnsCorrectNumberOfRecords()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var result = await _readOperationService.GetAllSearchData();
+
+        //Assert
+        Assert.NotNull(result);
+        Assert.Equal(TotalNameRecords, result.Count);
+        Assert.Contains(result, r => r.LastName == "Doe");
+    }
+
+    //SearchByKeyword tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentNullException"/>" if a null keyword is passed as a parameter. This ensures that the method does 
+    /// not try to execute a search with an invalid keyword, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_NullKeyword_ThrowsArgumentNullException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => 
+            await _readOperationService.SearchByKeyword(null!));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method returns a list of all the names 
+    /// from the database when the <paramref name="keyword"/> parameter is an empty string. This ensures that the 
+    /// default behavior of the search method is to return all data when no specific keyword is provided, which allows 
+    /// the user to see all available names in the database before filtering by a specific keyword.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_EmptyKeyword_ReturnsAllData()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var result = await _readOperationService.SearchByKeyword(string.Empty);
+
+        //Assert
+        Assert.NotNull(result);
+        Assert.Equal(TotalNameRecords, result.Count);
+        Assert.Contains(result, r => r.LastName == "Doe");
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method returns an empty list when the 
+    /// <paramref name="keyword"/> parameter is a whitespace string. This ensures that the method does not return any 
+    /// results when the keyword is not meaningful, which would lead to unexpected behavior or errors in the UI.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_WhiteSpaceKeyword_ReturnsEmptyList()
+    {
+        //Arrange & Act
+        var result = await _readOperationService.SearchByKeyword(WhiteSpace);
+
+        //Assert
+        Assert.Empty(result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if an empty table name is passed as a parameter. This ensures that the method 
+    /// does not attempt to execute a search on an invalid table, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_EmptyTableName_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, string.Empty));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if a whitespace table name is passed as a parameter. This ensures that the method 
+    /// does not attempt to execute a search on an invalid table, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_WhiteSpaceTableName_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, WhiteSpace));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if an invalid table name is passed as a parameter. This ensures that the method 
+    /// does not attempt to execute a search on an invalid table, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_InvalidTableName_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, InvalidTableName));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if an empty field is passed as a parameter. This ensures that the method does not 
+    /// attempt to execute an invalid search on a field, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_EmptyField_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, ValidTableName, string.Empty));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if a whitespace field is passed as a parameter. This ensures that the method does 
+    /// not attempt to execute an invalid search on a field, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_WhiteSpaceField_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, ValidTableName, WhiteSpace));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByKeyword"/> method throws an <see 
+    /// cref="ArgumentException"/> if an invalid field is passed as a parameter. This ensures that the method does not 
+    /// attempt to execute an invalid search on a field, which would lead to unexpected behavior or errors.
+    /// </summary>
+    [Fact]
+    public async Task SearchByKeyword_InvalidField_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => 
+            await _readOperationService.SearchByKeyword(ValidKeyword, ValidTableName, InvalidFieldName));
+    }
+
+    [Theory]
+    [InlineData("Doe", "Parents", "LastName", 2)]
+    [InlineData("Doe", "Students", "LastName", 2)]
+    [InlineData("Sally", "Students", "FirstName", 1)]
+    [InlineData("J", "Students", "FirstName", 3)]
+    [InlineData("Jones", null, "LastName", 2)]
+    [InlineData("S", "Parents", null, 3)]
+    [InlineData("Doe", null, null, 4)]
+    public async Task SearchByKeyword_ValidParameters_ReturnsExpectedResults(
+        string keyword, string tableName, string field, int expectedResultsCount)
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var result = await _readOperationService.SearchByKeyword(keyword, tableName, field);
+
+        //Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedResultsCount, result.Count);
+        Assert.All(result, r => Assert.Contains(keyword, r.FirstName + r.LastName));
+    }
+
+    //SearchByCriteria tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when the
+    /// criteria parameter is null. This ensures that if no criteria are specified, no valid results are returned.
+    /// </summary>
+    [Fact]
+    public async Task SearchByCriteria_NullCriteria_ReturnsEmptyList()
+    {
+        //Arrange & Act
+        var result = await _readOperationService.SearchByCriteria(null!);
+
+        //Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns an empty list when no 
+    /// criteria are provided. This ensures that if no criteria are specified, no valid results are returned.
+    /// </summary>
+    [Fact]
+    public async Task SearchByCriteria_NoCriteria_ReturnsAllData()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var result = await _readOperationService.SearchByCriteria([]);
+
+        //Assert
+        Assert.NotNull(result);
+        Assert.Equal(TotalStudentRecords, result.Count);
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.SearchByCriteria"/> method returns the expected results 
+    /// from the database when valid criteria are provided. This ensures that the method can correctly filter the 
+    /// data based on the specified criteria and return the expected number of results.
+    /// </summary>
+    /// <param name="criteria">A list of <see cref="SearchCriteria"/> objects containing the criteria to filter 
+    /// search results by.</param>
+    /// <param name="expectedResultsCount">The number of results expected in the returned list.</param>
+    /// <param name="expectedFirstNames">The first names expected to be returned.</param>
+    [Theory]
+    [MemberData(nameof(SearchByCriteriaValidMemberData))]
+    public async Task SearchByCriteria_ValidCriteria_ReturnsExpectedResults(
+        List<SearchCriteria> criteria, int expectedResultsCount, List<string> expectedFirstNames)
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var searchResults = await _readOperationService.SearchByCriteria(criteria);
+
+        //Assert
+        Assert.NotNull(searchResults);
+        Assert.Equal(expectedResultsCount, searchResults.Count);
+
+        foreach (var name in expectedFirstNames)
+            Assert.NotEmpty(searchResults.Where(result => result.FirstName == name));
+    }
+
+    //GetStudentData tests.
+
+    /// <summary>
+    /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid (<= 0) student id is passed as the 
+    /// parameter.
+    /// </summary>
+    [Fact]
+    public async Task GetStudentData_InvalidStudentId_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _readOperationService.GetStudentData(0));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetStudentData"/> method retrieves the correct student data 
+    /// from the database using the given student id. Checks that the correct first name and number of parents are 
+    /// returned in the correct type of result.
+    /// </summary>
+    /// <param name="id">The given student id.</param>
+    /// <param name="expectedFirstName">The expected first name for the given student id.</param>
+    /// <param name="expectedParentsCount">The expected number of parents for the given student id.</param>
+    [Theory]
+    [InlineData (1, "John", 2)]
+    [InlineData (2, "Jane", 2)]
+    [InlineData (3, "Sally", 1)]
+    [InlineData (4, "Jackie", 1)]
+    [InlineData (5, "Ibrahim", 1)]
+    public async Task GetStudentData_ValidStudentId_ReturnsCorrectStudentData(
+        int id, string expectedFirstName, int expectedParentsCount)
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var studentData = await _readOperationService.GetStudentData(id);
+
+        //Assert
+        Assert.NotNull(studentData);
+        Assert.IsType<Student>(studentData);
+        Assert.Equal(id, studentData.Id);
+        Assert.Equal(expectedFirstName, studentData.FirstName);
+        Assert.Equal(expectedParentsCount, studentData.Parents.Count);
+    }
+
+    //GetParentInformation tests.
+
+    /// <summary>
+    /// Verifies that an <see cref="ArgumentException"/> is thrown if an invalid parent id (<= 0) is passed as the 
+    /// parameter.
+    /// </summary>
+    [Fact]
+    public async Task GetParentInformation_InvalidParentId_ThrowsArgumentException()
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _readOperationService.GetParentInformation(0));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetParentInformation"/> method retrieves the correct parent 
+    /// information. Checks that the information is of the correct type and not null. Also checks that the expected 
+    /// id, first name and number of children are returned.
+    /// </summary>
+    /// <param name="id">The parent id for the given parent.</param>
+    /// <param name="expectedFirstName">The expected first name for the given parent.</param>
+    /// <param name="expectedChildrenCount">The expected number of children for the given parent.</param>
+    /// <returns></returns>
+    [Theory]
+    [InlineData(1, "Simon", 2)]
+    [InlineData(2, "Jennifer", 2)]
+    [InlineData(3, "Mark", 1)]
+    [InlineData(4, "Lisa", 1)]
+    [InlineData(5, "Ali", 1)]
+    public async Task GetParentInformation(int id, string expectedFirstName, int expectedChildrenCount)
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var parentData = await _readOperationService.GetParentInformation(id);
+
+        //Assert
+        Assert.NotNull(parentData);
+        Assert.IsType<Parent>(parentData);
+        Assert.Equal(id, parentData.Id);
+        Assert.Equal(expectedFirstName, parentData.FirstName);
+        Assert.Equal(expectedChildrenCount, parentData.Children.Count);
+    }
+
+    //GetStudentList tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetStudentList"/> method returns a non-null list of <see 
+    /// cref="SearchResult"/> records with the correct number of students.
+    /// </summary>
+    [Fact]
+    public async Task GetStudentList_ValidDataInTable_RetrievesAllStudents()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var students = await _readOperationService.GetStudentList();
+
+        //Assert
+        Assert.NotNull(students);
+        Assert.Equal(TotalStudentRecords, students.Count);
+        Assert.Equal("John", students.First().FirstName);
+        Assert.All(students, student => Assert.Equal("Students", student.Category));
+    }
+
+    //GetParentList tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetParentList"/> method returns a non-null list of <see 
+    /// cref="SearchResult"/> records with the correct number of parents.
+    /// </summary>
+    [Fact]
+    public async Task GetParentList_ValidDataInTable_RetrievesAllParents()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var parents = await _readOperationService.GetParentList();
+
+        //Assert
+        Assert.NotNull(parents);
+        Assert.Equal(TotalParentRecords, parents.Count);
+        Assert.Equal("Simon", parents.First().FirstName);
+        Assert.All(parents, parent => Assert.Equal("Parents", parent.Category));
+    }
+
+    //ListClasses tests.
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.ListClasses"/> method returns a list of all the classes 
+    /// included in the <c>Students</c> table.
+    /// </summary>
+    [Fact]
+    public async Task ListClasses_ValidDataInTable_ReturnsListOfAllClasses()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var classes = await _readOperationService.ListClasses();
+
+        //Assert
+        Assert.NotNull(classes);
+        Assert.Equal(NumberOfClasses, classes.Count);
+        Assert.Equal(["5B", "4C", "3B", "2A", "1B"], classes);
+    }
+
+    //GetClassList tests.
+
+    /// <summary>
+    /// Verifies that an <see cref="ArgumentException"/> is thrown when an invalid class name is passed ad the 
+    /// parameter to the <see cref="ReadOperationService.GetClassList"/> method. This includes null, an empty string 
+    /// or whitespace.
+    /// </summary>
+    /// <param name="className">The invalid class name.</param>
+    [Theory]
+    [InlineData(null!)]
+    [InlineData("")]
+    [InlineData(WhiteSpace)]
+    public async Task GetClassList_InvalidClassNames_ThrowsArgumentException(string className)
+    {
+        //Arrange, Act & Assert
+        await Assert.ThrowsAsync<ArgumentException> (async () =>
+            await _readOperationService.GetClassList(className));
+    }
+
+    /// <summary>
+    /// Verifies that the <see cref="ReadOperationService.GetClassList"/> method returns the correct list of students 
+    /// when a valid class name is passed as the parameter.
+    /// </summary>
+    /// <param name="className">A valid class name.</param>
+    /// <param name="expectedStudentCount">The number of students in the class.</param>
+    /// <param name="expectedFirstNames">The first names of the students in the class.</param>
+    [Theory]
+    [MemberData(nameof(GetClassListValidMemberData))]
+    public async Task GetClassList_ValidClassName_ReturnsExpectedStudentList(
+        string className, int expectedStudentCount, List<string> expectedFirstNames)
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var classList = await _readOperationService.GetClassList(className);
+
+        //Assert
+        Assert.NotNull(classList);
+        Assert.IsType<Student>(classList.First());
+        Assert.Equal(expectedStudentCount, classList.Count);
+        foreach (var student in classList)
+            Assert.Contains(student.FirstName, expectedFirstNames);
+    }
+
+    /// <summary>
+    /// Verifies that an empty list is returned when the <see cref="ReadOperationService.GetClassList"/> method is 
+    /// called with a non-existant class name. Ensures that the method does not erroneously return results when 
+    /// there should be none to find.
+    /// </summary>
+    [Fact]
+    public async Task GetClassList_ClassNameDoesNotExist_ReturnsNoResults()
+    {
+        //Arrange
+        await ClearTables();
+        await AddDefaultData();
+
+        //Act
+        var classList = await _readOperationService.GetClassList(InvalidClassName);
+
+        //Assert
+        Assert.NotNull(classList);
+        Assert.Empty(classList);
+    }
+
+    //Member data for tests.
+
+    /// <summary>
+    /// Provides valid member data for the <see cref="SearchByCriteria_ValidCriteria_ReturnsExpectedResults"/> test.
+    /// </summary>
+    public static IEnumerable<object[]> SearchByCriteriaValidMemberData()
+    {
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.FirstName,
+                    Operator: SQLOperator.Equals,
+                    Parameters: [ "John"]
+                    ),
+                new (
+                    Field: DatabaseField.LastName,
+                    Operator: SQLOperator.Equals,
+                    Parameters: [ "Doe" ]
+                    )
+            },
+            1,
+            new List<string> { "John" }
+        };
+        yield return new object[] {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.Computing,
+                    Operator: SQLOperator.GreaterThanOrEqual,
+                    Parameters: [ 3 ]
+                    )
+            },
+            4,
+            new List<string> { "John", "Sally", "Ibrahim", "Emma" }
+        };
+        yield return new object[] {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.Math,
+                    Operator: SQLOperator.LessThan,
+                    Parameters: [ 3 ]
+                    ),
+                new (
+                    Field: DatabaseField.Art,
+                    Operator: SQLOperator.Between,
+                    Parameters: [ 1, 4 ]
+                    )
+            },
+            3,
+            new List<string> { "Jackie", "Aisha", "Noah" }
+        };
+        yield return new object[] {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.SafeguardingNotes,
+                    Operator: SQLOperator.NotEquals,
+                    Parameters: [ "n/a" ]
+                    )
+            },
+            3,
+            new List<string> { "Jane", "Ibrahim", "Noah" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.SpecialEducationalNeedsNotes,
+                    Operator: SQLOperator.NotEquals,
+                    Parameters: [ "n/a" ]
+                    )
+            },
+            3,
+            new List<string> { "Sally", "Aisha", "Liam" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.DateAdded,
+                    Operator: SQLOperator.Equals,
+                    Parameters: [ 20250710 ]
+                    )
+            },
+            10,
+            new List<string> { "John", "Jane", "Sally", "Jackie", "Ibrahim", "Aisha", "Liam", "Emma", "Olivia", "Noah" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.Math,
+                    Operator: SQLOperator.GreaterThanOrEqual,
+                    Parameters: [ 5 ]
+                    ),
+                new (
+                    Field: DatabaseField.Reading,
+                    Operator: SQLOperator.LessThan,
+                    Parameters: [ 3 ]
+                    )
+            },
+            1,
+            new List<string> { "Jane" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.Science,
+                    Operator: SQLOperator.NotBetween,
+                    Parameters: [ 2, 4 ]
+                    )
+            },
+            5,
+            new List<string> { "Jane", "Sally", "Jackie", "Ibrahim", "Liam" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.FirstName,
+                    Operator: SQLOperator.Like,
+                    Parameters: [ "J" ]
+                    )
+            },
+            3,
+            new List<string> { "John", "Jane", "Jackie" }
+        };
+        yield return new object[]
+        {
+            new List<SearchCriteria>
+            {
+                new (
+                    Field: DatabaseField.LastName,
+                    Operator: SQLOperator.NotLike,
+                    Parameters: [ "D" ]
+                    ),
+                new (
+                    Field: DatabaseField.FirstName,
+                    Operator: SQLOperator.NotLike,
+                    Parameters: [ "I" ]
+                    )
+            },
+            7,
+            new List<string> { "Sally", "Jackie", "Aisha", "Liam", "Emma", "Olivia", "Noah" }
+        };
+    }
+
+    /// <summary>
+    /// Provides valid member data for the <see cref="GetClassList_ValidClassName_ReturnsExpectedStudentList"/> test.
+    /// </summary>
+    public static IEnumerable<object[]> GetClassListValidMemberData()
+    {
+        yield return new object[] {
+            "5B", 2, new List<string> { "John", "Jane" }
+        };
+        yield return new object[]
+        {
+            "4C", 3, new List<string> { "Sally", "Jackie", "Ibrahim" }
+        };
+        yield return new object[]
+        {
+            "3B", 2, new List<string> { "Aisha", "Liam" }
+        };
+        yield return new object[]
+        {
+            "2A", 2, new List<string> { "Emma", "Olivia" }
+        };
+        yield return new object[]
+        {
+            "1B", 1, new List<string> { "Noah" }
+        };
+    }
+
+    //Helper methods.
+
+    /// <summary>
+    /// Clears the test database tables to ensure that the expected data can be added before a method is tested. Used to 
+    /// ensure consistent testing and avoid unexpected outcomes.
+    /// </summary>
+    private async Task<bool> ClearTables()
+    {
+        try
+        {
+            using var command = _connection.CreateCommand();
+            command.CommandText = @"
+                DELETE FROM ParentStudents;
+                DELETE FROM Parents;
+                DELETE FROM Students;
+                DELETE FROM Data;
+                DELETE FROM Comments;";
+            await command.ExecuteNonQueryAsync();
+
+            Log.Information("Tables successfully cleared.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Failed to clear tables.", ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Adds default data to the test database tables. This is used to ensure that the database has the expected data 
+    /// at the start of a test, enabling consistent testing and careful tracking of expected deletions.
+    /// </summary>
+    private async Task<bool> AddDefaultData()
+    {
+        try
+        {
+            using var studentCommand = _connection.CreateCommand();
+            studentCommand.CommandText = @"
+                INSERT INTO Students (FirstName, LastName, DateOfBirth, Class)
+                VALUES
+                    ('John', 'Doe', 20191010, '5B'),
+                    ('Jane', 'Doe', 20191010, '5B'),
+                    ('Sally', 'Moon', 20200101, '4C'),
+                    ('Jackie', 'Smith', 20200101, '4C'),
+                    ('Ibrahim', 'Khan', 20200101, '4C'),
+                    ('Aisha', 'Ali', 20200101, '3B'),
+                    ('Liam', 'Johnson', 20200101, '3B'),
+                    ('Emma', 'Williams', 20200101, '2A'),
+                    ('Olivia', 'Brown', 20200101, '2A'),
+                    ('Noah', 'Jones', 20200101, '1B')
+                ;";
+            await studentCommand.ExecuteNonQueryAsync();
+
+            using var parentsCommand = _connection.CreateCommand();
+            parentsCommand.CommandText = @"
+                INSERT INTO Parents (FirstName, LastName)
+                VALUES
+                    ('Simon', 'Doe'),
+                    ('Jennifer', 'Doe'),
+                    ('Mark', 'Moon'),
+                    ('Lisa', 'Smith'),
+                    ('Ali', 'Khan'),
+                    ('Fatima', 'Ali'),
+                    ('John', 'Johnson'),
+                    ('Sarah', 'Williams'),
+                    ('Michael', 'Brown'),
+                    ('Emily', 'Jones')
+                ;";
+            await parentsCommand.ExecuteNonQueryAsync();
+
+            using var relationshipCommand = _connection.CreateCommand();
+            relationshipCommand.CommandText = @"
+                INSERT INTO ParentStudents (ParentId, StudentId, Relationship)
+                VALUES
+                    (1, 1, 'Father'),
+                    (1, 2, 'Father'),
+                    (2, 1, 'Mother'),
+                    (2, 2, 'Mother'),
+                    (3, 3, 'Grandfather'),
+                    (4, 4, 'Aunt'),
+                    (5, 5, 'Uncle'),
+                    (6, 6, 'Mother'),
+                    (7, 7, 'Father'),
+                    (8, 8, 'Mother'),
+                    (9, 9, 'Father'),
+                    (10, 10, 'Mother')
+                ;";
+            await relationshipCommand.ExecuteNonQueryAsync();
+
+            using var dataCommand = _connection.CreateCommand();
+            dataCommand.CommandText = @"
+                INSERT INTO Data
+                    (StudentId, Math, MathComments, Reading, ReadingComments, Writing, WritingComments,
+                    Science, History, Geography, MFL, PE, Art, Music, DesignTechnology, Computing, RE)
+                VALUES
+                    (1, 3, 'Great work', 5, 'Getting fluent', 1, 'Cannot write',
+                    2, 5, 4, 2, 5, 1, 5, 3, 4, 3),
+                    (2, 5, 'A true star', 1, 'Learning simple phonics', 5, 'Lovely handwriting',
+                    5, 4, 5, 2, 3, 5, 3, 4, 2, 3),
+                    (3, 5, 'Great progress', 5, 'Very confident', 3, 'Developing confidence',
+                    5, 5, 5, 4, 4, 5, 4, 4, 3, 5),
+                    (4, 2, 'Learning to count', 1, 'Starting with first sounds', 2, 'Can write letters',
+                    1, 2, 2, 2, 1, 1, 2, 1, 2, 2),
+                    (5, 1, 'Just beginning', 5, 'Already fluent', 5, 'Has written a novel',
+                    1, 5, 5, 5, 5, 5, 1, 1, 5, 1),
+                    (6, 2, 'Tries very hard', 3, 'Starting to read words', 2, 'Can write words',
+                    2, 3, 1, 1, 3, 4, 2, 1, 2, 3),
+                    (7, 5, 'Practically perfect', 5, 'Very confident', 3, 'Learning to use full stops',
+                    5, 3, 2, 3, 1, 5, 5, 5, 2, 3),
+                    (8, 2, 'Making progress', 4, 'Can read quite well', 3, 'Tries very hard',
+                    4, 4, 4, 3, 3, 5, 3, 4, 4, 3),
+                    (9, 4, 'Very methodical', 4, 'Confident but erratic', 2, 'Must try harder',
+                    3, 2, 5, 4, 1, 5, 3, 5, 1, 2),
+                    (10, 1, 'Finds it very hard', 5, 'Loves reading all day', 1, 'Learning to hold a pencil',
+                    3, 5, 1, 2, 4, 2, 3, 3, 2, 3)
+                ;";
+            await dataCommand.ExecuteNonQueryAsync();
+
+            using var commentsCommand = _connection.CreateCommand();
+            commentsCommand.CommandText = @"
+                INSERT INTO Comments (
+                StudentId, GeneralComments, PupilComments, ParentComments, BehaviorNotes, AttendanceNotes, HomeworkNotes,
+                ExtraCurricularNotes, SpecialEducationalNeedsNotes, SafeguardingNotes, OtherNotes, DateAdded
+                )
+                VALUES 
+                (1, 'Very helpful child', 'I feel confident', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'Part of the school choir', 'n/a', 'n/a', 'Look for lost jumper', 20250710),
+                (2, 'Great work this term', 'I''m loving my learning.', 'They struggle with homework.', 'Very focused', 'n/a', 'Often late.',
+                'Plays for the football team.', 'n/a', 'Dad back in prison.', 'n/a', 20250710),
+                (3, 'A difficult term', 'I like playtime', 'Tough to get them to school', 'Very disruptive', 'Often absent on Mondays', 'None completed',
+                'n/a', 'ADHD assessment booked', 'n/a', 'n/a', 20250710),
+                (4, 'A very quiet child', 'I like to play with my friends', 'They are very shy', 'Very quiet', 'n/a', 'n/a',
+                'n/a', 'n/a', 'n/a', 'Wants to start a newspaper club', 20250710),
+                (5, 'A very bright child', 'I love reading', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'Joining the orchestra', 'n/a', 'Notes on file. See DG.', 'n/a', 20250710),
+                (6, 'A very helpful child', 'I like to help my friends', 'They are very happy', 'Great behavior', 'n/a', 'n/a',
+                'n/a', 'Speech and language assessment booked', 'n/a', 'Wants to start a gardening club', 20250710),
+                (7, 'FInding learning hard', 'I love PE', 'They enjoy football', 'Trying hard', 'Reached 100% attendance', 'Extra spellings',
+                'Plays for the football team', 'Dyslexia assessment results on file', 'n/a', 'Keeps forgetting football kit', 20250710),
+                (8, 'Great improvement', 'I feel much happier', 'They are much more settled', 'Role model. Very focused.', 'n/a', 'Excellent effort',
+                'Part of the school choir', 'n/a', 'n/a', 'n/a', 20250710),
+                (9, 'Trying hard with learning', 'I am enjoying my maths', 'They are reading lots at home', 'Great effort', '100% again', 'Completed extra projects',
+                'n/a', 'n/a', 'n/a', 'n/a', 20250710),
+                (10, 'Very difficult term.', 'n/a', 'We are really worried about their attitude', 'Very difficult. See file.', 'Dipped below 85%', 'None handed in.',
+                'n/a', 'n/a', 'See file. Speak to DG.', 'Book appointment with DG for further discussions.', 20250710)
+                ;";
+            await commentsCommand.ExecuteNonQueryAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Failed to add default data to test database.", ex);
+            throw;
+        }
+    }
+}

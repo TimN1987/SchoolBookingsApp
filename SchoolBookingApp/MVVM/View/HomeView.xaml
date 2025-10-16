@@ -1,0 +1,100 @@
+﻿<UserControl x:Class="SchoolBookingApp.MVVM.View.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:view="clr-namespace:SchoolBookingApp.MVVM.View"
+             xmlns:viewmodel="clr-namespace:SchoolBookingApp.MVVM.Viewmodel"
+             xmlns:controls="clr-namespace:SchoolBookingApp.MVVM.View.CustomControls"
+             d:DataContext="{d:DesignInstance viewmodel:HomeViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DockPanel Background="#101010">
+        <Grid DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Grid.ColumnSpan="3"
+                       Grid.Row="0"
+                       Text="{Binding DashboardTitleText, Mode=OneWay}"
+                       Style="{DynamicResource TitleText}"/>
+            <controls:DataBox Grid.Column="0"
+                              Grid.Row="1"
+                              HorizontalAlignment="Center"
+                              Title="{Binding TotalStudentsText, Mode=OneWay}"
+                              Number="{Binding StudentsCount, Mode=OneWay}"
+                              Foreground="White"
+                              StartColor="DarkBlue"
+                              StopColor="DarkSlateBlue"/>
+            <controls:DataBox Grid.Column="1"
+                              Grid.Row="1"
+                              HorizontalAlignment="Center"
+                              Title="{Binding TotalBookingsText, Mode=OneWay}"
+                              Number="{Binding BookingsCount, Mode=OneWay}"
+                              Foreground="White"
+                              StartColor="DarkOliveGreen"
+                              StopColor="DarkGreen"/>
+            <controls:DataBox Grid.Column="2"
+                              Grid.Row="1"
+                              HorizontalAlignment="Center"
+                              Title="{Binding TotalParentsText, Mode=OneWay}"
+                              Number="{Binding ParentsCount, Mode=OneWay}"
+                              Foreground="White"
+                              StartColor="DarkSlateGray"
+                              StopColor="DarkGray"/>
+        </Grid>
+        <Grid Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="0"
+                     Stretch="Uniform">
+                <controls:BookingsPieChart BookedPercentage="{Binding StudentsBookedPercentage, Mode=OneWay}"
+                                       BookedColor="Red"
+                                       UnbookedPercentage="{Binding StudentsUnbookedPercentage, Mode=OneWay}"
+                                       UnbookedColor="Blue"/>
+            </Viewbox>
+            <Grid Grid.Column="1"
+                  Margin="0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Viewbox Stretch="Uniform"
+                         Grid.Row="0">
+                    <ListView ItemsSource="{Binding Bookings, Mode=OneWay}"
+                              SelectedItem="{Binding SelectedBooking, Mode=TwoWay}"
+                              Style="{DynamicResource ListViewStyle}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderDateText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding BookingDate, StringFormat={}{0:dd-MM-yyyy}}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderTimeText}"
+                                                Width="100"
+                                                DisplayMemberBinding="{Binding TimeSlot, StringFormat={}{0:hh\\:mm}}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderFirstNameText}"
+                                                Width="150"
+                                                DisplayMemberBinding="{Binding FirstName}"/>
+                                <GridViewColumn Header="{Binding ListViewColumnHeaderLastNameText}"
+                                                Width="150"
+                                                DisplayMemberBinding="{Binding LastName}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Viewbox>
+                <Button Grid.Row="1"
+                        Content="{Binding SelectBookingButtonText}"
+                        Command="{Binding ViewBookingCommand}"
+                        Style="{DynamicResource HomeViewSelectBookingButtonStyle}"/>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</UserControl>
