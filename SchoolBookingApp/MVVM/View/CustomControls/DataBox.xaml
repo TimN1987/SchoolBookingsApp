@@ -1,0 +1,78 @@
+﻿<UserControl x:Class="SchoolBookingApp.MVVM.View.CustomControls.DataBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:SchoolBookingApp.MVVM.View.CustomControls"
+             mc:Ignorable="d"
+             x:Name="root">
+    <Grid x:Name="contentGrid"
+          Width="150" Height="150"
+          RenderTransformOrigin="0.5,0.5"
+          Background="Transparent">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform x:Name="scaleTransform" ScaleX="1" ScaleY="1"/>
+                <RotateTransform x:Name="rotateTransform" Angle="0"/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+        <Border CornerRadius="8"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="8"
+                Margin="4">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="{Binding StartColor, ElementName=root}" Offset="0"/>
+                    <GradientStop Color="{Binding StopColor, ElementName=root}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="4*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Text="{Binding Title, ElementName=root}" 
+                           FontWeight="Bold"
+                           FontSize="18"
+                           Foreground="{Binding Foreground, ElementName=root}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="1"
+                           Text="{Binding Number, ElementName=root}"
+                           FontWeight="Bold"
+                           FontSize="50"
+                           Foreground="{Binding Foreground, ElementName=root}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal"/>
+                <VisualState x:Name="MouseOver">
+                    <Storyboard FillBehavior="Stop">
+                        <DoubleAnimation Storyboard.TargetName="scaleTransform"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         To="1.1"
+                                         Duration="0:0:0.3"/>
+                        <DoubleAnimation Storyboard.TargetName="scaleTransform"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         To="1.1"
+                                         Duration="0:0:0.3"/>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rotateTransform"
+                                                       Storyboard.TargetProperty="Angle"
+                                                       Duration="0:0:0.6"
+                                                       RepeatBehavior="1x">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.0" Value="0"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.15" Value="-5"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="5"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="-3"/>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="0"/>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</UserControl>
