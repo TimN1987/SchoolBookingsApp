@@ -249,7 +249,7 @@ public class AddBookingViewModelTests
     /// entered and the <see cref="AddBookingViewModel.UpdateBooking"/> method is called. Ensures that valid bookings are 
     /// entered into the database successfully using the <see cref="BookingManager"/>.
     /// </summary>
-    [Fact(Skip = "Test behavior does not match the debug build behavior.")]
+    [Fact(Skip = "Inconsistent behavior")]
     public async Task UpdateBooking_ValidBooking_CallsUpdateBooking()
     {
         //Arrange
@@ -273,7 +273,7 @@ public class AddBookingViewModelTests
     /// Verifies that the expected error message is set when the <see cref="IBookingManager.UpdateBooking"/> method 
     /// fails to update a valid booking from the <see cref="AddBookingViewModel.UpdateBooking"/> method.
     /// </summary>
-    [Fact(Skip = "Due to inconsistent behavior.")]
+    [Fact(Skip = "Inconsistent behavior")]
     public async Task UpdateBooking_UpdateBookingFails_ErrorMessageDisplayed()
     {
         //Arrange
