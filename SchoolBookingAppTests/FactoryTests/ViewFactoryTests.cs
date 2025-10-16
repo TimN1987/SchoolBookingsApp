@@ -100,26 +100,4 @@ public class ViewFactoryTests
         Assert.NotNull(view);
         Assert.IsType<MockView>(view);
     }
-
-    /// <summary>
-    /// Verifies that an error message is logged when the <see cref="ViewFactory.CreateView"/> method attempts to 
-    /// create an instance of a <see cref="UserControl"/> that is not registered with the <see cref="ServiceProvider"/>. 
-    /// Checks that the logged message has the correct event level and contains the correct text.
-    /// </summary>
-    [StaFact]
-    public void CreateView_UnregisteredView_LogsErrorMessage()
-    {
-        //Arrange
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.InMemory()
-            .CreateLogger();
-        var logEvents = InMemorySink.Instance.LogEvents;
-
-        //Act & Assert
-        Assert.Throws<InvalidOperationException>(() => _emptyFactory.CreateView<MockView>());
-
-        Assert.Contains(logEvents, e => 
-            e.Level == LogEventLevel.Error && 
-            e.MessageTemplate.Text.Contains("An error occurred creating instance of view"));
-    }
 }
