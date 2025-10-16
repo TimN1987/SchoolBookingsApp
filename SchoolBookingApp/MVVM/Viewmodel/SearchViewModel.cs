@@ -620,8 +620,7 @@ public class SearchViewModel : ViewModelBase
     /// </summary>
     private async Task ClearStatusMessageAfterDelay()
     {
-        await Task.Delay(StatusMessageDisplayTime);
-        StatusMessage = string.Empty;
+        //placeholder
     }
 
     //Validation methods
