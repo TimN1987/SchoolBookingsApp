@@ -376,8 +376,7 @@ public class AddStudentViewModel : ViewModelBase
     /// </summary>
     private async Task DelayMessageRemoval()
     {
-        await Task.Delay(MessageDisplayTime);
-        StatusMessage = string.Empty;
+        //placeholder
     }
 
     // Private static helper methods

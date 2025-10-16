@@ -1003,8 +1003,7 @@ public class AddBookingViewModel : ViewModelBase
     /// </summary>
     private async Task ClearMessageAfterDelay()
     {
-        await Task.Delay(MessageDisplayTime);
-        UpdateMessage = string.Empty;
+       //placeholder
     }
 
     //Validation methods

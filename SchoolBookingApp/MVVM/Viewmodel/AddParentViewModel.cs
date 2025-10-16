@@ -554,8 +554,7 @@ public class AddParentViewModel : ViewModelBase
     /// </summary>
     private async Task RemoveMessageAfterDelay()
     {
-        await Task.Delay(StatusMessageDisplayTime);
-        StatusMessage = string.Empty;
+        //placeholder
     }
 
     /// <summary>
