@@ -16,6 +16,8 @@ using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 using SchoolBookingApp.Services;
 using SchoolBookingApp.Struct;
+using System.Windows.Threading;
+using System.Windows;
 
 namespace SchoolBookingApp.MVVM.Viewmodel;
 
@@ -93,6 +95,9 @@ public class AddBookingViewModel : ViewModelBase
     private readonly ICreateOperationService _createOperationService;
     private readonly IUpdateOperationService _updateOperationService;
     private readonly IDeleteOperationService _deleteOperationService;
+
+    private CancellationTokenSource? _messageCTS;
+    private Dispatcher _dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
     private Booking? _booking;
     private SearchResult? _selectedStudent;
@@ -212,8 +217,8 @@ public class AddBookingViewModel : ViewModelBase
         get => _updateMessage;
         set
         {
-            SetProperty(ref _updateMessage, value);
-            Task.Run(async () => await ClearMessageAfterDelay());
+            if (SetProperty(ref _updateMessage, value))
+                _ = ClearMessageAfterDelay();
         }
     }
     public bool IsNewBooking
@@ -998,12 +1003,24 @@ public class AddBookingViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Clears the <see cref="UpdateMessage"/> after a given delay. Ensures that messages to not remain displayed 
-    /// indefinitely.
+    /// Clears the <see cref="UpdateMessage"/> after a given delay and cancels any prior message clearning delays. Ensures 
+    /// that messages do not remain displayed indefinitely.
     /// </summary>
     private async Task ClearMessageAfterDelay()
     {
-       //placeholder
+        _messageCTS?.Cancel();
+        _messageCTS = new CancellationTokenSource();
+        CancellationToken token = _messageCTS.Token;
+
+        try
+        {
+            await Task.Delay(MessageDisplayTime, token);
+            _dispatcher.Invoke(() => UpdateMessage = string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+            //Ignore cancellation.
+        }
     }
 
     //Validation methods
