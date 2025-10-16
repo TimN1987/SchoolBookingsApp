@@ -146,7 +146,7 @@ The majority of database operations were implemented **asynchronously** to ensur
 
 - 🧑‍🎨 UI and UX Enhancements:
   Expand the dashboard to include richer visualisations and data summaries, such as upcoming meetings, average attainment scores, and bookings by class. Implement interactive graphs (e.g., bar charts for student performance by subject) to make data easier to interpret at a glance.
-- 📂 Cleaner Project Structure:
+- 📂 Cleaner Project Structure: ✅
   Reorganise folders to better reflect *separation of concerns*. For example, moving the *Services* directory outside the *MVVM* folder and updating namespaces accordingly. This will align the solution more closely with professional .NET conventions.
 - 📈 Enable data tracking:
   Add functionality to track multiple sets of attainment data and meeting records per student. This would provide deeper insights, enabling teachers to monitor student progress over time and refer back to prior meeting records to action discussion points.
