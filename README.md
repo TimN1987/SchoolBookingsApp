@@ -68,23 +68,23 @@ A **desktop booking system** designed for managing parents' evening schedules an
 
 ```
 SchoolBookingsApp/
+├── Converters/
+├── Database/
+├── Enums/
+├── Factories/
 ├── MVVM/
-|  ├── Commands
-|  ├── Converters
-|  ├── CustomControls
-|  ├── Database
-|  ├── Enums
-|  ├── Factories
-|  ├── Model
-|  ├── Services
-|  ├── Struct
-|  ├── View
-|  └── ViewModel
-|    └── Base
+|  ├── Model/
+|  ├── View/
+|  |  └── CustomControls/
+|  └── Viewmodel/
+|    ├── Base/
+|    └── Commands/
 ├── Resources/
 |  └── Images/
 |    ├── AddBookingView
 |    └── MainWindow
+├── Services/
+├── Struct/
 └── App.xaml
 SchoolBookingsAppTests/
 ├── ConverterTests
