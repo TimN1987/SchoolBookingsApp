@@ -14,6 +14,9 @@ using SchoolBookingApp.MVVM.Viewmodel.Commands;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 using SchoolBookingApp.Services;
+using System.Printing;
+using System.Windows.Threading;
+using System.Windows;
 
 namespace SchoolBookingApp.MVVM.Viewmodel;
 
@@ -53,6 +56,9 @@ public class AddStudentViewModel : ViewModelBase
     private readonly IUpdateOperationService _updateOperationService;
     private readonly IDeleteOperationService _deleteOperationService;
 
+    private CancellationTokenSource? _messageCTS;
+    private Dispatcher Dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
     private bool _isNewStudent;
     private string _statusMessage;
 
@@ -86,10 +92,8 @@ public class AddStudentViewModel : ViewModelBase
         get => _statusMessage;
         set
         {
-            SetProperty(ref _statusMessage, value);
-            
-            if (value != string.Empty)
-                Task.Run(async () => await DelayMessageRemoval());
+            if (SetProperty(ref _statusMessage, value))
+                _ = DelayMessageRemoval();
         }
     }
 
@@ -372,11 +376,24 @@ public class AddStudentViewModel : ViewModelBase
 
     /// <summary>
     /// Creates a delay before clearing the status message to allow the user time to read it without displaying the 
-    /// message indefinitely.
+    /// message indefinitely. Ensures any prior delay tasks are cancelled to prevent multiple delays from running 
+    /// concurrently.
     /// </summary>
     private async Task DelayMessageRemoval()
     {
-        //placeholder
+        _messageCTS?.Cancel();
+        _messageCTS = new CancellationTokenSource();
+        CancellationToken token = _messageCTS.Token;
+
+        try
+        {
+            await Task.Delay(MessageDisplayTime, token);
+            Dispatcher.Invoke(() => StatusMessage = string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+            //Ignore cancellation.
+        }
     }
 
     // Private static helper methods

@@ -97,7 +97,7 @@ public class AddBookingViewModel : ViewModelBase
     private readonly IDeleteOperationService _deleteOperationService;
 
     private CancellationTokenSource? _messageCTS;
-    private Dispatcher _dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+    private Dispatcher Dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
     private Booking? _booking;
     private SearchResult? _selectedStudent;
@@ -1015,7 +1015,7 @@ public class AddBookingViewModel : ViewModelBase
         try
         {
             await Task.Delay(MessageDisplayTime, token);
-            _dispatcher.Invoke(() => UpdateMessage = string.Empty);
+            Dispatcher.Invoke(() => UpdateMessage = string.Empty);
         }
         catch (TaskCanceledException)
         {

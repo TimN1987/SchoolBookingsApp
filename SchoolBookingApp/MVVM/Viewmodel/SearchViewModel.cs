@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 using SchoolBookingApp.Database;
 using SchoolBookingApp.Enums;
 using SchoolBookingApp.MVVM.Model;
@@ -54,6 +56,9 @@ public class SearchViewModel : ViewModelBase
     //Fields
     private readonly IEventAggregator _eventAggregator;
     private readonly IReadOperationService _readOperationService;
+
+    private CancellationTokenSource? _messageCTS;
+    private Dispatcher Dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
     //Keyword search fields
     private string _searchText;
@@ -257,8 +262,8 @@ public class SearchViewModel : ViewModelBase
         get => _statusMessage;
         set
         {
-            SetProperty(ref _statusMessage, value);
-            Task.Run(async () => await ClearStatusMessageAfterDelay());
+            if (SetProperty(ref _statusMessage, value))
+                _ = ClearStatusMessageAfterDelay();
         }
     }
     public bool IsAdvancedStudentSearch
@@ -620,7 +625,19 @@ public class SearchViewModel : ViewModelBase
     /// </summary>
     private async Task ClearStatusMessageAfterDelay()
     {
-        //placeholder
+        _messageCTS?.Cancel();
+        _messageCTS = new CancellationTokenSource();
+        CancellationToken token = _messageCTS.Token;
+
+        try
+        {
+            await Task.Delay(StatusMessageDisplayTime, token);
+            Dispatcher.Invoke(() => StatusMessage = string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+            //Ignore cancellation.
+        }
     }
 
     //Validation methods
