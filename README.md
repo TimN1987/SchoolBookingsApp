@@ -144,43 +144,43 @@ The majority of database operations were implemented **asynchronously** to ensur
 
 ## 🔨 Future Improvements:
 
-- 🧑‍🎨 UI and UX Enhancements:
+- 🧑‍🎨 **UI and UX Enhancements:**
   Expand the dashboard to include richer visualisations and data summaries, such as upcoming meetings, average attainment scores, and bookings by class. Implement interactive graphs (e.g., bar charts for student performance by subject) to make data easier to interpret at a glance.
-- 📂 Cleaner Project Structure: ✅
+- 📂 **Cleaner Project Structure:** ✅
   Reorganise folders to better reflect *separation of concerns*. For example, moving the *Services* directory outside the *MVVM* folder and updating namespaces accordingly. This will align the solution more closely with professional .NET conventions.
-- 📈 Enable data tracking:
+- 📈 **Enable data tracking:**
   Add functionality to track multiple sets of attainment data and meeting records per student. This would provide deeper insights, enabling teachers to monitor student progress over time and refer back to prior meeting records to action discussion points.
-- 📨 Refactor Status Messaging:
+- 📨 **Refactor Status Messaging:**
   Centralise all user-facing messages in a dedicated *static* **StatusMessage** class to improve consistency and maintainability. Replace the existing **Task.Delay**–based message clearing with **cancellation tokens** for more robust and responsive UI updates.
-- 📅 Improve Booking View:
+- 📅 **Improve Booking View:**
   Implement a **calendar-based layout** to present bookings in a more visual and intuitive format. Provide users with the option to toggle between *calendar* and *list* views, enhancing usability and making it easier to manage and review appointments.
 
 ## 🌟 Project Highlights:
 
-- 💻 Full CRUD functionality:
+- 💻 **Full CRUD functionality:**
   Designed and implemented complete **Create**, **Read**, **Update**, and **Delete** operations across multiple tables, ensuring consistent data handling and validation. Included a range of flexible data retrieval methods, including the ability to search by multiple criteria for more refined and efficient data access.
-- 🔍 Relational Database Design:
+- 🔍 **Relational Database Design:**
   Introduced a relationship table to manage *many-to-many* links between students and parents, demonstrating practical use of **foreign keys** and **JOIN** operations in **SQLite**. Implemented *cascading deletes* to maintain data integrity when records are removed, and extended read operations across related tables for combined data queries.
-- 🧩 Dependency Injection and Modularity:
+- 🧩 **Dependency Injection and Modularity:**
   Used **IServiceCollection** and **IServiceProvider** for clean and testable dependency management. This ensured that all components (including **CRUD** services and **EventAggregator**) were easily maintainable and decoupled.
-- 📊 Dynamic Data Visualisation:
+- 📊 **Dynamic Data Visualisation:**
   Implemented a **custom control** for pie charts to display key data summaries, such as student booking distribution, making data more engaging and accessible. Used *trigonometric calculations*, *converters* and *Geometry paths* in **XAML** to create accurate and responsive pie chart segments.
-- 🎨 Customised and Consistent XAML UI:
+- 🎨 **Customised and Consistent XAML UI:**
   Developed a clear and modern UI using **XAML**, featuring *DataTemplates*, *ControlTemplates*, and *Styles* for a cohesive appearance across all **Views**. Emphasis was placed on clarity, maintainability, and ease of navigation. Incorporated *VisualStateManager* with Storyboard animations and *Template Triggers* for smoother visual feedback and dynamic UI interactions.
-- 🧪 Testing and Continuous Integration:
+- 🧪 **Testing and Continuous Integration:**
   Followed **Test-Driven Development (TDD)** principles using **xUnit**, ensuring that logic for database access, ViewModels, and validation was fully testable. Integrated **GitHub Actions** to automatically build and run all tests on each commit, supporting a professional **CI pipeline** and maintaining code reliability throughout development.
 
 ## 💡 Lessons Learned:
 
-- 📝 Careful Planning:
+- 📝 **Careful Planning:**
   The project scope grew quickly during development, and at times I spent more time refactoring than expected. Early **CRUD** services included unused methods due to initial uncertainties in planning. As development progressed, I planned each **View** in more detail, clarifying which *properties*, *commands*, and *methods* were needed in the associated **ViewModel** and how they should interact.
-- 💻 CRUD Organisation:
+- 💻 **CRUD Organisation:**
   Structuring **CRUD** operations by type (Create, Read, Update, Delete) led to **ViewModels** requiring multiple injected dependencies. A more purpose-driven approach, e.g., ParentManager and StudentManager, would have simplified dependency management and improved maintainability.
-- 🧪 Test-Driven Development (TDD) & CI:
+- 🧪 **Test-Driven Development (TDD) & CI:**
   The use of **TDD** involved an initial learning curve, but when followed rigorously, it significantly reduced bugs and unexpected UI behavior. Integrating **TDD** with **GitHub Actions** for **CI** created a workflow that automatically validated all commits, improving confidence in code quality and maintainability.
-- 🔗 SQLite Connection Management:
+- 🔗 **SQLite Connection Management:**
   In hindsight, keeping a single **SQLite connection** open for the service lifetime is suboptimal, but the use of a **ConnectionFactory** clarified how connections could be scoped properly within methods. This also highlighted opportunities to introduce concurrency in future projects for larger databases by running *asynchronous tasks* in *parallel*.
-- 🧑‍🎨 CustomControls & XAML:
+- 🧑‍🎨 **CustomControls & XAML:**
   Developing **CustomControls** with **DependencyProperties** enabled reusable, personalised UI elements. This improved control over how data was displayed and reduced repetitive code. Animations, triggers, and templating further enhanced UI clarity and polish.
 
 ## 🗒️ Final Notes:
