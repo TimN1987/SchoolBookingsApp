@@ -12,6 +12,8 @@ using SchoolBookingApp.MVVM.Viewmodel.Commands;
 using SchoolBookingApp.MVVM.Model;
 using SchoolBookingApp.MVVM.Viewmodel.Base;
 using SchoolBookingApp.Services;
+using System.Windows.Threading;
+using System.Windows;
 
 namespace SchoolBookingApp.MVVM.Viewmodel;
 
@@ -61,6 +63,9 @@ public class AddParentViewModel : ViewModelBase
     private readonly ICreateOperationService _createOperationService;
     private readonly IUpdateOperationService _updateOperationService;
     private readonly IDeleteOperationService _deleteOperationService;
+
+    private CancellationTokenSource? _messageCTS;
+    private Dispatcher Dispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
     private bool _isNewParent;
     private bool _isAssignedStudentSelected;
@@ -113,10 +118,8 @@ public class AddParentViewModel : ViewModelBase
         get => _statusMessage;
         set
         {
-            SetProperty(ref _statusMessage, value);
-
-            if (value != string.Empty)
-                Task.Run(async () => await RemoveMessageAfterDelay());
+            if (SetProperty(ref _statusMessage, value))
+                _ = RemoveMessageAfterDelay();
         }
     }
 
@@ -549,12 +552,24 @@ public class AddParentViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Clears the <see cref="StatusMessage"/> after a preset delay. Ensures that messages do not remain visible 
-    /// indefinitely.
+    /// Clears the <see cref="StatusMessage"/> after a preset delay and cancels any existing delays. Ensures that messages 
+    /// do not remain visible indefinitely.
     /// </summary>
     private async Task RemoveMessageAfterDelay()
     {
-        //placeholder
+        _messageCTS?.Cancel();
+        _messageCTS = new CancellationTokenSource();
+        CancellationToken token = _messageCTS.Token;
+
+        try
+        {
+            await Task.Delay(StatusMessageDisplayTime, token);
+            Dispatcher.Invoke(() => StatusMessage = string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+            //Ignore cancellation.
+        }
     }
 
     /// <summary>
